@@ -1,0 +1,797 @@
+[
+    {
+        "numero": 1,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Écrire un algorithme qui permet d'afficher le message Bonjour."
+    },
+    {
+        "numero": 2,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Ecrire un algorithme qui permet de saisir un nombre au clavier puis l'affiche à l'écran."
+    },
+    {
+        "numero": 3,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Écrire un algorithme qui convertit une température entrée au clavier exprimée en degrés Fahrenheit et affiche une valeur approchée de la même température en degrés Celsius (Formule : C = 0.55556 * (F - 32))."
+    },
+    {
+        "numero": 4,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Même question que l'exo 3, pour la conversion inverse : de degrés Celsius en degrés Fahrenheit."
+    },
+    {
+        "numero": 5,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Pour un cercle dont la valeur du rayon est lue, écrire un algorithme qui calcule et affiche avec l'unité choisie : Le périmètre du cercle; La surface du cercle; Le volume de la sphère."
+    },
+    {
+        "numero": 6,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Ecrire un algorithme qui calcule et affiche le salaire net d'un employé après avoir demandé les informations nécessaires (Indice, valeur point d'indice, taux de ristourne)."
+    },
+    {
+        "numero": 7,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Écrire un algorithme permettant de saisir deux nombres et d'afficher leur produit."
+    },
+    {
+        "numero": 8,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Écrire un algorithme qui permet d'échange le contenu de deux entiers A et B saisis par l'utilisateur et afficher ces entiers après l'échange."
+    },
+    {
+        "numero": 9,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Ecrire un algorithme qui demande à l'utilisateur les valeurs de deux variables réelles x1 et x2; calcule et affiche la valeur de la distance d entre les points A et B d'abscisse respective x1 et x2."
+    },
+    {
+        "numero": 10,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Ecrire un algorithme qui demande à l'utilisateur les valeurs des coordonnées de deux points A et B (A(xa,ya)) et (B(xb,yb)); calcule la valeur de la variable d1 mesurant la distance entre les points."
+    },
+    {
+        "numero": 11,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "a) Écrire un programme qui calcule et affiche une longueur en pouce à partir d'une saisie en pied et pouce (1 pied = 12 pouces). b) Faire l'inverse (pouce vers pied et pouce)."
+    },
+    {
+        "numero": 12,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Écrire un algorithme qui lit le prix d'un composant et affiche le prix calculé après une réduction de 10%."
+    },
+    {
+        "numero": 13,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Écrire un algorithme qui calcule la hauteur h d'une chute libre au bout d'un temps t saisi (Formule: h = 0.5 * g * t^2 avec g=9.81)."
+    },
+    {
+        "numero": 14,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Écrire un algorithme qui calcule la durée totale de la chute connaissant la hauteur totale h de l'immeuble."
+    },
+    {
+        "numero": 15,
+        "type": "LES INSTRUCTION DE BASES",
+        "enonce": "Écrire un algorithme qui permet de calculer la moyenne de trois entiers saisis par l'utilisateur."
+    },
+    {
+        "numero": 16,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Écrire un algorithme qui permet d'afficher si un nombre entier saisi au clavier est pair ou impair."
+    },
+    {
+        "numero": 17,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Écrire un algorithme qui permet d'afficher le plus grand de trois entiers saisis au clavier."
+    },
+    {
+        "numero": 18,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Écrire un algorithme qui permet d'évaluer une note saisie au clavier (si note > 10 affiche 'validé', sinon 'non validé')."
+    },
+    {
+        "numero": 19,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Écrire un algorithme qui informe si le produit de deux nombres m et n est positif, négatif ou nul sans faire le produit."
+    },
+    {
+        "numero": 20,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Écrire un algorithme qui permet de calculer la valeur absolue d'un entier saisi par l'utilisateur."
+    },
+    {
+        "numero": 21,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Ecrire un algorithme qui calcule et affiche : a) Le reste de la division de a par b. b) La partie entière de la division de a par b."
+    },
+    {
+        "numero": 22,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Ecrire un algorithme qui résout une équation du 1er degré de la forme ax + b = 0."
+    },
+    {
+        "numero": 23,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Ecrire un algorithme qui résout une équation du 2e degré de la forme ax^2 + bx + c = 0."
+    },
+    {
+        "numero": 24,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Écrire un programme qui lit le prix HT et le type de produit (A ou B) pour afficher le taux de TVA (5.5% ou 19.6%) et le prix TTC."
+    },
+    {
+        "numero": 25,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Calculer la franchise d'assurance (10% des réparations) avec un minimum de 1000 FG et un maximum de 4000 FG."
+    },
+    {
+        "numero": 26,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Proposer un menu pour tester la parité de la somme/produit ou le signe de la somme/produit de deux nombres a et b."
+    },
+    {
+        "numero": 27,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Simuler une calculatrice simplifiée (+, -, *, /) gérant la division par zéro."
+    },
+    {
+        "numero": 28,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Menu pour trouver Somme, Produit, Moyenne, Minimum ou Maximum de trois nombres réels."
+    },
+    {
+        "numero": 29,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Afficher l'heure qu'il sera une minute après l'heure et les minutes saisies."
+    },
+    {
+        "numero": 30,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Afficher l'heure qu'il sera une seconde après l'heure, les minutes et les secondes saisies."
+    },
+    {
+        "numero": 31,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Calculer le prix TTC (TVA 20%) avec une réduction de 15% pour les achats > 200 dh."
+    },
+    {
+        "numero": 32,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Calculer la facture de photocopies : 0,25 DH les 10 premières, 0,20 DH les 20 suivantes, 0,10 DH au-delà."
+    },
+    {
+        "numero": 33,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Informer de la catégorie d'un enfant selon son âge (Poussin, Pupille, Minime, Cadet)."
+    },
+    {
+        "numero": 34,
+        "type": "LES STRUCTURES CONDITIONNELLES",
+        "enonce": "Afficher le mois en lettres selon le numéro saisi (1 pour Janvier, etc.)."
+    },
+    {
+        "numero": 35,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Afficher 'Bonsoir' 10 fois avec la boucle Tant Que."
+    },
+    {
+        "numero": 36,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Calculer la somme S = 1+2+3+...+10 avec la boucle Tant Que."
+    },
+    {
+        "numero": 37,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Calculer la somme S = 1+2+3+...+N avec la boucle Tant Que."
+    },
+    {
+        "numero": 38,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Afficher 'Bonjour' 10 fois avec la boucle Pour."
+    },
+    {
+        "numero": 39,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Calculer la somme S = 1+2+3+...+10 avec la boucle Pour."
+    },
+    {
+        "numero": 40,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Calculer la somme S = 1+2+3+...+N avec la boucle Pour."
+    },
+    {
+        "numero": 41,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Afficher la table de multiplication de 5 avec la boucle Pour."
+    },
+    {
+        "numero": 42,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Afficher la table de multiplication d'un entier saisi avec la boucle Pour."
+    },
+    {
+        "numero": 43,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Afficher 'Bonjour' 10 fois avec la boucle Répéter Jusqu’à."
+    },
+    {
+        "numero": 44,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Calculer la somme S = 1+2+3+...+10 avec la boucle Répéter Jusqu’à."
+    },
+    {
+        "numero": 45,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Afficher la table de multiplication de 8 avec la boucle Répéter Jusqu’à."
+    },
+    {
+        "numero": 46,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Demander un nombre entre 1 et 3 jusqu’à ce que la réponse convienne."
+    },
+    {
+        "numero": 47,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Demander un nombre entre 10 et 20 avec messages 'Plus petit !' ou 'Plus grand !' jusqu'à réussite."
+    },
+    {
+        "numero": 48,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Afficher les dix nombres suivants un nombre de départ (ex: 17 -> 18 à 27)."
+    },
+    {
+        "numero": 49,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Réécrire l'exercice 48 en utilisant la boucle Pour."
+    },
+    {
+        "numero": 50,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Calculer la factorielle d'un nombre de départ (ex: 8! = 1*2*3*4*5*6*7*8)."
+    },
+    {
+        "numero": 51,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Saisir 20 nombres, afficher le plus grand et sa position de saisie."
+    },
+    {
+        "numero": 52,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Même que 51, mais la saisie s'arrête quand l'utilisateur entre zéro."
+    },
+    {
+        "numero": 53,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Calculer les chances de gagner au tiercé/quarté dans l'ordre et le désordre (calcul de combinaisons)."
+    },
+    {
+        "numero": 54,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Simuler une réservation d'avion (Guinée-Paris) avec choix de classe, poids bagage et calcul du total."
+    },
+    {
+        "numero": 55,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Afficher la plus grande puissance de 2 inférieure ou égale à un nombre saisi."
+    },
+    {
+        "numero": 56,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Calculer le PGCD de deux nombres entiers positifs."
+    },
+    {
+        "numero": 57,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Afficher le carré de la valeur saisie tant que celle-ci n'est pas 0."
+    },
+    {
+        "numero": 58,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Demander nom et prénom et les afficher 50 fois."
+    },
+    {
+        "numero": 59,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Demander un mot de passe ('Informatique') jusqu'à ce qu'il soit correct."
+    },
+    {
+        "numero": 60,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Afficher tous les diviseurs d'un entier positif n."
+    },
+    {
+        "numero": 61,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Afficher les nombres 10, 20, 30, 40 et 50."
+    },
+    {
+        "numero": 62,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Calculer la somme versée sur un compte après 3 ans (50€ au départ + versements mensuels augmentant de 1€)."
+    },
+    {
+        "numero": 63,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Même que 62, mais pour un nombre N de mois saisi."
+    },
+    {
+        "numero": 64,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Afficher les nombres entiers positifs pairs entre 0 et 100."
+    },
+    {
+        "numero": 65,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Afficher les nombres entiers positifs impairs entre 1 et 100."
+    },
+    {
+        "numero": 66,
+        "type": "LES STRUCTURES ITERATIVES",
+        "enonce": "Calculer le PGCD de deux nombres entiers strictement positifs."
+    },
+    {
+        "numero": 67,
+        "type": "LES TABLEAUX",
+        "enonce": "Saisir 10 entiers dans un tableau et les afficher."
+    },
+    {
+        "numero": 68,
+        "type": "LES TABLEAUX",
+        "enonce": "Saisir les informations (nom, âge, etc.) de 5 personnes dans un tableau et les afficher."
+    },
+    {
+        "numero": 69,
+        "type": "LES TABLEAUX",
+        "enonce": "Calculer la somme et la moyenne des éléments d'un tableau de 10 réels."
+    },
+    {
+        "numero": 70,
+        "type": "LES TABLEAUX",
+        "enonce": "Afficher la plus grande valeur d'un tableau réel et sa position."
+    },
+    {
+        "numero": 71,
+        "type": "LES TABLEAUX",
+        "enonce": "Créer un tableau qui est la somme de deux autres tableaux de même longueur."
+    },
+    {
+        "numero": 72,
+        "type": "LES TABLEAUX",
+        "enonce": "À partir d'un tableau de 100 valeurs, créer deux nouveaux tableaux (un pour les pairs, un pour les impairs)."
+    },
+    {
+        "numero": 73,
+        "type": "LES TABLEAUX",
+        "enonce": "Saisir 10 notes, calculer la moyenne, trouver la meilleure et afficher un nouveau tableau avec +15%."
+    },
+    {
+        "numero": 74,
+        "type": "LES TABLEAUX",
+        "enonce": "Chercher si un nombre n existe dans un tableau de 10 entiers."
+    },
+    {
+        "numero": 75,
+        "type": "LES TABLEAUX",
+        "enonce": "Saisir 10 réels, calculer la somme, le produit et la moyenne."
+    },
+    {
+        "numero": 76,
+        "type": "LES TABLEAUX",
+        "enonce": "Déterminer et afficher le minimum d'un tableau de 10 entiers."
+    },
+    {
+        "numero": 77,
+        "type": "LES TABLEAUX",
+        "enonce": "Saisir 10 notes et afficher leur moyenne."
+    },
+    {
+        "numero": 78,
+        "type": "LES TABLEAUX",
+        "enonce": "Calculer le nombre d'occurrences d'un élément N dans un tableau de 10 entiers."
+    },
+    {
+        "numero": 79,
+        "type": "LES TABLEAUX",
+        "enonce": "Trier un tableau de 10 entiers par ordre croissant."
+    },
+    {
+        "numero": 80,
+        "type": "LES PROCEDURES",
+        "enonce": "Écrire une procédure pour saisir une matrice carrée."
+    },
+    {
+        "numero": 81,
+        "type": "LES PROCEDURES",
+        "enonce": "Écrire une procédure pour afficher les éléments d'une matrice."
+    },
+    {
+        "numero": 82,
+        "type": "LES PROCEDURES",
+        "enonce": "Écrire une procédure pour additionner deux matrices."
+    },
+    {
+        "numero": 83,
+        "type": "LES PROCEDURES",
+        "enonce": "Écrire une procédure pour multiplier deux matrices."
+    },
+    {
+        "numero": 84,
+        "type": "LES PROCEDURES",
+        "enonce": "Écrire une procédure Menu pour choisir l'opération à effectuer."
+    },
+    {
+        "numero": 85,
+        "type": "LES PROCEDURES",
+        "enonce": "Calculer le max et le min de 4 entiers en utilisant des procédures."
+    },
+    {
+        "numero": 86,
+        "type": "LES PROCEDURES",
+        "enonce": "Calculer produit, somme et quotient de deux entiers via une procédure."
+    },
+    {
+        "numero": 87,
+        "type": "LES PROCEDURES",
+        "enonce": "Calculer la différence entre deux longueurs (pied/pouce) en utilisant des procédures."
+    },
+    {
+        "numero": 88,
+        "type": "LES PROCEDURES",
+        "enonce": "Trouver les nombres d'Armstrong < 1000 en utilisant une procédure de décomposition."
+    },
+    {
+        "numero": 89,
+        "type": "LES PROCEDURES",
+        "enonce": "Convertir un nombre de minutes (<1440) en heures et minutes via une procédure."
+    },
+    {
+        "numero": 90,
+        "type": "LES PROCEDURES",
+        "enonce": "Algorithme du jeu des 50 allumettes avec procédure de contrôle de saisie."
+    },
+    {
+        "numero": 91,
+        "type": "FONCTIONS RECURSIVES",
+        "enonce": "Calculer la factorielle d'un entier via une fonction récursive."
+    },
+    {
+        "numero": 92,
+        "type": "FONCTIONS RECURSIVES",
+        "enonce": "Calculer la somme 1+2+...+N via une fonction récursive."
+    },
+    {
+        "numero": 93,
+        "type": "FONCTIONS RECURSIVES",
+        "enonce": "Calculer x à la puissance n via une fonction récursive."
+    },
+    {
+        "numero": 94,
+        "type": "FONCTIONS RECURSIVES",
+        "enonce": "Afficher les entiers de A à B via une fonction récursive."
+    },
+    {
+        "numero": 95,
+        "type": "FONCTIONS RECURSIVES",
+        "enonce": "Afficher les entiers de 0 à 10 via une fonction récursive à un paramètre."
+    },
+    {
+        "numero": 96,
+        "type": "FONCTIONS RECURSIVES",
+        "enonce": "Calculer le PGCD de deux entiers via l'algorithme d'Euclide récursif."
+    },
+    {
+        "numero": 97,
+        "type": "FONCTIONS RECURSIVES",
+        "enonce": "Afficher les éléments d'une matrice via une fonction récursive."
+    },
+    {
+        "numero": 98,
+        "type": "FONCTIONS RECURSIVES",
+        "enonce": "Calculer le Nième terme de la suite de Fibonacci récursivement."
+    },
+    {
+        "numero": 99,
+        "type": "FONCTIONS RECURSIVES",
+        "enonce": "Calculer Y = (Produit des Ai) / (Somme des Bj) avec des fonctions dédiées."
+    },
+    {
+        "numero": 100,
+        "type": "FONCTIONS RECURSIVES",
+        "enonce": "Écrire une fonction qui calcule la somme des cubes de 1 à n."
+    },
+    {
+        "numero": 101,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Afficher les nombres pairs de 0 à N."
+    },
+    {
+        "numero": 102,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Tester si un nombre entier positif est premier."
+    },
+    {
+        "numero": 103,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Afficher un nom sous forme de triangle (ex: M, MO, MOU...)."
+    },
+    {
+        "numero": 104,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Calculer la somme des entiers impairs de 1 à N."
+    },
+    {
+        "numero": 105,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Calculer le PGCD de deux entiers (ex: PGCD(15,10)=5)."
+    },
+    {
+        "numero": 106,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Afficher un triangle d'entiers (ex: 1, 22, 333, 4444)."
+    },
+    {
+        "numero": 107,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Calculer le nombre de chiffres d'un entier N."
+    },
+    {
+        "numero": 108,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Inverser les chiffres d'un entier N (ex: 356 -> 653)."
+    },
+    {
+        "numero": 109,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Afficher un triangle d'étoiles pour une hauteur N."
+    },
+    {
+        "numero": 110,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Saisir 10 entiers et compter les pairs et impairs."
+    },
+    {
+        "numero": 111,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Tester si un nombre N est Premier ou non."
+    },
+    {
+        "numero": 112,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Séparer les éléments pairs et impairs d'un tableau T vers T1 et T2."
+    },
+    {
+        "numero": 113,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Compter les occurrences du chiffre 5 dans une suite finissant par 0."
+    },
+    {
+        "numero": 114,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Dire si 10 entiers saisis sont consécutifs."
+    },
+    {
+        "numero": 115,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Calculer (Somme des pairs) - (Somme des impairs) pour 10 entiers."
+    },
+    {
+        "numero": 116,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Calculer x puissance n."
+    },
+    {
+        "numero": 117,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Tester l'égalité position par position entre deux tableaux de taille 10."
+    },
+    {
+        "numero": 118,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Compter le nombre d'éléments en double dans un tableau."
+    },
+    {
+        "numero": 119,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Calculer facture photocopie (identique à l'exercice 32)."
+    },
+    {
+        "numero": 120,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Lire un caractère : dire si c'est une lettre et préciser sa casse (Maj/Min)."
+    },
+    {
+        "numero": 121,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Décaler les zéros d'un tableau vers la fin sans changer l'ordre des autres éléments."
+    },
+    {
+        "numero": 122,
+        "type": "TRAVAUX DIRIGES",
+        "enonce": "Trier 3 entiers A, B, C par permutation pour avoir A < B < C."
+    },
+    {
+        "numero": 123,
+        "type": "LES FONCTIONS",
+        "enonce": "Échanger A et B sans utiliser de troisième variable auxiliaire."
+    },
+    {
+        "numero": 124,
+        "type": "LES FONCTIONS",
+        "enonce": "Fonction pour calculer le prix TTC à partir du prix HT et de la TVA."
+    },
+    {
+        "numero": 125,
+        "type": "LES FONCTIONS",
+        "enonce": "Procédure pour afficher si un nombre est pair ou impair."
+    },
+    {
+        "numero": 126,
+        "type": "LES FONCTIONS",
+        "enonce": "Fonction retournant la longueur d'une chaîne de caractères."
+    },
+    {
+        "numero": 127,
+        "type": "LES FONCTIONS",
+        "enonce": "Fonction comptant l'occurrence d'un caractère dans une chaîne."
+    },
+    {
+        "numero": 128,
+        "type": "LES FONCTIONS",
+        "enonce": "Fonction ou procédure calculant la valeur absolue d'un nombre."
+    },
+    {
+        "numero": 129,
+        "type": "LES FONCTIONS",
+        "enonce": "Procédure affichant la table de multiplication de x."
+    },
+    {
+        "numero": 130,
+        "type": "LES FONCTIONS",
+        "enonce": "Fonction calculant le PGCD de deux entiers positifs."
+    },
+    {
+        "numero": 131,
+        "type": "LES FONCTIONS",
+        "enonce": "Procédure calculant somme et produit de deux nombres et testant leurs signes."
+    },
+    {
+        "numero": 132,
+        "type": "LES FONCTIONS",
+        "enonce": "Procédure comptant les pairs et leur pourcentage dans une liste finissant par -1."
+    },
+    {
+        "numero": 133,
+        "type": "LES FONCTIONS",
+        "enonce": "Procédure affichant les valeurs paires entre M et N."
+    },
+    {
+        "numero": 134,
+        "type": "LES FONCTIONS",
+        "enonce": "Procédure testant si un nombre est premier."
+    },
+    {
+        "numero": 135,
+        "type": "LES FONCTIONS",
+        "enonce": "Calculer l'image de x par la fonction f(x) = 4x - 2*sqrt(x) + 2."
+    },
+    {
+        "numero": 136,
+        "type": "LES FONCTIONS",
+        "enonce": "Compter le nombre total d'éléments dupliqués dans un tableau de 10 entiers."
+    },
+    {
+        "numero": 137,
+        "type": "LES FONCTIONS",
+        "enonce": "Procédure traitant un tableau finissant par -1 pour compter les pairs et leur pourcentage."
+    },
+    {
+        "numero": 138,
+        "type": "APPROFONDISSEMENTS",
+        "enonce": "Identifier les nombres parfaits (somme des diviseurs) entre 1 et 10000 via une procédure."
+    },
+    {
+        "numero": 139,
+        "type": "APPROFONDISSEMENTS",
+        "enonce": "Procédure affichant le max et sa position dans un tableau de taille n."
+    },
+    {
+        "numero": 140,
+        "type": "APPROFONDISSEMENTS",
+        "enonce": "Procédures pour tester si deux nombres sont opposés (somme=0) ou inverses (produit=1)."
+    },
+    {
+        "numero": 141,
+        "type": "APPROFONDISSEMENTS",
+        "enonce": "Procédure affichant toutes les valeurs paires entre M et N."
+    },
+    {
+        "numero": 142,
+        "type": "APPROFONDISSEMENTS",
+        "enonce": "Fonction calculant la partie entière d'un nombre positif."
+    },
+    {
+        "numero": 143,
+        "type": "APPROFONDISSEMENTS",
+        "enonce": "Synthétiser un tableau via des fonctions Somme, Moyenne, Max et Min."
+    },
+    {
+        "numero": 144,
+        "type": "APPROFONDISSEMENTS",
+        "enonce": "Calculer la somme de la série 1/1! + 2/2! + ... + n/n! en utilisant une fonction factorielle."
+    },
+    {
+        "numero": 145,
+        "type": "APPROFONDISSEMENTS",
+        "enonce": "Résoudre ax^2 + bx + c = 0 en utilisant une fonction pour le déterminant et une procédure pour les racines."
+    },
+    {
+        "numero": 146,
+        "type": "APPROFONDISSEMENTS",
+        "enonce": "Algorithme avec procédure de tri croissant et fonction de calcul de moyenne pour un tableau."
+    },
+    {
+        "numero": 147,
+        "type": "APPROFONDISSEMENTS",
+        "enonce": "Calculer le produit de deux tableaux, trouver le max du résultat et compter les occurrences d'un nombre."
+    },
+    {
+        "numero": 148,
+        "type": "APPROFONDISSEMENTS",
+        "enonce": "a) Fonction de saisie de tableau. b) Fonction OccurrenceTab. c) Algorithme principal d'appel."
+    },
+    {
+        "numero": 149,
+        "type": "APPROFONDISSEMENTS",
+        "enonce": "Fonction calculant A * B en utilisant uniquement l'addition."
+    },
+    {
+        "numero": 150,
+        "type": "APPROFONDISSEMENTS",
+        "enonce": "Fonction récursive pour calculer le Nième terme d'une suite définie par récurrence d'ordre 3."
+    },
+    {
+        "numero": 151,
+        "type": "FIN",
+        "enonce": "Fonction qui affiche la phrase « Merci MOMO » 50 fois."
+    },
+    {
+        "titre": "Somme Diagonale",
+        "type": "LES MATRICES (TABLEAUX 2D)",
+        "enonce": "Écrire un algorithme qui calcule la somme des éléments de la diagonale principale d'une matrice carrée 3x3."
+    },
+    {
+        "titre": "Transposition",
+        "type": "LES MATRICES (TABLEAUX 2D)",
+        "enonce": "Écrire un algorithme qui permet de saisir une matrice 2x2 et d'afficher sa transposée."
+    },
+    {
+        "titre": "Recherche Matrice",
+        "type": "LES MATRICES (TABLEAUX 2D)",
+        "enonce": "Écrire un algorithme qui cherche si un nombre X existe dans une matrice 3x3 et affiche sa position (ligne, colonne)."
+    },
+    {
+        "titre": "Gestion Produit",
+        "type": "LES STRUCTURES",
+        "enonce": "Définir une structure Produit (nom, prix, quantite). Saisir les infos d'un produit et afficher le montant total en stock (prix * quantite)."
+    },
+    {
+        "titre": "Comparaison Âges",
+        "type": "LES STRUCTURES",
+        "enonce": "Définir une structure Personne (nom, age). Saisir deux personnes et afficher le nom de la plus âgée."
+    },
+    {
+        "titre": "Annuaire Simple",
+        "type": "TABLEAUX DE STRUCTURES",
+        "enonce": "Créer un tableau de 5 structures 'Contact' (nom, tel) et permettre à l'utilisateur de les saisir puis de les afficher sous forme de liste."
+    },
+    {
+        "titre": "Moyenne Classe",
+        "type": "TABLEAUX DE STRUCTURES",
+        "enonce": "Définir une structure Etudiant (nom, note). Créer un tableau de 10 étudiants, calculer et afficher la moyenne générale de la classe."
+    },
+    {
+        "titre": "Stock Magasin",
+        "type": "TABLEAUX DE STRUCTURES",
+        "enonce": "Gérer un stock de 20 articles (nom, prix). Afficher uniquement les articles dont le prix est supérieur à 1000 FG."
+    }
+]

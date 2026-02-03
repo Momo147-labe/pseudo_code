@@ -1,0 +1,31 @@
+{
+    "profil": "./profile.png",
+    "nom": "Soumah",
+    "prenom": "fode Momo",
+    "status": "etudiant en informatique",
+    "licence": "licence 2",
+    "me faire un don": "*144*6*674698#",
+    "contact": [
+        {
+            "telephone": [
+                "627 17 25 30",
+                "666 76 10 76"
+            ]
+        },
+        {
+            "email": "fodemomos11@gmail.com"
+        },
+        {
+            "whatshap": "627172530"
+        },
+        {
+            "linkedin": "https://www.linkedin.com/in/fode-momo-soumah-aaa609397?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+        },
+        {
+            "github": "github.com/Momo147-labe"
+        },
+        {
+            "portfolio": "portfolio-ri0o.onrender.com"
+        }
+    ]
+}

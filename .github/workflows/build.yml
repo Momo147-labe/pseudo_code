@@ -1,0 +1,84 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      # 1️⃣ Récupérer le code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Installer Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      # 3️⃣ Activer le support Windows
+      - name: Enable Windows Desktop
+        run: flutter config --enable-windows-desktop
+
+      # 4️⃣ Installer les dépendances
+      - name: Install dependencies
+        run: flutter pub get
+
+        # 5️⃣ Supprimer les builds précédents
+      - name: Nettoyer l'ancienne build
+        run: flutter clean
+  
+
+      # 5️⃣ Build Windows Release
+      - name: Build Windows EXE
+        run: flutter build windows --release
+
+      # 6️⃣ Vérifier que le dossier Release existe
+      - name: Verify build output
+        shell: pwsh
+        run: |
+          if (!(Test-Path "build/windows/x64/runner/Release")) {
+            Write-Error "❌ Dossier Release introuvable"
+            exit 1
+          }
+          Get-ChildItem build/windows/x64/runner/Release
+      # 7️⃣ Détecter le .exe
+      - name: Get EXE name
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem build/windows/x64/runner/Release/*.exe | Select-Object -First 1
+          if (-not $exe) {
+            Write-Error "❌ Aucun EXE trouvé"
+            exit 1
+          }
+          echo "EXE_NAME=$($exe.Name)" >> $env:GITHUB_ENV
+          echo "✔ EXE trouvé : $($exe.Name)"
+      # 8️⃣ Installer Inno Setup via Chocolatey
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+
+      # 9️⃣ Vérifier que le fichier installer.iss existe
+      - name: Verify installer.iss exists
+        shell: pwsh
+        run: |
+          if (!(Test-Path "installer.iss")) {
+            Write-Error "❌ installer.iss introuvable !"
+            exit 1
+          }
+          Write-Host "✔ installer.iss trouvé"
+      # 🔟 Générer Setup.exe avec le chemin complet de ISCC
+      - name: Build Setup.exe with Inno Setup
+        shell: pwsh
+        run: |
+          mkdir Output -Force
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer.iss"
+      # 1️⃣1️⃣ Upload du Setup.exe comme artifact
+      - name: Upload Setup.exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-setup
+          path: Output/*.exe

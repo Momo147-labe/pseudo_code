@@ -1,0 +1,14 @@
+{
+  "appTitle": "Interpréteur Pseudo-Code",
+  "openFileToStart": "Ouvrez un fichier pour commencer",
+  "errorFileExtension": "Impossible d'exécuter ce fichier. L'extension doit être '.alg'.",
+  "searchHint": "Rechercher...",
+  "replaceHint": "Remplacer...",
+  "replaceAll": "Tout",
+  "replaceCurrent": "Un",
+  "close": "Fermer",
+  "run": "Exécuter",
+  "debug": "Déboguer",
+  "console": "Console",
+  "explorer": "Explorateur"
+}
