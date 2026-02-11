@@ -24,6 +24,44 @@ class Traducteur {
     int indentation = 0;
     bool dansVariables = false;
 
+    // Analyse préliminaire pour les imports et les types
+    bool utiliseMath = false;
+    final Map<String, String> symboles = {};
+
+    for (var l in lignes) {
+      if (l.toLowerCase().contains('racine_carree') ||
+          l.toLowerCase().contains('abs(') ||
+          l.toLowerCase().contains('puissance(')) {
+        utiliseMath = true;
+      }
+
+      // Extraction des symboles pour le typage
+      if (l.contains(':')) {
+        try {
+          final parts = l.split(':');
+          if (parts.length >= 2) {
+            final nomsStr = parts[0]
+                .replaceAll(
+                  RegExp(r'^\s*(?:var\s+)?', caseSensitive: false),
+                  '',
+                )
+                .trim();
+            final type = parts[1]
+                .trim()
+                .split(RegExp(r'\s|;'))
+                .first
+                .toLowerCase();
+            final noms = nomsStr.split(',').map((e) => e.trim());
+            for (var n in noms) {
+              if (n.isNotEmpty) symboles[n.toLowerCase()] = type;
+            }
+          }
+        } catch (_) {}
+      }
+    }
+
+    if (utiliseMath) sb.writeln("import math");
+
     for (var l in lignes) {
       String ligne = l.trim();
       String ligneLower = ligne.toLowerCase();
@@ -58,11 +96,10 @@ class Traducteur {
 
       // Gestion des types et structures
       if (ligneLower.startsWith('type ')) {
-        if (ligneLower.contains('structure')) {
-          sb.writeln("# Type structure (à définir comme classe Python)");
-        } else {
-          sb.writeln("# Type: $ligne");
-        }
+        sb.writeln(
+          "  " * indentation +
+              "# Type: $ligne (Les structures peuvent être implémentées avec des classes)",
+        );
         continue;
       }
 
@@ -82,7 +119,7 @@ class Traducteur {
           if (parts.length == 2) {
             final nom = parts[0].trim();
             final valeur = parts[1].trim();
-            sb.writeln("  " * indentation + "$nom = $valeur  # constante");
+            sb.writeln("  " * indentation + "$nom = $valeur");
           }
         }
         continue;
@@ -96,15 +133,32 @@ class Traducteur {
               .map((e) => e.trim())
               .where((n) => n.isNotEmpty);
           final type = parts[1].trim();
-          for (var n in noms) {
-            sb.writeln("  " * indentation + "# var $n: $type");
+
+          // Initialisation des tableaux
+          if (type.toLowerCase().startsWith('tableau')) {
+            // Tentative d'extraction de la taille
+            int taille = 10; // Défaut
+            final matchTaille = RegExp(r'\[.*\.{2}(.*)\]').firstMatch(type);
+            if (matchTaille != null) {
+              taille = int.tryParse(matchTaille.group(1)!.trim()) ?? 10;
+            }
+
+            for (var n in noms) {
+              sb.writeln(
+                "  " * indentation + "$n = [0] * $taille  # Tableau de $type",
+              );
+            }
+          } else {
+            for (var n in noms) {
+              sb.writeln("  " * indentation + "# var $n: $type");
+            }
           }
         }
         continue;
       }
 
       // Instructions
-      String pythonLigne = _convertirInstructionPython(ligne);
+      String pythonLigne = _convertirInstructionPython(ligne, symboles);
 
       // Gestion de l'indentation pour les fins de blocs
       if (ligneLower.startsWith('finsi') ||
@@ -131,7 +185,10 @@ class Traducteur {
       if (ligneLower.endsWith('alors') ||
           ligneLower.endsWith('faire') ||
           ligneLower.startsWith('fonction') ||
-          ligneLower.startsWith('procedure')) {
+          ligneLower.startsWith('procedure') ||
+          ligneLower.startsWith('sinon') ||
+          ligneLower.startsWith('cas ') ||
+          ligneLower == 'autre') {
         indentation++;
       }
     }
@@ -139,19 +196,25 @@ class Traducteur {
     return sb.toString();
   }
 
-  static String _convertirInstructionPython(String ligne) {
+  static String _convertirInstructionPython(
+    String ligne, [
+    Map<String, String>? symboles,
+  ]) {
     String res = ligne;
+    String cleanLine = ligne.trim().toLowerCase();
 
     // Affectation
     res = res.replaceAll('<-', '=');
     res = res.replaceAll('←', '=');
 
-    // Affichage - Gérer plusieurs arguments correctement
-    if (res.toLowerCase().startsWith('afficher(')) {
+    // Affichage
+    if (cleanLine.startsWith('afficher(') || cleanLine.startsWith('ecrire(')) {
+      final isEcrire = cleanLine.startsWith('ecrire(');
       final match = RegExp(
-        r'afficher\s*\((.*)\)',
+        isEcrire ? r'ecrire\s*\((.*)\)' : r'afficher\s*\((.*)\)',
         caseSensitive: false,
       ).firstMatch(res);
+
       if (match != null) {
         final argsBruts = match.group(1)!;
         final args = InterpreteurUtils.splitArguments(argsBruts);
@@ -159,33 +222,22 @@ class Traducteur {
         if (args.isEmpty) {
           res = "print()";
         } else {
-          // Construire l'appel print avec gestion des chaînes et expressions
           final List<String> argsPython = [];
           for (final arg in args) {
-            final a = arg.trim();
-            if (a.startsWith('"') && a.endsWith('"')) {
-              // C'est une chaîne littérale
-              argsPython.add(a);
-            } else {
-              // C'est une expression à évaluer
-              argsPython.add(a);
-            }
+            // Si c'est pas une chaîne, on convertit en str pour la concaténation sûre ou on laisse print gérer les arguments multiples (virgules)
+            // Python print(a, b) met un espace. Pseudo-code 'Afficher(a, b)' concatène souvent ou met des espaces selon l'implémentation.
+            // On va utiliser print(a, b, sep='') pour coller ou sep=' ' selon préférence.
+            // Allons vers le mode arguments multiples de print par défaut
+            argsPython.add(arg.trim());
           }
-          // En Python, print() concatène automatiquement avec des espaces si on utilise sep=''
-          // Mais pour être plus fidèle, on utilise + pour concaténer
-          if (argsPython.length == 1) {
-            res = "print(${argsPython[0]})";
-          } else {
-            // Concaténation avec + pour être fidèle au comportement du pseudo-code
-            res = "print(${argsPython.join(' + ')})";
-          }
+          res = "print(${argsPython.join(', ')})";
         }
       }
       return res;
     }
 
-    // Lecture - Gérer plusieurs variables ou accès tableaux/structures
-    if (res.toLowerCase().startsWith('lire(')) {
+    // Lecture avec typage dynamique
+    if (cleanLine.startsWith('lire(')) {
       final match = RegExp(
         r'lire\s*\((.*)\)',
         caseSensitive: false,
@@ -195,21 +247,20 @@ class Traducteur {
         final args = InterpreteurUtils.splitArguments(argsBruts);
 
         if (args.isEmpty) {
-          res = "# lire() sans argument";
-        } else if (args.length == 1) {
-          final varName = args[0].trim();
-          // Vérifier si c'est un accès tableau ou structure
-          if (varName.contains('[') || varName.contains('.')) {
-            res = "$varName = input()";
-          } else {
-            res = "$varName = input()";
-          }
+          res = "input()";
         } else {
-          // Plusieurs variables - en Python on lit ligne par ligne
           final List<String> assignments = [];
           for (final arg in args) {
             final varName = arg.trim();
-            assignments.add("$varName = input()");
+            final type = symboles?[varName.toLowerCase()] ?? '';
+
+            String readCmd = "input()";
+            if (type == 'entier') {
+              readCmd = "int(input())";
+            } else if (type == 'reel' || type == 'réel') {
+              readCmd = "float(input())";
+            }
+            assignments.add("$varName = $readCmd");
           }
           res = assignments.join('\n');
         }
@@ -218,7 +269,7 @@ class Traducteur {
     }
 
     // Si ... Alors
-    if (res.toLowerCase().startsWith('si ')) {
+    if (cleanLine.startsWith('si ')) {
       res = res.replaceFirst(RegExp(r'si\s+', caseSensitive: false), 'if ');
       res = res.replaceFirst(
         RegExp(r'\s+alors\s*$', caseSensitive: false),
@@ -227,11 +278,11 @@ class Traducteur {
       return res;
     }
 
-    if (res.toLowerCase() == 'sinon') {
+    if (cleanLine == 'sinon') {
       return "else:";
     }
 
-    if (res.toLowerCase().startsWith('sinon si')) {
+    if (cleanLine.startsWith('sinon si')) {
       res = res.replaceFirst(
         RegExp(r'sinon\s+si\s+', caseSensitive: false),
         'elif ',
@@ -244,7 +295,7 @@ class Traducteur {
     }
 
     // Boucle TantQue
-    if (res.toLowerCase().startsWith('tantque ')) {
+    if (cleanLine.startsWith('tantque ')) {
       res = res.replaceFirst(
         RegExp(r'tantque\s+', caseSensitive: false),
         'while ',
@@ -271,11 +322,11 @@ class Traducteur {
     }
 
     // Boucle Répéter...Jusqu'à
-    if (res.toLowerCase().startsWith('repeter')) {
-      return "# repeter  # Utiliser une boucle while True avec break";
+    if (cleanLine.startsWith('repeter')) {
+      return "while True:";
     }
 
-    if (res.toLowerCase().startsWith('jusqua ')) {
+    if (cleanLine.startsWith('jusqua ')) {
       final match = RegExp(
         r'jusqua\s+(.*)',
         caseSensitive: false,
@@ -287,88 +338,62 @@ class Traducteur {
       return res;
     }
 
-    // Selon...Cas
-    if (res.toLowerCase().startsWith('selon ')) {
+    // Selon...Cas (Python 3.10+)
+    if (cleanLine.startsWith('selon ')) {
       final match = RegExp(
         r'selon\s+(.*)\s+faire',
         caseSensitive: false,
       ).firstMatch(res);
       if (match != null) {
         final variable = match.group(1)!.trim();
-        res = "match $variable:  # Python 3.10+";
+        res = "match $variable:";
       }
       return res;
     }
 
-    if (res.toLowerCase().startsWith('cas ')) {
+    if (cleanLine.startsWith('cas ')) {
       final match = RegExp(
         r'cas\s+(.*)\s*:',
         caseSensitive: false,
       ).firstMatch(res);
       if (match != null) {
-        final valeur = match.group(1)!.trim();
-        res = "  case $valeur:";
+        final val = match.group(1)!.trim();
+        res = "case $val:";
       }
       return res;
     }
 
-    if (res.toLowerCase() == 'sinon' || res.toLowerCase() == 'autre') {
-      return "  case _:  # default";
+    if (cleanLine == 'autre' || cleanLine == 'sinon') {
+      return "case _:";
     }
 
     // Fonctions / Procédures
-    if (res.toLowerCase().startsWith('fonction ')) {
+    if (cleanLine.startsWith('fonction ') ||
+        cleanLine.startsWith('procedure ')) {
       final match = RegExp(
-        r'fonction\s+([a-zA-Z_]\w*)\s*\((.*)\)\s*:\s*(\w+)',
+        r'(?:fonction|procedure)\s+([a-zA-Z_]\w*)\s*\((.*)\)',
         caseSensitive: false,
       ).firstMatch(res);
       if (match != null) {
         final nom = match.group(1)!;
         final params = match.group(2)!.trim();
-        // Convertir les paramètres du format "a : entier, b : reel" vers "a, b"
-        String paramsPython = "";
+        String paramsPy = "";
         if (params.isNotEmpty) {
-          final paramsList = params.split(',').map((p) {
-            final parts = p.split(':');
-            return parts[0].trim();
-          }).toList();
-          paramsPython = paramsList.join(', ');
+          paramsPy = params
+              .split(',')
+              .map((p) => p.split(':')[0].trim())
+              .join(', ');
         }
-        res = "def $nom($paramsPython):";
+        res = "def $nom($paramsPy):";
       }
       return res;
     }
 
-    if (res.toLowerCase().startsWith('procedure ')) {
-      final match = RegExp(
-        r'procedure\s+([a-zA-Z_]\w*)\s*\((.*)\)',
-        caseSensitive: false,
-      ).firstMatch(res);
-      if (match != null) {
-        final nom = match.group(1)!;
-        final params = match.group(2)!.trim();
-        String paramsPython = "";
-        if (params.isNotEmpty) {
-          final paramsList = params.split(',').map((p) {
-            final parts = p.split(':');
-            return parts[0].trim();
-          }).toList();
-          paramsPython = paramsList.join(', ');
-        }
-        res = "def $nom($paramsPython):";
-      }
-      return res;
-    }
-
-    if (res.toLowerCase().startsWith('retourner ')) {
-      final match = RegExp(
-        r'retourner\s+(.*)',
-        caseSensitive: false,
-      ).firstMatch(res);
-      if (match != null) {
-        final valeur = match.group(1)!.trim();
-        res = "return $valeur";
-      }
+    if (cleanLine.startsWith('retourner ')) {
+      res = res.replaceFirst(
+        RegExp(r'retourner\s+', caseSensitive: false),
+        'return ',
+      );
       return res;
     }
 
@@ -386,8 +411,16 @@ class Traducteur {
     res = res.replaceAll(RegExp(r'\bDIV\b', caseSensitive: false), '//');
     res = res.replaceAll(RegExp(r'\bdiv\b'), '//');
 
+    // Fonctions Math
+    res = res.replaceAll(
+      RegExp(r'\bracine_carree\b', caseSensitive: false),
+      'math.sqrt',
+    );
+    res = res.replaceAll(RegExp(r'\bpuissance\b', caseSensitive: false), 'pow');
+
     // Constantes booléennes
     res = res.replaceAll(RegExp(r'\bVrai\b', caseSensitive: false), 'True');
+    // Attention: 'vrai' minuscule peut être une partie de mot, mais \b protège
     res = res.replaceAll(RegExp(r'\bvrai\b'), 'True');
     res = res.replaceAll(RegExp(r'\bFaux\b', caseSensitive: false), 'False');
     res = res.replaceAll(RegExp(r'\bfaux\b'), 'False');
@@ -398,27 +431,68 @@ class Traducteur {
   static String _traduireEnC(List<String> lignes) {
     StringBuffer sb = StringBuffer();
 
-    // Analyses préliminaires
+    // Analyses préliminaires pour les headers
     bool utiliseIO = false;
     bool utiliseString = false;
     bool utiliseBool = false;
+    bool utiliseMath = false;
+
+    // Table des symboles pour le type-aware formatting (nom -> type)
+    final Map<String, String> symboles = {};
 
     for (var l in lignes) {
       final lower = l.toLowerCase();
-      if (lower.contains('afficher') || lower.contains('lire'))
+      if (lower.contains('afficher') ||
+          lower.contains('ecrire') ||
+          lower.contains('lire'))
         utiliseIO = true;
-      if (lower.contains('chaine') || lower.contains('"')) utiliseString = true;
+      // String.h n'est nécessaire que pour les manips de chaines (strcpy, strlen...),
+      // pas juste pour l'affichage de littéraux.
+      // Heuristique : présence de variables 'chaine' ou fonctions string (longueur...)
+      if (lower.contains('chaine') || lower.contains('longueur('))
+        utiliseString = true;
+
       if (lower.contains('booleen') ||
           lower.contains('vrai') ||
           lower.contains('faux'))
         utiliseBool = true;
+      if (lower.contains('racine_carree') ||
+          lower.contains('abs(') ||
+          lower.contains('puissance(') ||
+          lower.contains('pow('))
+        utiliseMath = true;
+
+      // Collecte rapide des variables pour la table des symboles (pass 1 simple)
+      if (l.contains(':')) {
+        try {
+          final parts = l.split(':');
+          if (parts.length >= 2) {
+            final nomsStr = parts[0]
+                .replaceAll(
+                  RegExp(r'^\s*(?:var\s+)?', caseSensitive: false),
+                  '',
+                )
+                .trim();
+            final type = parts[1]
+                .trim()
+                .split(RegExp(r'\s|;'))
+                .first
+                .toLowerCase();
+            final noms = nomsStr.split(',').map((e) => e.trim().toLowerCase());
+            for (var n in noms) {
+              if (n.isNotEmpty) symboles[n] = type;
+            }
+          }
+        } catch (_) {}
+      }
     }
 
     // Includes conditionnels
     if (utiliseIO) sb.writeln("#include <stdio.h>");
-    sb.writeln("#include <stdlib.h>"); // Souvent utile
+    sb.writeln("#include <stdlib.h>");
     if (utiliseString) sb.writeln("#include <string.h>");
     if (utiliseBool) sb.writeln("#include <stdbool.h>");
+    if (utiliseMath) sb.writeln("#include <math.h>");
     sb.writeln("");
 
     // Buffers pour les différentes parties du code
@@ -427,8 +501,7 @@ class Traducteur {
     StringBuffer funcImplBuffer = StringBuffer();
     StringBuffer mainBuffer = StringBuffer();
 
-    String sectionActuelle =
-        'main'; // 'main', 'structure', 'fonction', 'remote'
+    String sectionActuelle = 'main';
 
     int indentation = 1;
     bool dansVariablesMain = false;
@@ -466,6 +539,13 @@ class Traducteur {
         continue;
       }
 
+      // Fin Algorithme (ignoré car main a son propre return 0)
+      if (ligneLower == 'fin' ||
+          ligneLower == 'fin algorithme' ||
+          ligneLower == 'fin.') {
+        continue;
+      }
+
       // --- DETECTION DES STRUCTURES ---
       if (ligneLower.startsWith('type ') && ligneLower.contains('structure')) {
         sectionActuelle = 'structure';
@@ -493,22 +573,17 @@ class Traducteur {
         bool estFonction = ligneLower.startsWith('fonction');
         String signature = "";
 
-        // Parsing signature
-        // Fonction add(a:entier):entier  ou Procedure afficher(msg:chaine)
-        int parenOpen = ligne.indexOf('(');
-        int parenClose = ligne.lastIndexOf(')');
+        // Parsing signature avec Regex pour plus de robustesse
+        final funcReg = RegExp(
+          r'(?:fonction|procedure)\s+([a-zA-Z_]\w*)\s*\((.*)\)(?:\s*:\s*(\w+))?',
+          caseSensitive: false,
+        );
+        final match = funcReg.firstMatch(ligne);
 
-        if (parenOpen != -1 && parenClose != -1) {
-          String nom = ligne.substring(estFonction ? 8 : 9, parenOpen).trim();
-          String paramsStr = ligne.substring(parenOpen + 1, parenClose);
-          String returnTypeStr = "";
-
-          if (estFonction) {
-            int colonIndex = ligne.lastIndexOf(':');
-            if (colonIndex > parenClose) {
-              returnTypeStr = ligne.substring(colonIndex + 1).trim();
-            }
-          }
+        if (match != null) {
+          String nom = match.group(1)!;
+          String paramsStr = match.group(2)!;
+          String returnTypeStr = match.group(3) ?? "";
 
           // Type de retour C
           String cReturnType = "void";
@@ -565,7 +640,10 @@ class Traducteur {
           if (type == 'chaine') {
             structBuffer.writeln("  char $champs[256];");
           } else if (type.startsWith('tableau')) {
-            structBuffer.writeln("  int $champs[100];");
+            String size = "100";
+            final m = RegExp(r'\[.*\.{2}(.*)\]').firstMatch(type);
+            if (m != null) size = m.group(1)!.trim();
+            structBuffer.writeln("  int $champs[$size];");
           } else {
             structBuffer.writeln("  ${_mapTypeC(type)} $champs;");
           }
@@ -591,6 +669,11 @@ class Traducteur {
           for (var n in noms) {
             if (cType.contains('char[')) {
               funcImplBuffer.writeln("  char ${n.trim()}[256];");
+            } else if (type.startsWith('tableau')) {
+              String size = "100";
+              final m = RegExp(r'\[.*\.{2}(.*)\]').firstMatch(type);
+              if (m != null) size = m.group(1)!.trim();
+              funcImplBuffer.writeln("  int ${n.trim()}[$size];");
             } else {
               funcImplBuffer.writeln("  $cType ${n.trim()};");
             }
@@ -604,6 +687,7 @@ class Traducteur {
           funcImplBuffer,
           indentation: indentation,
           context: 'func',
+          symboles: symboles,
         );
         // Gestion indentation manuelle ici car _traiterCorps est générique mais l'indentation doit être lue/écrite
         if (_estDebutBloc(ligneLower)) indentation++;
@@ -639,9 +723,30 @@ class Traducteur {
                 String dim = "[256]";
                 varsMainDeclarations.add("  $base ${n.trim()}$dim;");
               } else if (cType.contains('[') && cType.startsWith('int')) {
-                // cas int[100] -> int nom[100]
+                // cas int[N] -> int nom[N]
                 String base = "int";
                 String dim = "[100]";
+                // Essayer de parser la taille réelle
+                if (typeStr.startsWith('tableau')) {
+                  // Regex pour capturer le contenu entre crochets: [ ... ]
+                  final bracketMatch = RegExp(r'\[(.*)\]').firstMatch(typeStr);
+                  if (bracketMatch != null) {
+                    final content = bracketMatch.group(1)!.trim();
+                    // Vérifier si 2D (présence de virgule)
+                    if (content.contains(',')) {
+                      final dims = content.split(',');
+                      if (dims.length >= 2) {
+                        // Gestion des plages "1..N" ou juste "N"
+                        String d1 = _parseDim(dims[0]);
+                        String d2 = _parseDim(dims[1]);
+                        dim = "[$d1][$d2]";
+                      }
+                    } else {
+                      // 1D
+                      dim = "[${_parseDim(content)}]";
+                    }
+                  }
+                }
                 varsMainDeclarations.add("  $base ${n.trim()}$dim;");
               } else {
                 varsMainDeclarations.add("  $cType ${n.trim()};");
@@ -671,7 +776,9 @@ class Traducteur {
         // C'est un peu tricky avec la logique précédente.
         // Simplification : on utilise une méthode unifiée pour le corps.
 
-        mainBuffer.writeln("  " * indentation + _convertirInstructionC(ligne));
+        mainBuffer.writeln(
+          "  " * indentation + _convertirInstructionC(ligne, symboles),
+        );
 
         if (_estDebutBloc(ligneLower)) indentation++;
         continue;
@@ -714,6 +821,17 @@ class Traducteur {
     return typePseudo; // ex: "Etudiant" -> "Etudiant"
   }
 
+  static String _parseDim(String rawDim) {
+    // Si c'est une plage "A..B", on retourne B
+    if (rawDim.contains('..')) {
+      final parts = rawDim.split('..');
+      if (parts.length >= 2) {
+        return parts[1].trim();
+      }
+    }
+    return rawDim.trim();
+  }
+
   static bool _estDebutBloc(String l) {
     return l.endsWith('alors') ||
         l.endsWith('faire') ||
@@ -737,33 +855,44 @@ class Traducteur {
     StringBuffer buffer, {
     required int indentation,
     required String context,
+    Map<String, String>? symboles,
   }) {
     if (_estFinBloc(lower)) {
       // La gestion de l'indentation est faite par l'appelant pour modifier la variable 'indentation'
       // Ici on écrit juste la ligne fermante avec l'indentation réduite
       buffer.writeln(
-        "  " * (indentation - 1).clamp(1, 50) + _convertirInstructionC(ligne),
+        "  " * (indentation - 1).clamp(1, 50) +
+            _convertirInstructionC(ligne, symboles),
       );
     } else if (lower.startsWith('sinon')) {
       buffer.writeln(
-        "  " * (indentation - 1).clamp(1, 50) + _convertirInstructionC(ligne),
+        "  " * (indentation - 1).clamp(1, 50) +
+            _convertirInstructionC(ligne, symboles),
       );
     } else {
-      buffer.writeln("  " * indentation + _convertirInstructionC(ligne));
+      buffer.writeln(
+        "  " * indentation + _convertirInstructionC(ligne, symboles),
+      );
     }
   }
 
-  static String _convertirInstructionC(String ligne) {
+  static String _convertirInstructionC(
+    String ligne, [
+    Map<String, String>? symboles,
+  ]) {
     String res = ligne;
+    String ligneLower = ligne.trim().toLowerCase();
 
     // Affectation
     res = res.replaceAll('<-', '=');
     res = res.replaceAll('←', '=');
 
     // Affichage - Gérer plusieurs arguments avec printf
-    if (res.toLowerCase().startsWith('afficher(')) {
+    if (ligneLower.startsWith('afficher(') ||
+        ligneLower.startsWith('ecrire(')) {
+      final isEcrire = ligneLower.startsWith('ecrire(');
       final match = RegExp(
-        r'afficher\s*\((.*)\)',
+        isEcrire ? r'ecrire\s*\((.*)\)' : r'afficher\s*\((.*)\)',
         caseSensitive: false,
       ).firstMatch(res);
       if (match != null) {
@@ -784,13 +913,36 @@ class Traducteur {
               formats.add("%s");
               valeurs.add(a);
             } else {
-              // Expression - déterminer le type de format
-              formats.add("%d"); // Par défaut entier, à améliorer
+              // Expression - déterminer le type de format via la table des symboles
+              String fmt = "%d"; // Par défaut entier
+              if (symboles != null) {
+                // Essayer de trouver le type de la variable principale dans l'expression
+                // Simplification : on prend le premier mot comme var potentielle
+                final firstWord = a
+                    .split(RegExp(r'\W'))
+                    .firstWhere((e) => e.isNotEmpty, orElse: () => "");
+                final type = symboles[firstWord.toLowerCase()];
+
+                if (type != null) {
+                  if (type == 'reel' || type == 'réel')
+                    fmt = "%f";
+                  else if (type == 'chaine')
+                    fmt = "%s";
+                  else if (type == 'caractere')
+                    fmt = "%c";
+                }
+              }
+              // Heuristique simple si pas dans les symboles
+              if (a.contains('.') && !a.startsWith('"')) fmt = "%f";
+
+              formats.add(fmt);
               valeurs.add(a);
             }
           }
 
-          final formatStr = formats.join("");
+          final formatStr = formats.join(
+            " ",
+          ); // Espace entre les éléments par défaut
           final valeursStr = valeurs.join(", ");
           res = "printf(\"$formatStr\\n\", $valeursStr);";
         }
@@ -799,7 +951,7 @@ class Traducteur {
     }
 
     // Lecture - scanf pour chaque variable
-    if (res.toLowerCase().startsWith('lire(')) {
+    if (ligneLower.startsWith('lire(')) {
       final match = RegExp(
         r'lire\s*\((.*)\)',
         caseSensitive: false,
@@ -814,8 +966,23 @@ class Traducteur {
           final List<String> scans = [];
           for (final arg in args) {
             final varName = arg.trim();
-            // Simplification : on suppose que c'est un int
-            scans.add("scanf(\"%d\", &$varName);");
+            String fmt = "%d"; // Par défaut entier
+            if (symboles != null) {
+              final type = symboles[varName.toLowerCase()];
+              if (type == 'reel' || type == 'réel')
+                fmt = "%f";
+              else if (type == 'chaine')
+                fmt = "%s";
+              else if (type == 'caractere')
+                fmt = "%c";
+            }
+            if (fmt == "%s") {
+              scans.add(
+                "scanf(\"%s\", $varName);",
+              ); // Pas de & pour les tableaux de char
+            } else {
+              scans.add("scanf(\"$fmt\", &$varName);");
+            }
           }
           res = scans.join("\n");
         }
@@ -948,12 +1115,23 @@ class Traducteur {
             final nomParam = parts[0].trim();
             final typeParam = parts[1].trim().toLowerCase();
             String cTypeParam = "int";
+
+            if (typeParam.startsWith('tableau')) {
+              if (typeParam.contains('2d') || typeParam.contains(',')) {
+                // Tableau 2D: int (*nom)[100]
+                return "int (*$nomParam)[100]";
+              }
+              // Tableau 1D: int* nom
+              return "int* $nomParam";
+            }
+
             if (typeParam == 'reel' || typeParam == 'réel')
               cTypeParam = "float";
             else if (typeParam == 'chaine')
               cTypeParam = "char*";
             else if (typeParam == 'booleen')
               cTypeParam = "bool";
+
             return "$cTypeParam $nomParam";
           }).toList();
           paramsC = paramsList.join(", ");
@@ -978,12 +1156,21 @@ class Traducteur {
             final nomParam = parts[0].trim();
             final typeParam = parts[1].trim().toLowerCase();
             String cTypeParam = "int";
+
+            if (typeParam.startsWith('tableau')) {
+              if (typeParam.contains('2d') || typeParam.contains(',')) {
+                return "int (*$nomParam)[100]";
+              }
+              return "int* $nomParam";
+            }
+
             if (typeParam == 'reel' || typeParam == 'réel')
               cTypeParam = "float";
             else if (typeParam == 'chaine')
               cTypeParam = "char*";
             else if (typeParam == 'booleen')
               cTypeParam = "bool";
+
             return "$cTypeParam $nomParam";
           }).toList();
           paramsC = paramsList.join(", ");
@@ -1005,6 +1192,14 @@ class Traducteur {
       return res;
     }
 
+    // Gestion des accès tableaux 2D : T[i,j] -> T[i][j]
+    res = res.replaceAllMapped(
+      RegExp(r'\[\s*([^,\[\]]+)\s*,\s*([^,\[\]]+)\s*\]'),
+      (match) {
+        return '[${match.group(1)}][${match.group(2)}]';
+      },
+    );
+
     // Opérateurs logiques
     res = res.replaceAll(RegExp(r'\bET\b', caseSensitive: false), '&&');
     res = res.replaceAll(RegExp(r'\bet\b'), '&&');
@@ -1018,6 +1213,14 @@ class Traducteur {
     res = res.replaceAll(RegExp(r'\bmod\b'), '%');
     res = res.replaceAll(RegExp(r'\bDIV\b', caseSensitive: false), '/');
     res = res.replaceAll(RegExp(r'\bdiv\b'), '/');
+
+    // Fonctions mathématiques
+    res = res.replaceAll(
+      RegExp(r"\bracine_carree\b", caseSensitive: false),
+      "sqrt",
+    );
+    res = res.replaceAll(RegExp(r"\babs\b", caseSensitive: false), "abs");
+    res = res.replaceAll(RegExp(r"\bpuissance\b", caseSensitive: false), "pow");
 
     // Constantes booléennes
     res = res.replaceAll(RegExp(r'\bVrai\b', caseSensitive: false), 'true');
@@ -1045,15 +1248,40 @@ class Traducteur {
     StringBuffer funcBuffer = StringBuffer();
     StringBuffer mainBuffer = StringBuffer();
 
-    // Pour JS on met tout dans le main sauf classes et fonctions
+    // Symbol table for JS
+    final Map<String, String> symboles = {};
+
+    // Pass 1: Collect symbols
+    for (var l in lignes) {
+      if (l.contains(':')) {
+        try {
+          final parts = l.split(':');
+          if (parts.length >= 2) {
+            final nomsStr = parts[0]
+                .replaceAll(
+                  RegExp(r'^\s*(?:var\s+)?', caseSensitive: false),
+                  '',
+                )
+                .trim();
+            final type = parts[1]
+                .trim()
+                .split(RegExp(r'\s|;'))
+                .first
+                .toLowerCase();
+            final noms = nomsStr.split(',').map((e) => e.trim());
+            for (var n in noms) {
+              if (n.isNotEmpty) symboles[n.toLowerCase()] = type;
+            }
+          }
+        } catch (_) {}
+      }
+    }
 
     String sectionActuelle = 'main';
     String nomEnCours = "";
     int indentation = 0;
-
     bool dansVariablesMain = false;
 
-    // Classes pour les structures
     for (var l in lignes) {
       String ligne = l.trim();
       String ligneLower = ligne.toLowerCase();
@@ -1062,15 +1290,13 @@ class Traducteur {
 
       // Commentaires
       if (ligne.startsWith('//')) {
-        if (sectionActuelle == 'main') {
-          mainBuffer.writeln(
-            "  " * indentation + "// ${ligne.substring(2).trim()}",
-          );
-        } else if (sectionActuelle == 'structure') {
-          classBuffer.writeln("  // ${ligne.substring(2).trim()}");
-        } else {
-          funcBuffer.writeln("  // ${ligne.substring(2).trim()}");
-        }
+        String comment = "  " * indentation + "// ${ligne.substring(2).trim()}";
+        if (sectionActuelle == 'main')
+          mainBuffer.writeln(comment);
+        else if (sectionActuelle == 'structure')
+          classBuffer.writeln(comment);
+        else
+          funcBuffer.writeln(comment);
         continue;
       }
 
@@ -1115,14 +1341,13 @@ class Traducteur {
           String paramsJS = "";
 
           if (paramsStr.trim().isNotEmpty) {
-            List<String> pList = paramsStr.split(',').map((p) {
-              return p.split(':')[0].trim(); // On garde juste le nom
-            }).toList();
-            paramsJS = pList.join(', ');
+            paramsJS = paramsStr
+                .split(',')
+                .map((p) => p.split(':')[0].trim())
+                .join(', ');
           }
           funcBuffer.writeln("function $nom($paramsJS) {");
         } else {
-          funcBuffer.writeln("// Erreur parsing fonction: $ligne");
           funcBuffer.writeln("function unknown() {");
         }
         continue;
@@ -1138,18 +1363,21 @@ class Traducteur {
 
       // --- CONTENU INTERNE ---
 
-      // 1. Structures (Champs dans le constructeur)
+      // 1. Structures
       if (sectionActuelle == 'structure') {
         if (ligne.contains(':')) {
           final parts = ligne.split(':');
           String champs = parts[0].trim();
           String type = parts[1].trim().toLowerCase();
-
           String defaultValue = "null";
-          if (type == 'entier' || type == 'reel' || type == 'réel')
+
+          if (type.startsWith('entier') ||
+              type.startsWith('reel') ||
+              type.startsWith('réel'))
             defaultValue = "0";
-          if (type == 'chaine') defaultValue = "\"\"";
-          if (type == 'booleen') defaultValue = "false";
+          if (type.startsWith('chaine')) defaultValue = "\"\"";
+          if (type.startsWith('booleen')) defaultValue = "false";
+          if (type.startsWith('tableau')) defaultValue = "[]";
 
           classBuffer.writeln("    this.$champs = $defaultValue;");
         }
@@ -1162,24 +1390,32 @@ class Traducteur {
             ligneLower == 'debut' ||
             ligneLower == 'début')
           continue;
-
-        // Handle local variables
         if (ligne.contains(':') &&
-            !ligneLower.startsWith('cas') &&
+            !ligneLower.startsWith('cas ') &&
             !ligneLower.contains('=')) {
           final parts = ligne.split(':');
           final noms = parts[0].split(',');
+          final type = parts[1].trim().toLowerCase();
           for (var n in noms) {
-            funcBuffer.writeln("  let ${n.trim()};");
+            if (type.startsWith('tableau')) {
+              String size = "0";
+              final m = RegExp(r'\[.*\.{2}(.*)\]').firstMatch(type);
+              if (m != null) size = m.group(1)!.trim();
+              funcBuffer.writeln(
+                "  let ${n.trim()} = new Array($size).fill(0);",
+              );
+            } else {
+              funcBuffer.writeln("  let ${n.trim()};");
+            }
           }
           continue;
         }
-
         _traiterCorpsJS(
           ligne,
           ligneLower,
           funcBuffer,
           indentation: indentation,
+          symboles: symboles,
         );
         if (_estDebutBloc(ligneLower)) indentation++;
         if (_estFinBloc(ligneLower))
@@ -1203,6 +1439,7 @@ class Traducteur {
             final parts = ligne.split(':');
             final noms = parts[0].split(',').map((e) => e.trim());
             final type = parts[1].trim().toLowerCase();
+
             bool isStruct = ![
               'entier',
               'reel',
@@ -1214,9 +1451,13 @@ class Traducteur {
 
             for (var n in noms) {
               if (isStruct) {
-                mainBuffer.writeln(
-                  "let $n = new $type();",
-                ); // Instanciation auto des structures
+                mainBuffer.writeln("let $n = new $type();");
+              } else if (type.startsWith('tableau')) {
+                // Tableau
+                String size = "10";
+                final m = RegExp(r'\[.*\.{2}(.*)\]').firstMatch(type);
+                if (m != null) size = m.group(1)!.trim();
+                mainBuffer.writeln("let $n = new Array($size).fill(0);");
               } else {
                 mainBuffer.writeln("let $n;");
               }
@@ -1232,14 +1473,15 @@ class Traducteur {
         if (ligneLower.startsWith('sinon')) {
           indentation = (indentation - 1).clamp(0, 50);
           mainBuffer.writeln(
-            "  " * indentation + _convertirInstructionJS(ligne),
+            "  " * indentation + _convertirInstructionJS(ligne, symboles),
           );
           indentation++;
           continue;
         }
 
-        mainBuffer.writeln("  " * indentation + _convertirInstructionJS(ligne));
-
+        mainBuffer.writeln(
+          "  " * indentation + _convertirInstructionJS(ligne, symboles),
+        );
         if (_estDebutBloc(ligneLower)) indentation++;
         continue;
       }
@@ -1260,31 +1502,41 @@ class Traducteur {
     String lower,
     StringBuffer buffer, {
     required int indentation,
+    Map<String, String>? symboles,
   }) {
     if (_estFinBloc(lower)) {
       buffer.writeln(
-        "  " * (indentation - 1).clamp(0, 50) + _convertirInstructionJS(ligne),
+        "  " * (indentation - 1).clamp(0, 50) +
+            _convertirInstructionJS(ligne, symboles),
       );
     } else if (lower.startsWith('sinon')) {
       buffer.writeln(
-        "  " * (indentation - 1).clamp(0, 50) + _convertirInstructionJS(ligne),
+        "  " * (indentation - 1).clamp(0, 50) +
+            _convertirInstructionJS(ligne, symboles),
       );
     } else {
-      buffer.writeln("  " * indentation + _convertirInstructionJS(ligne));
+      buffer.writeln(
+        "  " * indentation + _convertirInstructionJS(ligne, symboles),
+      );
     }
   }
 
-  static String _convertirInstructionJS(String ligne) {
+  static String _convertirInstructionJS(
+    String ligne, [
+    Map<String, String>? symboles,
+  ]) {
     String res = ligne;
+    String cleanLine = ligne.trim().toLowerCase();
 
     // Affectation
     res = res.replaceAll('<-', '=');
     res = res.replaceAll('←', '=');
 
-    // Affichage - Gérer plusieurs arguments avec console.log
-    if (res.toLowerCase().startsWith('afficher(')) {
+    // Affichage
+    if (cleanLine.startsWith('afficher(') || cleanLine.startsWith('ecrire(')) {
+      final isEcrire = cleanLine.startsWith('ecrire(');
       final match = RegExp(
-        r'afficher\s*\((.*)\)',
+        isEcrire ? r'ecrire\s*\((.*)\)' : r'afficher\s*\((.*)\)',
         caseSensitive: false,
       ).firstMatch(res);
       if (match != null) {
@@ -1294,7 +1546,6 @@ class Traducteur {
         if (args.isEmpty) {
           res = "console.log();";
         } else {
-          // En JavaScript, console.log accepte plusieurs arguments
           final argsList = args.map((a) => a.trim()).toList();
           res = "console.log(${argsList.join(', ')});";
         }
@@ -1302,8 +1553,8 @@ class Traducteur {
       return res;
     }
 
-    // Lecture - prompt() pour chaque variable
-    if (res.toLowerCase().startsWith('lire(')) {
+    // Lecture intelligent
+    if (cleanLine.startsWith('lire(')) {
       final match = RegExp(
         r'lire\s*\((.*)\)',
         caseSensitive: false,
@@ -1318,8 +1569,15 @@ class Traducteur {
           final List<String> reads = [];
           for (final arg in args) {
             final varName = arg.trim();
-            // Simplification : on suppose que c'est un nombre
-            reads.add("$varName = parseInt(prompt());");
+            final type = symboles?[varName.toLowerCase()] ?? '';
+
+            if (type == 'entier') {
+              reads.add("$varName = parseInt(prompt(\"Entrez $varName:\"));");
+            } else if (type == 'reel' || type == 'réel') {
+              reads.add("$varName = parseFloat(prompt(\"Entrez $varName:\"));");
+            } else {
+              reads.add("$varName = prompt(\"Entrez $varName:\");");
+            }
           }
           res = reads.join("\n");
         }
@@ -1328,7 +1586,7 @@ class Traducteur {
     }
 
     // Si ... Alors
-    if (res.toLowerCase().startsWith('si ')) {
+    if (cleanLine.startsWith('si ')) {
       res = res.replaceFirst(RegExp(r'si\s+', caseSensitive: false), 'if (');
       res = res.replaceFirst(
         RegExp(r'\s+alors\s*$', caseSensitive: false),
@@ -1337,11 +1595,9 @@ class Traducteur {
       return res;
     }
 
-    if (res.toLowerCase() == 'sinon') {
-      return "} else {";
-    }
+    if (cleanLine == 'sinon') return "} else {";
 
-    if (res.toLowerCase().startsWith('sinon si')) {
+    if (cleanLine.startsWith('sinon si')) {
       res = res.replaceFirst(
         RegExp(r'sinon\s+si\s+', caseSensitive: false),
         '} else if (',
@@ -1354,7 +1610,7 @@ class Traducteur {
     }
 
     // Boucle TantQue
-    if (res.toLowerCase().startsWith('tantque ')) {
+    if (cleanLine.startsWith('tantque ')) {
       res = res.replaceFirst(
         RegExp(r'tantque\s+', caseSensitive: false),
         'while (',
@@ -1381,11 +1637,9 @@ class Traducteur {
     }
 
     // Boucle Répéter...Jusqu'à
-    if (res.toLowerCase().startsWith('repeter')) {
-      return "do {";
-    }
+    if (cleanLine.startsWith('repeter')) return "do {";
 
-    if (res.toLowerCase().startsWith('jusqua ')) {
+    if (cleanLine.startsWith('jusqua ')) {
       final match = RegExp(
         r'jusqua\s+(.*)',
         caseSensitive: false,
@@ -1397,8 +1651,8 @@ class Traducteur {
       return res;
     }
 
-    // Selon...Cas -> switch
-    if (res.toLowerCase().startsWith('selon ')) {
+    // Selon...Cas
+    if (cleanLine.startsWith('selon ')) {
       final match = RegExp(
         r'selon\s+(.*)\s+faire',
         caseSensitive: false,
@@ -1410,26 +1664,25 @@ class Traducteur {
       return res;
     }
 
-    if (res.toLowerCase().startsWith('cas ')) {
+    if (cleanLine.startsWith('cas ')) {
       final match = RegExp(
         r'cas\s+(.*)\s*:',
         caseSensitive: false,
       ).firstMatch(res);
       if (match != null) {
-        final valeur = match.group(1)!.trim();
-        res = "  case $valeur:";
+        final val = match.group(1)!.trim();
+        res = "  case $val:";
       }
       return res;
     }
 
-    if (res.toLowerCase() == 'sinon' || res.toLowerCase() == 'autre') {
-      return "  default:";
-    }
+    if (cleanLine == 'sinon' || cleanLine == 'autre') return "  default:";
 
     // Fonctions / Procédures
-    if (res.toLowerCase().startsWith('fonction ')) {
+    if (cleanLine.startsWith('fonction ') ||
+        cleanLine.startsWith('procedure ')) {
       final match = RegExp(
-        r'fonction\s+([a-zA-Z_]\w*)\s*\((.*)\)\s*:\s*(\w+)',
+        r'(?:fonction|procedure)\s+([a-zA-Z_]\w*)\s*\((.*)\)',
         caseSensitive: false,
       ).firstMatch(res);
       if (match != null) {
@@ -1437,47 +1690,22 @@ class Traducteur {
         final params = match.group(2)!.trim();
         String paramsJS = "";
         if (params.isNotEmpty) {
-          final paramsList = params.split(',').map((p) {
-            final parts = p.split(':');
-            return parts[0].trim();
-          }).toList();
-          paramsJS = paramsList.join(', ');
+          paramsJS = params
+              .split(',')
+              .map((p) => p.split(':')[0].trim())
+              .join(', ');
         }
         res = "function $nom($paramsJS) {";
       }
       return res;
     }
 
-    if (res.toLowerCase().startsWith('procedure ')) {
-      final match = RegExp(
-        r'procedure\s+([a-zA-Z_]\w*)\s*\((.*)\)',
-        caseSensitive: false,
-      ).firstMatch(res);
-      if (match != null) {
-        final nom = match.group(1)!;
-        final params = match.group(2)!.trim();
-        String paramsJS = "";
-        if (params.isNotEmpty) {
-          final paramsList = params.split(',').map((p) {
-            final parts = p.split(':');
-            return parts[0].trim();
-          }).toList();
-          paramsJS = paramsList.join(', ');
-        }
-        res = "function $nom($paramsJS) {";
-      }
-      return res;
-    }
-
-    if (res.toLowerCase().startsWith('retourner ')) {
-      final match = RegExp(
-        r'retourner\s+(.*)',
-        caseSensitive: false,
-      ).firstMatch(res);
-      if (match != null) {
-        final valeur = match.group(1)!.trim();
-        res = "return $valeur;";
-      }
+    if (cleanLine.startsWith('retourner ')) {
+      res = res.replaceFirst(
+        RegExp(r'retourner\s+', caseSensitive: false),
+        'return ',
+      );
+      res += ';';
       return res;
     }
 
@@ -1495,19 +1723,30 @@ class Traducteur {
     res = res.replaceAll(RegExp(r'\bDIV\b', caseSensitive: false), '/');
     res = res.replaceAll(RegExp(r'\bdiv\b'), '/');
 
+    // FunMath
+    res = res.replaceAll(
+      RegExp(r"\bracine_carree\b", caseSensitive: false),
+      "Math.sqrt",
+    );
+    res = res.replaceAll(RegExp(r"\babs\b", caseSensitive: false), "Math.abs");
+    res = res.replaceAll(
+      RegExp(r"\bpuissance\b", caseSensitive: false),
+      "Math.pow",
+    );
+
     // Constantes booléennes
     res = res.replaceAll(RegExp(r'\bVrai\b', caseSensitive: false), 'true');
     res = res.replaceAll(RegExp(r'\bvrai\b'), 'true');
     res = res.replaceAll(RegExp(r'\bFaux\b', caseSensitive: false), 'false');
     res = res.replaceAll(RegExp(r'\bfaux\b'), 'false');
 
-    // Ajouter point-virgule si nécessaire
+    // Semicolon
     if (!res.endsWith('{') &&
         !res.endsWith('}') &&
         !res.endsWith(';') &&
-        !res.isEmpty &&
-        !res.toLowerCase().startsWith('cas') &&
-        !res.toLowerCase().startsWith('default')) {
+        res.isNotEmpty &&
+        !res.trim().startsWith('case') &&
+        !res.trim().startsWith('default')) {
       res += ';';
     }
 

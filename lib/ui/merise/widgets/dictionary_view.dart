@@ -199,7 +199,7 @@ class _DictionnaireViewState extends State<DictionnaireView> {
                             fontSize: 13 * scale,
                             color: ThemeColors.textMain(
                               widget.theme,
-                            ).withOpacity(0.6),
+                            ).withValues(alpha: 0.6),
                           ),
                         ),
                       ],
@@ -255,14 +255,14 @@ class _DictionnaireViewState extends State<DictionnaireView> {
                           hintStyle: TextStyle(
                             color: ThemeColors.textMain(
                               widget.theme,
-                            ).withOpacity(0.4),
+                            ).withValues(alpha: 0.4),
                           ),
                           prefixIcon: Icon(
                             Icons.search,
                             size: 18,
                             color: ThemeColors.textMain(
                               widget.theme,
-                            ).withOpacity(0.5),
+                            ).withValues(alpha: 0.5),
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -316,14 +316,14 @@ class _DictionnaireViewState extends State<DictionnaireView> {
                             hintStyle: TextStyle(
                               color: ThemeColors.textMain(
                                 widget.theme,
-                              ).withOpacity(0.4),
+                              ).withValues(alpha: 0.4),
                             ),
                             prefixIcon: Icon(
                               Icons.search,
                               size: 18,
                               color: ThemeColors.textMain(
                                 widget.theme,
-                              ).withOpacity(0.5),
+                              ).withValues(alpha: 0.5),
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -410,7 +410,7 @@ class _DictionnaireViewState extends State<DictionnaireView> {
                       sortAscending: _sortAscending,
                       headingRowColor: WidgetStateProperty.all(
                         isDark
-                            ? Colors.white.withOpacity(0.05)
+                            ? Colors.white.withValues(alpha: 0.05)
                             : Colors.grey[50],
                       ),
                       columns: [
@@ -467,7 +467,7 @@ class _DictionnaireViewState extends State<DictionnaireView> {
                                       size: 10,
                                       color: ThemeColors.textMain(
                                         widget.theme,
-                                      ).withOpacity(0.2),
+                                      ).withValues(alpha: 0.2),
                                     ),
                                   ],
                                 ),
@@ -493,7 +493,7 @@ class _DictionnaireViewState extends State<DictionnaireView> {
                                       size: 10,
                                       color: ThemeColors.textMain(
                                         widget.theme,
-                                      ).withOpacity(0.2),
+                                      ).withValues(alpha: 0.2),
                                     ),
                                   ],
                                 ),
@@ -800,7 +800,7 @@ class _DictionnaireViewState extends State<DictionnaireView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
@@ -974,7 +974,7 @@ class _InfoCard extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 9 * scale,
-                  color: ThemeColors.textMain(theme).withOpacity(0.5),
+                  color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
                 ),
               ),
             ],

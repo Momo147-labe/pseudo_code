@@ -37,39 +37,44 @@ class StatusBar extends StatelessWidget {
                   theme: theme,
                   onTap: () => provider.toggleConsole(),
                 ),
-                const SizedBox(width: 16),
-                Text(
-                  'Police: ',
-                  style: TextStyle(
-                    color: ThemeColors.textMain(theme),
-                    fontSize: 11,
+                if (!isMobile) ...[
+                  const SizedBox(width: 16),
+                  Text(
+                    'Police: ',
+                    style: TextStyle(
+                      color: ThemeColors.textMain(theme),
+                      fontSize: 11,
+                    ),
                   ),
-                ),
-                _FontSizeControl(
-                  label: '-',
-                  theme: theme,
-                  onPressed: () => provider.setFontSize(provider.fontSize - 1),
-                ),
-                Text(
-                  '${provider.fontSize.toInt()}',
-                  style: TextStyle(
-                    color: ThemeColors.textMain(theme),
-                    fontSize: 11,
+                  _FontSizeControl(
+                    label: '-',
+                    theme: theme,
+                    onPressed: () =>
+                        provider.setFontSize(provider.fontSize - 1),
                   ),
-                ),
-                _FontSizeControl(
-                  label: '+',
-                  theme: theme,
-                  onPressed: () => provider.setFontSize(provider.fontSize + 1),
-                ),
+                  Text(
+                    '${provider.fontSize.toInt()}',
+                    style: TextStyle(
+                      color: ThemeColors.textMain(theme),
+                      fontSize: 11,
+                    ),
+                  ),
+                  _FontSizeControl(
+                    label: '+',
+                    theme: theme,
+                    onPressed: () =>
+                        provider.setFontSize(provider.fontSize + 1),
+                  ),
+                ],
                 const Spacer(),
-                Text(
-                  'Fode Momo soumah',
-                  style: TextStyle(
-                    color: ThemeColors.textMain(theme),
-                    fontSize: 11,
+                if (!isMobile)
+                  Text(
+                    'Fode Momo soumah',
+                    style: TextStyle(
+                      color: ThemeColors.textMain(theme),
+                      fontSize: 11,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -100,7 +105,7 @@ class StatusBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.white.withOpacity(0.05)),
+          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
         ),
       ),
       child: SingleChildScrollView(
@@ -113,7 +118,7 @@ class StatusBar extends StatelessWidget {
                 width: 1,
                 height: 16,
                 margin: const EdgeInsets.symmetric(horizontal: 8),
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
               );
             }
             return _OperatorButton(
@@ -148,7 +153,7 @@ class _OperatorButton extends StatelessWidget {
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 10),
           minimumSize: const Size(36, 30),
-          backgroundColor: Colors.white.withOpacity(0.05),
+          backgroundColor: Colors.white.withValues(alpha: 0.05),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
         ),
         child: Text(

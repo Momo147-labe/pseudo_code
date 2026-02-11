@@ -167,7 +167,7 @@ class _MeriseWorkspaceState extends State<MeriseWorkspace> {
                       onPressed: () {
                         meriseProvider.createRelation(const Offset(500, 300));
                       },
-                      backgroundColor: primaryColor.withOpacity(0.8),
+                      backgroundColor: primaryColor.withValues(alpha: 0.8),
                       tooltip: 'Créer une relation',
                       child: const Icon(Icons.hub, color: Colors.white),
                     ),
@@ -242,7 +242,7 @@ class _MeriseWorkspaceState extends State<MeriseWorkspace> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 64, color: Colors.grey.withOpacity(0.5)),
+          Icon(icon, size: 64, color: Colors.grey.withValues(alpha: 0.5)),
           const SizedBox(height: 24),
           Text(
             title,
@@ -339,7 +339,7 @@ class _MeriseWorkspaceState extends State<MeriseWorkspace> {
                       vertical: 8,
                     ),
                     color: isActive
-                        ? primaryColor.withOpacity(0.1)
+                        ? primaryColor.withValues(alpha: 0.1)
                         : Colors.transparent,
                     child: Row(
                       children: [
@@ -530,8 +530,8 @@ class _EntityPropertiesPanelState extends State<EntityPropertiesPanel> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: widget.isDark
-                  ? const Color(0xFF231B0F).withOpacity(0.5)
-                  : const Color(0xFFF8F7F5).withOpacity(0.5),
+                  ? const Color(0xFF231B0F).withValues(alpha: 0.5)
+                  : const Color(0xFFF8F7F5).withValues(alpha: 0.5),
               border: Border(bottom: BorderSide(color: widget.borderColor)),
             ),
             child: Row(
@@ -566,7 +566,7 @@ class _EntityPropertiesPanelState extends State<EntityPropertiesPanel> {
                 IconButton(
                   icon: Icon(
                     Icons.delete,
-                    color: Colors.red.withOpacity(0.7),
+                    color: Colors.red.withValues(alpha: 0.7),
                     size: 18,
                   ),
                   onPressed: () {
@@ -745,8 +745,8 @@ class _RelationPropertiesPanelState extends State<RelationPropertiesPanel> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: widget.isDark
-                  ? const Color(0xFF231B0F).withOpacity(0.5)
-                  : const Color(0xFFF8F7F5).withOpacity(0.5),
+                  ? const Color(0xFF231B0F).withValues(alpha: 0.5)
+                  : const Color(0xFFF8F7F5).withValues(alpha: 0.5),
               border: Border(bottom: BorderSide(color: widget.borderColor)),
             ),
             child: Row(
@@ -777,7 +777,7 @@ class _RelationPropertiesPanelState extends State<RelationPropertiesPanel> {
                 IconButton(
                   icon: Icon(
                     Icons.delete,
-                    color: Colors.red.withOpacity(0.7),
+                    color: Colors.red.withValues(alpha: 0.7),
                     size: 18,
                   ),
                   onPressed: () {
@@ -1274,7 +1274,7 @@ class _MeriseLinksPainter extends CustomPainter {
     );
 
     final bgPaint = Paint()
-      ..color = color.withOpacity(0.9)
+      ..color = color.withValues(alpha: 0.9)
       ..style = PaintingStyle.fill;
 
     final borderPaint = Paint()
@@ -1404,7 +1404,7 @@ class _EntityBox extends StatelessWidget {
         ? primaryColor
         : (isDark ? const Color(0xFFF8F7F5) : const Color(0xFF181510));
     final headerBg = isSelected
-        ? primaryColor.withOpacity(0.2)
+        ? primaryColor.withValues(alpha: 0.2)
         : (isDark ? const Color(0xFF3D3324) : const Color(0xFFF5F5F5));
 
     return Container(
@@ -1414,7 +1414,7 @@ class _EntityBox extends StatelessWidget {
         border: Border.all(color: borderColor, width: isSelected ? 2 : 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -1598,7 +1598,7 @@ class _SidebarIcon extends StatelessWidget {
           border: active
               ? Border(left: BorderSide(color: primaryColor, width: 3))
               : null,
-          color: active ? primaryColor.withOpacity(0.05) : null,
+          color: active ? primaryColor.withValues(alpha: 0.05) : null,
         ),
         child: Row(
           children: [
@@ -1801,9 +1801,9 @@ class _PedagogicalCorner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: primaryColor.withOpacity(isDark ? 0.1 : 0.05),
+        color: primaryColor.withValues(alpha: isDark ? 0.1 : 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: primaryColor.withOpacity(0.2)),
+        border: Border.all(color: primaryColor.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

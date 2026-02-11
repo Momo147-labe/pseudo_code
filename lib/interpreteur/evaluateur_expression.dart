@@ -61,19 +61,18 @@ class EvaluateurExpression {
       }
     }
 
-    // 3. Gestion des nombres négatifs (ex: -10, -3.5)
-    // IMPORTANT: Doit être traité AVANT l'addition/soustraction
-    if (expr.startsWith('-') && !expr.contains(' ')) {
-      // Vérifier si c'est un nombre négatif simple (pas une expression)
-      final resteSansNeg = expr.substring(1).trim();
-      final numNegatif = num.tryParse(resteSansNeg);
-      if (numNegatif != null) {
-        return -numNegatif;
-      }
+    // 3. Gestion du moins unaire (ex: -10, -a, -(3+2))
+    if (expr.startsWith('-')) {
+      // On retire le signe et on vérifie si le reste contient des opérateurs
+      // de même priorité (+, -) non protégés par des parenthèses
+      final reste = expr.substring(1).trim();
+      final testSplit = _splitHorsChaine(reste, '+', op2: '-');
 
-      // Si ce n'est pas un nombre simple, c'est peut-être -(expression)
-      if (resteSansNeg.startsWith('(') && resteSansNeg.endsWith(')')) {
-        return OperateurMath.soustraction(0, await evaluer(resteSansNeg));
+      // Si le split ne donne qu'un seul morceau, c'est que le '-' initial
+      // porte sur toute l'expression restante (atome ou bloc parenthésé)
+      if (testSplit.length == 1) {
+        final valeur = await evaluer(reste);
+        return OperateurMath.soustraction(0, valeur);
       }
     }
 
@@ -209,10 +208,34 @@ class EvaluateurExpression {
         dynamic courant = await evaluer(parts[0].trim());
         for (int i = 1; i < parts.length; i++) {
           if (courant is PseudoStructureInstance) {
-            courant = courant.lire(parts[i].trim());
+            String part = parts[i].trim();
+            // Vérifier si c'est un accès tableau (ex: tab[i])
+            final matchTab = GestionnaireTableaux.regAcces.firstMatch(part);
+            if (matchTab != null) {
+              final nomChamp = matchTab.group(1)!;
+              final indicesBruts = matchTab.group(2)!;
+
+              dynamic tab = courant.lire(nomChamp);
+              if (tab is! PseudoTableau) {
+                throw Exception(
+                  "'$nomChamp' n'est pas un tableau dans la structure.",
+                );
+              }
+
+              final indices = <int>[];
+              final indexParts = InterpreteurUtils.splitArguments(indicesBruts);
+              for (final p in indexParts) {
+                final idx = await evaluer(p);
+                if (idx is! int) throw Exception("Indice doit être entier");
+                indices.add(idx);
+              }
+              courant = tab.lire(indices);
+            } else {
+              courant = courant.lire(part);
+            }
           } else {
             throw Exception(
-              "'${parts[i - 1]}' n'est pas une structure valdie pour accéder à '${parts[i]}'.",
+              "'${parts[i - 1]}' n'est pas une structure valide pour accéder à '${parts[i]}'.",
             );
           }
         }
@@ -266,21 +289,35 @@ class EvaluateurExpression {
       bool matches = false;
       String currentOp = "";
       if (!dansChaine && pileParen == 0) {
-        if (s.substring(i).startsWith(op)) {
-          matches = true;
-          currentOp = op;
-        } else if (op2 != null && s.substring(i).startsWith(op2)) {
-          matches = true;
-          currentOp = op2;
-        } else if (op3 != null && s.substring(i).startsWith(op3)) {
-          matches = true;
-          currentOp = op3;
-        } else if (op4 != null && s.substring(i).startsWith(op4)) {
-          matches = true;
-          currentOp = op4;
-        } else if (op5 != null && s.substring(i).startsWith(op5)) {
-          matches = true;
-          currentOp = op5;
+        final rest = s.substring(i).toLowerCase();
+
+        // Liste des opérateurs à vérifier
+        final ops = [op, op2, op3, op4, op5].where((o) => o != null).toList();
+
+        for (final o in ops) {
+          if (rest.startsWith(o!.toLowerCase())) {
+            // Cas spécial pour le moins unaire :
+            // Si l'opérateur est '-' et qu'il est au tout début ou précédé
+            // d'un autre opérateur (+, -, *, /, ^, etc.), on l'ignore ici.
+            if (o == '-' || o == ' - ') {
+              String avant = s.substring(0, i).trim();
+              if (avant.isEmpty ||
+                  avant.endsWith('+') ||
+                  avant.endsWith('-') ||
+                  avant.endsWith('*') ||
+                  avant.endsWith('/') ||
+                  avant.endsWith('^') ||
+                  avant.endsWith('(') ||
+                  avant.toLowerCase().endsWith(' mod ') ||
+                  avant.toLowerCase().endsWith(' div ')) {
+                continue;
+              }
+            }
+
+            matches = true;
+            currentOp = o;
+            break;
+          }
         }
       }
 

@@ -68,7 +68,7 @@ class _EducationalPanelState extends State<EducationalPanel>
                       labelColor: Colors.blueAccent,
                       unselectedLabelColor: ThemeColors.textMain(
                         theme,
-                      ).withOpacity(0.5),
+                      ).withValues(alpha: 0.5),
                       indicatorColor: Colors.blueAccent,
                       tabs: const [
                         Tab(icon: Icon(Icons.assignment), text: "Exercices"),
@@ -148,7 +148,7 @@ class _ExercisesTab extends StatelessWidget {
             subtitle: Text(
               "Difficulté: ${ex['difficulte'] ?? '?'}",
               style: TextStyle(
-                color: ThemeColors.textMain(theme).withOpacity(0.7),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.7),
                 fontSize: 12,
               ),
             ),

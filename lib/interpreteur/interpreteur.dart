@@ -89,13 +89,18 @@ class Interpreteur {
 
       String ligneFull = lignes[i];
       String ligne = ligneFull.trim();
-      if (ligne.endsWith(';')) {
-        ligne = ligne.substring(0, ligne.length - 1).trim();
-      }
+
+      // Prise en compte du débogage avant nettoyage pour correspondre à l'affichage
       int indexInstruction = i;
       i++;
 
       if (ligne.isEmpty || ligne.startsWith('//')) continue;
+
+      // Nettoyage pour l'exécution
+      ligne = ligne.split('//')[0].trim();
+      if (ligne.endsWith(';')) {
+        ligne = ligne.substring(0, ligne.length - 1).trim();
+      }
 
       // Sauter les constantes et types déjà traités en pré-analyse
       if (ligne.toLowerCase().startsWith('const ') ||
@@ -159,7 +164,7 @@ class Interpreteur {
         continue;
       }
 
-      if (ligne.startsWith('Algorithme')) continue;
+      if (ligne.toLowerCase().startsWith('algorithme')) continue;
 
       if (dansVariables) {
         try {
@@ -185,7 +190,7 @@ class Interpreteur {
             caseSensitive: false,
           );
           final pourReg = RegExp(
-            r'^pour\s+([a-zA-Z_]\w*)\s*(?:<-|de)\s*(.*)\s+(?:a|à)\s+(.*)\s+faire$',
+            r'^pour\s+([a-zA-Z_]\w*)\s*(?:<-|de)\s*(.*)\s+(?:a|à)\s+(.*?)(?:\s+pas\s+(.*))?\s+faire$',
             caseSensitive: false,
           );
           final jusquaReg = RegExp(r'^jusqua\s+(.*)$', caseSensitive: false);
@@ -219,22 +224,20 @@ class Interpreteur {
             pileBlocs.add('selon');
             final valCible = await exec.evaluer(selonMatch.group(1)!);
             i = await NavigateurBlocs.sauterVersCas(lignes, i, valCible, exec);
-          } else if (RegExp(
-                r'^cas\s+.*:$',
-                caseSensitive: false,
-              ).hasMatch(ligne) ||
-              RegExp(
-                r'^(?:sinon|autre)\s*:$',
-                caseSensitive: false,
-              ).hasMatch(ligne)) {
+          } else if (pileBlocs.isNotEmpty &&
+              pileBlocs.last == 'selon' &&
+              (RegExp(r'^cas\s+', caseSensitive: false).hasMatch(ligne) ||
+                  RegExp(
+                    r'^(?:sinon|autre)\s*(?::\s*)?$',
+                    caseSensitive: false,
+                  ).hasMatch(ligne))) {
             i = NavigateurBlocs.trouverFinBlocCorrespondant(
               lignes,
               i,
               'selon',
               ['finselon'],
             );
-            if (pileBlocs.isNotEmpty && pileBlocs.last == 'selon')
-              pileBlocs.removeLast();
+            pileBlocs.removeLast();
           } else if (ligne.toLowerCase() == 'finselon') {
             if (pileBlocs.isNotEmpty && pileBlocs.last == 'selon')
               pileBlocs.removeLast();
@@ -263,10 +266,28 @@ class Interpreteur {
             final varName = pourMatch.group(1)!;
             final startVal = await exec.evaluer(pourMatch.group(2)!);
             final endVal = await exec.evaluer(pourMatch.group(3)!);
+            num pas = 1;
+
+            if (pourMatch.group(4) != null) {
+              pas = await exec.evaluer(pourMatch.group(4)!);
+            } else {
+              if (startVal is num && endVal is num && startVal > endVal) {
+                pas = -1;
+              }
+            }
 
             env.assigner(varName, startVal);
 
-            if ((startVal is num && endVal is num) && startVal > endVal) {
+            bool continueLoop = false;
+            if (startVal is num && endVal is num) {
+              if (pas > 0) {
+                continueLoop = startVal <= endVal;
+              } else {
+                continueLoop = startVal >= endVal;
+              }
+            }
+
+            if (!continueLoop) {
               i = NavigateurBlocs.trouverFinBlocCorrespondant(
                 lignes,
                 i,
@@ -289,13 +310,32 @@ class Interpreteur {
               if (m != null) {
                 final varName = m.group(1)!;
                 final endVal = await exec.evaluer(m.group(3)!);
+                num pas = 1;
+                if (m.group(4) != null) {
+                  pas = await exec.evaluer(m.group(4)!);
+                } else {
+                  // On doit recalculer le pas par défaut si non spécifié
+                  final startValInit = await exec.evaluer(m.group(2)!);
+                  if (startValInit is num &&
+                      endVal is num &&
+                      startValInit > endVal) {
+                    pas = -1;
+                  }
+                }
 
                 dynamic currentVal = env.lire(varName);
                 if (currentVal is num && endVal is num) {
-                  currentVal = currentVal + 1;
+                  currentVal = currentVal + pas;
                   env.assigner(varName, currentVal);
 
-                  if (currentVal <= endVal) {
+                  bool condition;
+                  if (pas > 0) {
+                    condition = currentVal <= endVal;
+                  } else {
+                    condition = currentVal >= endVal;
+                  }
+
+                  if (condition) {
                     i = pourLineIdx + 1;
                   } else {
                     pileBlocs.removeLast();
@@ -324,7 +364,10 @@ class Interpreteur {
           } else {
             final sortie = await exec.executerLigne(ligne);
             if (sortie == "__RETURN__") return "__RETURN__";
-            if (sortie.isNotEmpty) onOutput(sortie);
+            // Nettoyer les sytèmes de retour spéciaux et afficher si non vide
+            if (sortie.trim().isNotEmpty) {
+              onOutput(sortie);
+            }
           }
         } catch (e) {
           final errLine = indexInstruction + baseOffset + 1;
@@ -580,7 +623,7 @@ class Interpreteur {
             maxs.add((maxVal as num).toInt());
           }
 
-          final structDef = env.chercherStructure(elemType);
+          final structDef = env.chercherStructure(elemType.toLowerCase());
           env.declarer(
             nom,
             PseudoTableau(

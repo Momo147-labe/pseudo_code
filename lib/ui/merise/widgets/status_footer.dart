@@ -18,7 +18,7 @@ class MeriseStatusFooter extends StatelessWidget {
     final primaryColor = const Color(0xFF1E88E5);
     final isDark = theme != AppTheme.light && theme != AppTheme.papier;
     final borderColor = isDark
-        ? Colors.white.withOpacity(0.1)
+        ? Colors.white.withValues(alpha: 0.1)
         : Colors.grey[200]!;
 
     return Container(
@@ -67,7 +67,7 @@ class MeriseStatusFooter extends StatelessWidget {
         style: TextStyle(
           fontSize: 10 * scale,
           fontWeight: FontWeight.w600,
-          color: ThemeColors.textMain(theme).withOpacity(0.6),
+          color: ThemeColors.textMain(theme).withValues(alpha: 0.6),
         ),
       ),
     );
@@ -241,7 +241,7 @@ class _FooterButton extends StatelessWidget {
           Icon(
             icon,
             size: 12 * scale,
-            color: ThemeColors.textMain(theme).withOpacity(0.6),
+            color: ThemeColors.textMain(theme).withValues(alpha: 0.6),
           ),
           const SizedBox(width: 4),
           Text(
@@ -249,7 +249,7 @@ class _FooterButton extends StatelessWidget {
             style: TextStyle(
               fontSize: 10 * scale,
               fontWeight: FontWeight.w600,
-              color: ThemeColors.textMain(theme).withOpacity(0.6),
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.6),
             ),
           ),
         ],

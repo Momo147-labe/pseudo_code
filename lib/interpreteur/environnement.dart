@@ -28,51 +28,57 @@ class Environnement {
       definitionsStructures[def.nom] = def;
 
   PseudoStructureDefinition? chercherStructure(String nom) {
-    if (definitionsStructures.containsKey(nom))
-      return definitionsStructures[nom];
-    return parent?.chercherStructure(nom);
+    final lower = nom.toLowerCase();
+    if (definitionsStructures.containsKey(lower))
+      return definitionsStructures[lower];
+    return parent?.chercherStructure(lower);
   }
 
   void declarerType(String nom, String definition) {
-    customTypes[nom] = definition;
+    customTypes[nom.toLowerCase()] = definition;
   }
 
   String? chercherType(String nom) {
-    if (customTypes.containsKey(nom)) return customTypes[nom];
-    return parent?.chercherType(nom);
+    final lower = nom.toLowerCase();
+    if (customTypes.containsKey(lower)) return customTypes[lower];
+    return parent?.chercherType(lower);
   }
 
   void declarer(String nom, dynamic valeur, String type) {
-    variables[nom] = valeur;
-    types[nom] = type;
+    variables[nom.toLowerCase()] = valeur;
+    types[nom.toLowerCase()] = type;
   }
 
   void declarerConstante(String nom, dynamic valeur) {
-    constantes[nom] = valeur;
+    constantes[nom.toLowerCase()] = valeur;
   }
 
-  void declarerFonction(PseudoFonction f) => fonctions[f.nom] = f;
-  void declarerProcedure(PseudoProcedure p) => procedures[p.nom] = p;
+  void declarerFonction(PseudoFonction f) => fonctions[f.nom.toLowerCase()] = f;
+  void declarerProcedure(PseudoProcedure p) =>
+      procedures[p.nom.toLowerCase()] = p;
 
   PseudoFonction? chercherFonction(String nom) {
-    if (fonctions.containsKey(nom)) return fonctions[nom];
-    return parent?.chercherFonction(nom);
+    final lower = nom.toLowerCase();
+    if (fonctions.containsKey(lower)) return fonctions[lower];
+    return parent?.chercherFonction(lower);
   }
 
   PseudoProcedure? chercherProcedure(String nom) {
-    if (procedures.containsKey(nom)) return procedures[nom];
-    return parent?.chercherProcedure(nom);
+    final lower = nom.toLowerCase();
+    if (procedures.containsKey(lower)) return procedures[lower];
+    return parent?.chercherProcedure(lower);
   }
 
   dynamic lire(String nom) {
-    if (constantes.containsKey(nom)) {
-      return constantes[nom];
+    final lower = nom.toLowerCase();
+    if (constantes.containsKey(lower)) {
+      return constantes[lower];
     }
-    if (variables.containsKey(nom)) {
-      return variables[nom];
+    if (variables.containsKey(lower)) {
+      return variables[lower];
     }
     if (parent != null) {
-      return parent!.lire(nom);
+      return parent!.lire(lower);
     }
     throw Exception(
       "La variable ou constante '$nom' n'est pas déclarée. Vérifiez l'orthographe ou si elle a été créée dans la section 'Variables'.",
@@ -80,21 +86,23 @@ class Environnement {
   }
 
   String? getType(String nom) {
-    if (types.containsKey(nom)) return types[nom];
-    return parent?.getType(nom);
+    final lower = nom.toLowerCase();
+    if (types.containsKey(lower)) return types[lower];
+    return parent?.getType(lower);
   }
 
   void assigner(String nom, dynamic valeur) {
-    if (constantes.containsKey(nom)) {
+    final lower = nom.toLowerCase();
+    if (constantes.containsKey(lower)) {
       throw Exception("Impossible de modifier la constante '$nom'");
     }
-    if (variables.containsKey(nom)) {
-      _validerType(nom, valeur, types[nom]);
-      variables[nom] = valeur;
+    if (variables.containsKey(lower)) {
+      _validerType(nom, valeur, types[lower]);
+      variables[lower] = valeur;
       return;
     }
     if (parent != null) {
-      parent!.assigner(nom, valeur);
+      parent!.assigner(lower, valeur);
       return;
     }
     throw Exception("Variable '$nom' non déclarée");

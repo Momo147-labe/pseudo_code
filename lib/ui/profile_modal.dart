@@ -34,7 +34,7 @@ class ProfileModal extends StatelessWidget {
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -54,7 +54,7 @@ class ProfileModal extends StatelessWidget {
                           gradient: LinearGradient(
                             colors: [
                               Colors.blueAccent,
-                              Colors.blueAccent.withOpacity(0.5),
+                              Colors.blueAccent.withValues(alpha: 0.5),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -109,7 +109,7 @@ class ProfileModal extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.blueAccent.withOpacity(0.1),
+                      color: Colors.blueAccent.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -157,8 +157,8 @@ class ProfileModal extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.white.withOpacity(0.05)
-                            : Colors.black.withOpacity(0.03),
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
@@ -193,7 +193,7 @@ class ProfileModal extends StatelessWidget {
                               Icons.copy,
                               color: ThemeColors.textMain(
                                 theme,
-                              ).withOpacity(0.6),
+                              ).withValues(alpha: 0.6),
                             ),
                             tooltip: "Copier le code",
                             onPressed: () {
@@ -292,8 +292,8 @@ class _SocialChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isDark
-              ? Colors.white.withOpacity(0.05)
-              : Colors.black.withOpacity(0.03),
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(

@@ -24,7 +24,7 @@ class IOHandler {
   /// Gère la commande Afficher()
   Future<String> executerAfficher(String ligne) async {
     final match = RegExp(
-      r'afficher\s*\((.*)\)',
+      r'(?:afficher|ecrire)\s*\((.*)\)',
       caseSensitive: false,
     ).firstMatch(ligne);
 
@@ -37,12 +37,22 @@ class IOHandler {
         if (a.startsWith('"') && a.endsWith('"')) {
           resultat += a.substring(1, a.length - 1);
         } else {
-          resultat += (await evaluateur.evaluer(a)).toString();
+          final val = await evaluateur.evaluer(a);
+          resultat += _formaterValeur(val);
         }
       }
       return resultat;
     }
     return "";
+  }
+
+  String _formaterValeur(dynamic val) {
+    if (val is double) {
+      if (val == val.toInt().toDouble()) {
+        return val.toInt().toString();
+      }
+    }
+    return val.toString();
   }
 
   /// Gère la commande Afficher_Table()
@@ -55,7 +65,7 @@ class IOHandler {
     if (match != null) {
       final arg = match.group(1)!.trim();
       final valeur = await evaluateur.evaluer(arg);
-      return valeur.toString();
+      return _formaterValeur(valeur);
     }
     return "";
   }
@@ -78,7 +88,7 @@ class IOHandler {
       if (valeur is PseudoTableau) {
         return valeur.formatGrid();
       }
-      return valeur.toString();
+      return _formaterValeur(valeur);
     }
     return "";
   }
@@ -96,7 +106,7 @@ class IOHandler {
       if (valeur is PseudoTableau) {
         return valeur.formatStructureGrid();
       }
-      return valeur.toString();
+      return _formaterValeur(valeur);
     }
     return "";
   }

@@ -10,16 +10,32 @@ import '../theme.dart';
 import 'package:pseudo_code/l10n/app_localizations.dart';
 import 'editor_controller.dart';
 import 'tab_manager.dart';
+import 'package:pseudo_code/interpreteur/linter.dart';
+import 'editor/editor_gutter.dart';
+import 'editor/editor_search_panel.dart';
+import 'editor/editor_minimap.dart';
 
 class EditeurWidget extends StatefulWidget {
-  const EditeurWidget({super.key});
+  final CodeEditorController? controller;
+  final bool isStandalone;
+  final String? initialCode;
+  final Function(String)? onChanged;
+
+  const EditeurWidget({
+    super.key,
+    this.controller,
+    this.isStandalone = false,
+    this.initialCode,
+    this.onChanged,
+  });
 
   @override
   State<EditeurWidget> createState() => _EditeurWidgetState();
 }
 
 class _EditeurWidgetState extends State<EditeurWidget> {
-  final CodeEditorController _controller = CodeEditorController();
+  late CodeEditorController _controller;
+  bool _ownsController = false;
   final FocusNode _focusNode = FocusNode();
   final ScrollController _editorScrollController = ScrollController();
   final ScrollController _gutterScrollController = ScrollController();
@@ -27,10 +43,12 @@ class _EditeurWidgetState extends State<EditeurWidget> {
   Timer? _lintTimer;
 
   OverlayEntry? _overlay;
+  OverlayEntry? _quickFixOverlay;
   List<String> _suggestions = [];
   int _selectedIndex = 0;
   bool _isInsertingSuggestion = false;
   final LayerLink _layerLink = LayerLink();
+  final LayerLink _quickFixLink = LayerLink();
 
   // Code Folding State
   final Map<int, bool> _foldedLines = {}; // Line index -> isFolded
@@ -51,9 +69,38 @@ class _EditeurWidgetState extends State<EditeurWidget> {
   @override
   void initState() {
     super.initState();
-    _fileProvider = context.read<FileProvider>();
-    _insertSubscription = _fileProvider?.insertRequests.listen((text) {
-      _handleInsertionRequest(text);
+    if (widget.controller != null) {
+      _controller = widget.controller!;
+      _ownsController = false;
+    } else {
+      _controller = CodeEditorController();
+      _ownsController = true;
+    }
+
+    if (widget.initialCode != null) {
+      _controller.text = widget.initialCode!;
+    }
+
+    if (!widget.isStandalone) {
+      _fileProvider = context.read<FileProvider>();
+      _insertSubscription = _fileProvider?.insertRequests.listen((text) {
+        _handleInsertionRequest(text);
+      });
+    }
+
+    _controller.addListener(_onControllerChanged);
+  }
+
+  void _onControllerChanged() {
+    if (widget.onChanged != null) {
+      widget.onChanged!(_controller.text);
+    }
+  }
+
+  void _toggleFold(int lineNum) {
+    setState(() {
+      _foldedLines[lineNum] = !(_foldedLines[lineNum] ?? false);
+      _syncHiddenLines();
     });
     _focusNode.onKeyEvent = _handleKeyEvent;
     _editorScrollController.addListener(() {
@@ -63,9 +110,222 @@ class _EditeurWidgetState extends State<EditeurWidget> {
       if (_minimapScrollController.hasClients) {
         _minimapScrollController.jumpTo(_editorScrollController.offset / 5);
       }
+      if (_quickFixOverlay != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _quickFixOverlay?.markNeedsBuild();
+        });
+      }
     });
-    context.read<FileProvider>().addListener(_handleFileProviderChange);
+    if (!widget.isStandalone) {
+      context.read<FileProvider>().addListener(_handleFileProviderChange);
+    }
     _controller.addListener(_updateFoldableLines);
+    _controller.addListener(_handleCursorChange);
+  }
+
+  void _handleCursorChange() {
+    if (_isInsertingSuggestion) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _checkQuickFix();
+    });
+  }
+
+  void _checkQuickFix() {
+    final selection = _controller.selection;
+    if (!selection.isValid || !selection.isCollapsed) {
+      _hideQuickFix();
+      return;
+    }
+
+    final fileProvider = context.read<FileProvider>();
+    final activeFile = fileProvider.activeFile;
+    if (activeFile == null) return;
+
+    // Get current line index (1-based because LintIssue.line is 1-based)
+    final textBefore = _controller.text.substring(0, selection.baseOffset);
+    final currentLine = textBefore.split('\n').length;
+
+    // Find if there's an issue on this line with fixes
+    final issuesOnLine = activeFile.lintIssues
+        .where(
+          (iss) =>
+              iss.line == currentLine &&
+              iss.fixes != null &&
+              iss.fixes!.isNotEmpty,
+        )
+        .toList();
+
+    if (issuesOnLine.isNotEmpty) {
+      _showQuickFix(issuesOnLine.first, currentLine);
+    } else {
+      _hideQuickFix();
+    }
+  }
+
+  void _showQuickFix(LintIssue issue, int lineIndex1Based) {
+    if (_quickFixOverlay != null) _hideQuickFix();
+    final theme = context.read<ThemeProvider>().currentTheme;
+    final fontSize = context.read<AppProvider>().fontSize;
+    final lineHeight = fontSize * 1.5;
+
+    // Calculate offset relative to the top of the TextField, accounting for scroll
+    final initialVerticalOffset =
+        (lineIndex1Based - 1) * lineHeight +
+        12.0 -
+        _editorScrollController.offset;
+
+    // If the line is scrolled out of view, don't show the initial overlay
+    if (initialVerticalOffset < -lineHeight ||
+        initialVerticalOffset > MediaQuery.of(context).size.height) {
+      return;
+    }
+
+    _quickFixOverlay = OverlayEntry(
+      builder: (context) {
+        // Recalculate offset inside builder to stay in sync with scroll
+        final currentVerticalOffset =
+            (lineIndex1Based - 1) * lineHeight +
+            12.0 -
+            _editorScrollController.offset;
+
+        return Align(
+          alignment: Alignment.topLeft,
+          child: CompositedTransformFollower(
+            link: _quickFixLink,
+            showWhenUnlinked: false,
+            targetAnchor: Alignment.topLeft,
+            offset: Offset(20, currentVerticalOffset + lineHeight),
+            child: Material(
+              elevation: 8,
+              borderRadius: BorderRadius.circular(8),
+              color: ThemeColors.sidebarBg(theme),
+              child: Container(
+                width: 280,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.blueAccent.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.lightbulb,
+                          color: Colors.amber,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          "Suggestion d'apprentissage",
+                          style: TextStyle(
+                            color: Colors.amber,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 16),
+                          onPressed: _hideQuickFix,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (issue.documentation != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Text(
+                          issue.documentation!,
+                          style: TextStyle(
+                            color: ThemeColors.textMain(
+                              theme,
+                            ).withValues(alpha: 0.9),
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    const Divider(color: Colors.white12),
+                    const Text(
+                      "Actions proposées :",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        color: Colors.white38,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    ...?issue.fixes?.map(
+                      (fix) => InkWell(
+                        onTap: () {
+                          _applyFix(issue.line, fix);
+                          _hideQuickFix();
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: 8,
+                          ),
+                          margin: const EdgeInsets.only(bottom: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.blueAccent.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.auto_fix_high,
+                                size: 14,
+                                color: Colors.blueAccent,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  fix.title,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    Overlay.of(context).insert(_quickFixOverlay!);
+  }
+
+  void _hideQuickFix() {
+    _quickFixOverlay?.remove();
+    _quickFixOverlay = null;
+  }
+
+  void _applyFix(int line1Based, LintFix fix) {
+    final lines = _controller.text.split('\n');
+    if (line1Based > 0 && line1Based <= lines.length) {
+      lines[line1Based - 1] = fix.replacement;
+      _controller.text = lines.join('\n');
+      _onChanged(_controller.text, context.read<FileProvider>());
+    }
   }
 
   void _handleFileProviderChange() {
@@ -86,6 +346,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
       if (_lastPath != activeFile.path) {
         _lastPath = activeFile.path;
         _controller.text = activeFile.content;
+        fileProvider.lancerAnalyseStatique(_controller.text);
       } else if (_controller.text != activeFile.content) {
         // Changement externe ou acceptation de modification IA
         _controller.text = activeFile.content;
@@ -105,7 +366,11 @@ class _EditeurWidgetState extends State<EditeurWidget> {
     _insertSubscription?.cancel();
     _fileProvider?.removeListener(_handleFileProviderChange);
     _controller.removeListener(_updateFoldableLines);
-    _controller.dispose();
+    _controller.removeListener(_onControllerChanged);
+    _controller.removeListener(_handleCursorChange);
+    if (_ownsController) {
+      _controller.dispose();
+    }
     _focusNode.dispose();
     _editorScrollController.dispose();
     _gutterScrollController.dispose();
@@ -131,81 +396,95 @@ class _EditeurWidgetState extends State<EditeurWidget> {
         : 250.0;
 
     _overlay = OverlayEntry(
-      builder: (context) => Positioned(
-        width: overlayWidth,
+      builder: (context) => Align(
+        alignment: Alignment.topLeft,
         child: CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
+          targetAnchor: Alignment.topLeft,
           offset: const Offset(0, 24),
           child: Material(
             elevation: 12,
             borderRadius: BorderRadius.circular(4),
             color: ThemeColors.sidebarBg(theme),
             child: Container(
+              width: overlayWidth,
+              constraints: const BoxConstraints(maxHeight: 250),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Header with close button to dismiss suggestions
                   Align(
                     alignment: Alignment.topRight,
                     child: IconButton(
                       icon: Icon(
                         Icons.close,
-                        size: 18,
-                        color: ThemeColors.textMain(theme).withOpacity(0.8),
+                        size: 16,
+                        color: ThemeColors.textMain(
+                          theme,
+                        ).withValues(alpha: 0.6),
                       ),
-                      tooltip: AppLocalizations.of(context)!.close,
                       onPressed: _hideOverlay,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
                   ),
-                  ...List.generate(_suggestions.length, (index) {
-                    final s = _suggestions[index];
-                    final isSelected = index == _selectedIndex;
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ...List.generate(_suggestions.length, (index) {
+                            final s = _suggestions[index];
+                            final isSelected = index == _selectedIndex;
 
-                    return InkWell(
-                      onTap: () => _insertSuggestion(s),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? Colors.blueAccent.withOpacity(0.2)
-                              : null,
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.code,
-                              size: 14,
-                              color: isSelected
-                                  ? Colors.blueAccent
-                                  : Colors.white38,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              s,
-                              style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : ThemeColors.textMain(theme),
-                                fontFamily: 'JetBrainsMono',
-                                fontSize: 12,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
+                            return InkWell(
+                              onTap: () => _insertSuggestion(s),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? Colors.blueAccent.withValues(alpha: 0.2)
+                                      : null,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.code,
+                                      size: 14,
+                                      color: isSelected
+                                          ? Colors.blueAccent
+                                          : Colors.white38,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      s,
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : ThemeColors.textMain(theme),
+                                        fontFamily: 'JetBrainsMono',
+                                        fontSize: 12,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                            );
+                          }),
+                        ],
                       ),
-                    );
-                  }),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -602,7 +881,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
     // Detect mobile mode
     final isMobile = MediaQuery.of(context).size.width < 768;
 
-    if (activeFile == null) {
+    if (activeFile == null && !widget.isStandalone) {
       return Container(
         decoration: BoxDecoration(
           color: ThemeColors.editorBg(theme),
@@ -619,13 +898,13 @@ class _EditeurWidgetState extends State<EditeurWidget> {
               Icon(
                 Icons.code,
                 size: 64,
-                color: ThemeColors.textMain(theme).withOpacity(0.3),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.3),
               ),
               const SizedBox(height: 16),
               Text(
                 AppLocalizations.of(context)!.openFileToStart,
                 style: TextStyle(
-                  color: ThemeColors.textMain(theme).withOpacity(0.5),
+                  color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
                   fontSize: 16,
                 ),
               ),
@@ -669,222 +948,84 @@ class _EditeurWidgetState extends State<EditeurWidget> {
           children: [
             Column(
               children: [
-                const TabManager(),
+                if (!widget.isStandalone) const TabManager(),
                 Expanded(
                   child: Container(
                     color: ThemeColors.editorBg(theme),
                     child: Row(
                       children: [
                         // Numéros de ligne
-                        Container(
-                          width: isMobile ? 30 : 45,
-                          padding: const EdgeInsets.only(top: 12),
-                          color: ThemeColors.sidebarBg(theme),
-                          child: ListView.builder(
-                            controller: _gutterScrollController,
-                            physics: const NeverScrollableScrollPhysics(),
-                            padding: EdgeInsets.zero,
-                            itemCount: _controller.text.split('\n').length,
-                            itemBuilder: (context, i) {
-                              final lineNum = i + 1;
-                              if (!_isLineVisible(lineNum)) {
-                                return const SizedBox.shrink();
-                              }
-
-                              final hasBreakpoint = debugProvider.breakpoints
-                                  .contains(lineNum);
-                              final isCurrentLine =
-                                  debugProvider.currentHighlightLine == lineNum;
-                              final hasError =
-                                  debugProvider.errorLine == lineNum;
-                              final isAdded = _controller.addedLines.contains(
-                                lineNum,
-                              );
-                              final isDeleted = _controller.deletedLines
-                                  .contains(lineNum);
-
-                              return InkWell(
-                                onTap: () =>
-                                    debugProvider.toggleBreakpoint(lineNum),
-                                child: Container(
-                                  height: appProvider.fontSize * 1.5,
-                                  color: isAdded
-                                      ? Colors.green.withOpacity(0.1)
-                                      : (isDeleted
-                                            ? Colors.red.withOpacity(0.1)
-                                            : null),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        width: 14,
-                                        alignment: Alignment.center,
-                                        child: isAdded
-                                            ? const Text(
-                                                "+",
-                                                style: TextStyle(
-                                                  color: Colors.green,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              )
-                                            : (isDeleted
-                                                  ? const Text(
-                                                      "-",
-                                                      style: TextStyle(
-                                                        color: Colors.red,
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    )
-                                                  : (hasError
-                                                        ? const Icon(
-                                                            Icons.error_outline,
-                                                            size: 10,
-                                                            color: Colors
-                                                                .redAccent,
-                                                          )
-                                                        : (hasBreakpoint
-                                                              ? Container(
-                                                                  width: 8,
-                                                                  height: 8,
-                                                                  decoration: const BoxDecoration(
-                                                                    color: Colors
-                                                                        .red,
-                                                                    shape: BoxShape
-                                                                        .circle,
-                                                                  ),
-                                                                )
-                                                              : (_foldableLines.contains(
-                                                                          lineNum,
-                                                                        ) &&
-                                                                        !isMobile
-                                                                    ? InkWell(
-                                                                        onTap: () {
-                                                                          setState(() {
-                                                                            _foldedLines[lineNum] =
-                                                                                !(_foldedLines[lineNum] ??
-                                                                                    false);
-                                                                            _syncHiddenLines();
-                                                                          });
-                                                                        },
-                                                                        child: Icon(
-                                                                          _foldedLines[lineNum] ==
-                                                                                  true
-                                                                              ? Icons.chevron_right
-                                                                              : Icons.expand_more,
-                                                                          size:
-                                                                              14,
-                                                                          color:
-                                                                              Colors.white38,
-                                                                        ),
-                                                                      )
-                                                                    : null)))),
-                                      ),
-                                      Expanded(
-                                        child: Center(
-                                          child: Text(
-                                            '$lineNum',
-                                            style: TextStyle(
-                                              color: isCurrentLine
-                                                  ? Colors.white
-                                                  : (isAdded
-                                                        ? Colors.green
-                                                        : (isDeleted
-                                                              ? Colors.red
-                                                              : ThemeColors.textMain(
-                                                                  theme,
-                                                                ).withOpacity(
-                                                                  0.3,
-                                                                ))),
-                                              fontSize: 12,
-                                              fontFamily: 'JetBrainsMono',
-                                              fontWeight:
-                                                  (isCurrentLine ||
-                                                      isAdded ||
-                                                      isDeleted)
-                                                  ? FontWeight.bold
-                                                  : FontWeight.normal,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
+                        EditorGutter(
+                          lineCount: _controller.text.split('\n').length,
+                          scrollController: _gutterScrollController,
+                          isMobile: isMobile,
+                          theme: theme,
+                          breakpoints: debugProvider.breakpoints,
+                          currentHighlightLine:
+                              debugProvider.currentHighlightLine,
+                          errorLine: debugProvider.errorLine,
+                          addedLines: _controller.addedLines,
+                          deletedLines: _controller.deletedLines,
+                          fontSize: appProvider.fontSize,
+                          onToggleBreakpoint: (line) =>
+                              debugProvider.toggleBreakpoint(line),
+                          onToggleFold: _toggleFold,
+                          isLineVisible: _isLineVisible,
+                          foldableLines: _foldableLines,
+                          foldedLines: _foldedLines,
                         ),
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.only(left: 8.0),
                             child: CompositedTransformTarget(
                               link: _layerLink,
-                              child: TextField(
-                                controller: _controller,
-                                focusNode: _focusNode,
-                                scrollController: _editorScrollController,
-                                maxLines: null,
-                                expands: true,
-                                readOnly: fileProvider.isReviewMode,
-                                textAlignVertical: TextAlignVertical.top,
-                                cursorColor: ThemeColors.textBright(theme),
-                                style: TextStyle(
-                                  color: ThemeColors.textBright(theme),
-                                  fontFamily: 'JetBrainsMono',
-                                  fontSize: appProvider.fontSize,
+                              child: CompositedTransformTarget(
+                                link: _quickFixLink,
+                                child: TextField(
+                                  controller: _controller,
+                                  focusNode: _focusNode,
+                                  scrollController: _editorScrollController,
+                                  maxLines: null,
+                                  expands: true,
+                                  readOnly:
+                                      !widget.isStandalone &&
+                                      fileProvider.isReviewMode,
+                                  textAlignVertical: TextAlignVertical.top,
+                                  cursorColor: ThemeColors.textBright(theme),
+                                  style: TextStyle(
+                                    color: ThemeColors.textBright(theme),
+                                    fontFamily: 'JetBrainsMono',
+                                    fontSize: appProvider.fontSize,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.only(top: 12),
+                                  ),
+                                  onChanged: (text) =>
+                                      _onChanged(text, fileProvider),
                                 ),
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.only(top: 12),
-                                ),
-                                onChanged: (text) =>
-                                    _onChanged(text, fileProvider),
                               ),
                             ),
                           ),
                         ),
                         // Minimap
                         if (appProvider.showMinimap && !isMobile)
-                          Container(
-                            width: 60,
-                            margin: const EdgeInsets.only(left: 8),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                left: BorderSide(
-                                  color: Colors.white.withOpacity(0.05),
-                                ),
+                          EditorMinimap(
+                            scrollController: _minimapScrollController,
+                            textSpan: _controller.buildTextSpan(
+                              context: context,
+                              style: TextStyle(
+                                color: ThemeColors.textMain(
+                                  theme,
+                                ).withValues(alpha: 0.2),
+                                fontSize: 3,
+                                height: 1.5,
+                                fontFamily: 'JetBrainsMono',
                               ),
-                              color: ThemeColors.editorBg(
-                                theme,
-                              ).withOpacity(0.5),
+                              withComposing: false,
                             ),
-                            child: IgnorePointer(
-                              child: SingleChildScrollView(
-                                controller: _minimapScrollController,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  child: Text.rich(
-                                    _controller.buildTextSpan(
-                                      context: context,
-                                      style: TextStyle(
-                                        color: ThemeColors.textMain(
-                                          theme,
-                                        ).withOpacity(0.2),
-                                        fontSize: 3,
-                                        height: 1.5,
-                                        fontFamily: 'JetBrainsMono',
-                                      ),
-                                      withComposing: false,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            theme: theme,
                           ),
                       ],
                     ),
@@ -894,105 +1035,22 @@ class _EditeurWidgetState extends State<EditeurWidget> {
                   _buildReviewBanner(theme, fileProvider),
               ],
             ),
-            if (_isSearchVisible) _buildSearchPanel(theme, isMobile),
+            if (_isSearchVisible)
+              EditorSearchPanel(
+                searchController: _searchController,
+                replaceController: _replaceController,
+                searchMatches: _searchMatches,
+                currentMatchIndex: _currentMatchIndex,
+                isMobile: isMobile,
+                theme: theme,
+                onSearchChanged: _performSearch,
+                onNextMatch: _nextMatch,
+                onPrevMatch: _prevMatch,
+                onReplaceCurrent: _replaceCurrent,
+                onReplaceAll: _replaceAll,
+                onClose: () => setState(() => _isSearchVisible = false),
+              ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchPanel(AppTheme theme, bool isMobile) {
-    return Positioned(
-      top: 40,
-      right: isMobile ? 0 : 20,
-      left: isMobile ? 0 : null,
-      child: Material(
-        elevation: 8,
-        borderRadius: BorderRadius.circular(8),
-        color: ThemeColors.sidebarBg(theme),
-        child: Container(
-          width: isMobile ? null : 300,
-          margin: isMobile ? const EdgeInsets.symmetric(horizontal: 16) : null,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white12),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      autofocus: true,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                      decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context)!.searchHint,
-                        hintStyle: const TextStyle(color: Colors.white38),
-                        isDense: true,
-                        border: InputBorder.none,
-                      ),
-                      onChanged: (val) => _performSearch(),
-                    ),
-                  ),
-                  Text(
-                    _searchMatches.isEmpty
-                        ? '0/0'
-                        : '${_currentMatchIndex + 1}/${_searchMatches.length}',
-                    style: const TextStyle(color: Colors.white38, fontSize: 11),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.keyboard_arrow_up, size: 18),
-                    onPressed: _prevMatch,
-                    color: Colors.white70,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.keyboard_arrow_down, size: 18),
-                    onPressed: _nextMatch,
-                    color: Colors.white70,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    onPressed: () => setState(() => _isSearchVisible = false),
-                    color: Colors.white70,
-                  ),
-                ],
-              ),
-              const Divider(color: Colors.white12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _replaceController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                      decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context)!.replaceHint,
-                        hintStyle: const TextStyle(color: Colors.white38),
-                        isDense: true,
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: _replaceAll,
-                    child: Text(
-                      AppLocalizations.of(context)!.replaceAll,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: _replaceCurrent,
-                    child: Text(
-                      AppLocalizations.of(context)!.replaceCurrent,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
         ),
       ),
     );

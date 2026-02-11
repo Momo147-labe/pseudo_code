@@ -7,6 +7,7 @@ import '../providers/theme_provider.dart';
 import '../providers/ai_provider.dart';
 import '../providers/file_provider.dart';
 import '../theme.dart';
+import '../../services/ai/voice_service.dart';
 
 class AiAssistantView extends StatefulWidget {
   const AiAssistantView({super.key});
@@ -18,8 +19,18 @@ class AiAssistantView extends StatefulWidget {
 class _AiAssistantViewState extends State<AiAssistantView> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final VoiceService _voiceService = VoiceService();
+  bool _isListening = false;
 
-  // State local supprimé car déplacé dans AiProvider
+  @override
+  void initState() {
+    super.initState();
+    _voiceService.init().then((avail) {
+      if (mounted && avail) {
+        setState(() {}); // Update UI if voice available
+      }
+    });
+  }
 
   void _sendMessage(
     AiProvider aiProvider,
@@ -51,6 +62,27 @@ class _AiAssistantViewState extends State<AiAssistantView> {
     );
 
     _scrollToBottom();
+  }
+
+  void _toggleListening() async {
+    if (_isListening) {
+      await _voiceService.stopListening();
+      setState(() => _isListening = false);
+    } else {
+      setState(() => _isListening = true);
+      await _voiceService.startListening(
+        onResult: (text) {
+          if (mounted) {
+            _controller.text = text;
+          }
+        },
+        onDone: () {
+          if (mounted) {
+            setState(() => _isListening = false);
+          }
+        },
+      );
+    }
   }
 
   void _scrollToBottom() {
@@ -91,6 +123,9 @@ class _AiAssistantViewState extends State<AiAssistantView> {
     // Scroll automatique quand un nouveau message arrive
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
+    // Récupérer le padding du clavier
+    final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
+
     return Column(
       children: [
         Padding(
@@ -104,15 +139,22 @@ class _AiAssistantViewState extends State<AiAssistantView> {
               ),
               const SizedBox(width: 8),
               Text(
-                "ASSISTANT IA (GROQ)",
+                "ASSISTANT IA",
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: ThemeColors.textMain(theme).withOpacity(0.5),
+                  color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
                   letterSpacing: 1.2,
                 ),
               ),
               const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.settings_outlined, size: 18),
+                onPressed: () {
+                  // TODO: Ouvrir les settings AI
+                },
+                tooltip: "Paramètres IA",
+              ),
               IconButton(
                 icon: const Icon(Icons.delete_outline, size: 18),
                 onPressed: () => aiProvider.clearHistory(),
@@ -140,14 +182,14 @@ class _AiAssistantViewState extends State<AiAssistantView> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: isUser
-                            ? Colors.blueAccent.withOpacity(0.2)
+                            ? Colors.blueAccent.withValues(alpha: 0.2)
                             : (isDark
                                   ? Colors.white10
-                                  : Colors.black.withOpacity(0.05)),
+                                  : Colors.black.withValues(alpha: 0.05)),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: isUser
-                              ? Colors.blueAccent.withOpacity(0.3)
+                              ? Colors.blueAccent.withValues(alpha: 0.3)
                               : Colors.transparent,
                         ),
                       ),
@@ -161,44 +203,103 @@ class _AiAssistantViewState extends State<AiAssistantView> {
                               fontSize: 13,
                             ),
                           ),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: InkWell(
-                              onTap: () {
-                                Clipboard.setData(
-                                  ClipboardData(text: msg['content']!),
-                                );
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      "Copié dans le presse-papiers",
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              // Boutons feedback pour les réponses IA
+                              if (!isUser && index > 0) ...[
+                                InkWell(
+                                  onTap: () => aiProvider.recordFeedback(true),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      top: 8,
+                                      right: 8,
                                     ),
-                                    duration: Duration(seconds: 1),
+                                    child: Icon(
+                                      Icons.thumb_up_outlined,
+                                      size: 14,
+                                      color: ThemeColors.textMain(
+                                        theme,
+                                      ).withValues(alpha: 0.3),
+                                    ),
                                   ),
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: Icon(
-                                  Icons.copy,
-                                  size: 14,
-                                  color: ThemeColors.textMain(
-                                    theme,
-                                  ).withOpacity(0.3),
+                                ),
+                                InkWell(
+                                  onTap: () => aiProvider.recordFeedback(false),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      top: 8,
+                                      right: 8,
+                                    ),
+                                    child: Icon(
+                                      Icons.thumb_down_outlined,
+                                      size: 14,
+                                      color: ThemeColors.textMain(
+                                        theme,
+                                      ).withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              InkWell(
+                                onTap: () {
+                                  Clipboard.setData(
+                                    ClipboardData(text: msg['content']!),
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Copié dans le presse-papiers",
+                                      ),
+                                      duration: Duration(seconds: 1),
+                                    ),
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Icon(
+                                    Icons.copy,
+                                    size: 14,
+                                    color: ThemeColors.textMain(
+                                      theme,
+                                    ).withValues(alpha: 0.3),
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      isUser ? "Vous" : "IA (Llama 3.1)",
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: ThemeColors.textMain(theme).withOpacity(0.4),
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          isUser ? "Vous" : "IA",
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: ThemeColors.textMain(
+                              theme,
+                            ).withValues(alpha: 0.4),
+                          ),
+                        ),
+                        // Afficher tokens et coût pour la dernière réponse IA
+                        if (!isUser &&
+                            index == aiProvider.messages.length - 1 &&
+                            aiProvider.lastTokensUsed > 0) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            "${aiProvider.lastTokensUsed} tokens • \$${aiProvider.lastCost.toStringAsFixed(4)}",
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: ThemeColors.textMain(
+                                theme,
+                              ).withValues(alpha: 0.3),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -221,6 +322,15 @@ class _AiAssistantViewState extends State<AiAssistantView> {
           meriseProvider,
           appProvider,
         ),
+        // Afficher le rate limit si proche de la limite
+        if (aiProvider.rateLimiter.getRemainingRequests() <= 2)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4),
+            child: Text(
+              "⚠️ ${aiProvider.rateLimiter.getRemainingRequests()} requêtes restantes",
+              style: TextStyle(fontSize: 10, color: Colors.orange),
+            ),
+          ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12.0),
           child: Row(
@@ -255,16 +365,23 @@ class _AiAssistantViewState extends State<AiAssistantView> {
             ],
           ),
         ),
+        // FIX MOBILE: Ajouter padding dynamique pour le clavier
         Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding: EdgeInsets.only(
+            left: 12.0,
+            right: 12.0,
+            bottom: 12.0 + keyboardPadding,
+          ),
           child: TextField(
             controller: _controller,
-            onSubmitted: (_) => _sendMessage(
-              aiProvider,
-              fileProvider,
-              meriseProvider,
-              appProvider,
-            ),
+            keyboardType: TextInputType.multiline,
+            maxLines: 5,
+            minLines: 1,
+            textInputAction: TextInputAction.newline,
+            onSubmitted: (_) {
+              // Sur mobile ou avec multiline, onSubmitted n'est pas toujours appelé comme on veut avec Enter
+              // On garde le bouton d'envoi pour le mobile
+            },
             enabled: !aiProvider.isLoading,
             style: TextStyle(
               color: ThemeColors.textBright(theme),
@@ -275,13 +392,13 @@ class _AiAssistantViewState extends State<AiAssistantView> {
                   ? "L'IA réfléchit..."
                   : "Poser une question...",
               hintStyle: TextStyle(
-                color: ThemeColors.textMain(theme).withOpacity(0.4),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.4),
                 fontSize: 13,
               ),
               filled: true,
               fillColor: isDark
                   ? Colors.white10
-                  : Colors.black.withOpacity(0.05),
+                  : Colors.black.withValues(alpha: 0.05),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide.none,
@@ -290,20 +407,36 @@ class _AiAssistantViewState extends State<AiAssistantView> {
                 horizontal: 12,
                 vertical: 8,
               ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  aiProvider.isLoading ? Icons.hourglass_empty : Icons.send,
-                  size: 18,
-                  color: Colors.blueAccent,
-                ),
-                onPressed: aiProvider.isLoading
-                    ? null
-                    : () => _sendMessage(
-                        aiProvider,
-                        fileProvider,
-                        meriseProvider,
-                        appProvider,
-                      ),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      _isListening ? Icons.mic : Icons.mic_none,
+                      size: 20,
+                      color: _isListening
+                          ? Colors.redAccent
+                          : ThemeColors.textMain(theme).withValues(alpha: 0.5),
+                    ),
+                    onPressed: _toggleListening,
+                    tooltip: "Dicter",
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      aiProvider.isLoading ? Icons.hourglass_empty : Icons.send,
+                      size: 18,
+                      color: Colors.blueAccent,
+                    ),
+                    onPressed: aiProvider.isLoading
+                        ? null
+                        : () => _sendMessage(
+                            aiProvider,
+                            fileProvider,
+                            meriseProvider,
+                            appProvider,
+                          ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -355,7 +488,7 @@ class _AiAssistantViewState extends State<AiAssistantView> {
                 _scrollToBottom();
               },
               backgroundColor: Colors.transparent,
-              side: BorderSide(color: Colors.blueAccent.withOpacity(0.3)),
+              side: BorderSide(color: Colors.blueAccent.withValues(alpha: 0.3)),
             ),
           );
         }).toList(),

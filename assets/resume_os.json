@@ -1,0 +1,165 @@
+{
+    "titre": "RÉSUMÉ SUR LE SYSTÈME D’EXPLOITATION",
+    "auteur": "Fode Momo Soumah",
+    "definitions_de_base": {
+        "informatique": "Science du traitement automatique et rationnel des informations à travers un appareil électronique appelé Ordinateur.",
+        "ordinateur": "Machine capable de stocker et traiter des informations pour accomplir différentes tâches.",
+        "peripherique": {
+            "definition": "Tout appareil qu’on peut brancher sur un ordinateur.",
+            "types": [
+                {
+                    "nom": "Entrée",
+                    "description": "Fait rentrer des données (clavier, souris, micro, scanner)."
+                },
+                {
+                    "nom": "Sortie",
+                    "description": "Fait sortir des données (écran, imprimante, haut-parleur)."
+                },
+                {
+                    "nom": "Entrée-Sortie",
+                    "description": "Fait les deux (CD-ROM, disque dur externe, clé USB)."
+                }
+            ]
+        }
+    },
+    "systeme_exploitation": {
+        "definition": "Ensemble de logiciels (programmes) permettant à l’homme d’utiliser son ordinateur. Sans lui, l'ordinateur est inutilisable.",
+        "generations": [
+            {
+                "numero": 1,
+                "periode": "1945",
+                "technologie": "Machines à tubes à vides"
+            },
+            {
+                "numero": 2,
+                "periode": "1955-1960",
+                "technologie": "Transistors et traitement par lots"
+            },
+            {
+                "numero": 3,
+                "periode": "Inconnue",
+                "technologie": "Circuits intégrés et multiprogrammation"
+            },
+            {
+                "numero": 4,
+                "periode": "Inconnue",
+                "technologie": "Microprocesseurs"
+            },
+            {
+                "numero": 5,
+                "periode": "Actuelle",
+                "technologie": "Intelligence Artificielle"
+            }
+        ],
+        "taches_principales": [
+            "Gestion de la mémoire centrale (RAM)",
+            "Gestion du processeur",
+            "Gestion de la mémoire secondaire (Disque dur)",
+            "Gestion des périphériques (E/S)",
+            "Gestion du réseau",
+            "Gestion de la sécurité"
+        ]
+    },
+    "ordonnancement_processeur": {
+        "definition": "Gestion de l’ordre dans lequel les processus utilisent le processeur.",
+        "composantes": [
+            "File d'attente (Ready Queue)",
+            "Algorithme d'ordonnancement (FIFO, Tourniquet/Round Robin, Priorités)"
+        ],
+        "etats_processus": [
+            "Élu (Actif)",
+            "Prêt (Suspendu)",
+            "Bloqué (En attente)"
+        ]
+    },
+    "gestion_memoire": {
+        "definition": "Techniques pour partager la RAM entre les processus.",
+        "concepts_cles": [
+            {
+                "nom": "Allocation",
+                "description": "Processus de donner de la mémoire à chaque programme."
+            },
+            {
+                "nom": "Swap (Va-et-vient)",
+                "description": "Déplacement temporaire de la RAM vers le disque dur."
+            },
+            {
+                "nom": "Pagination",
+                "description": "Division de la mémoire en blocs de taille fixe (Pages/Cadres)."
+            },
+            {
+                "nom": "Segmentation",
+                "description": "Division selon la structure logique (code, données, pile)."
+            },
+            {
+                "nom": "Mémoire virtuelle",
+                "description": "Utilisation de l'espace disque pour simuler de la RAM supplémentaire."
+            }
+        ]
+    },
+    "synchronisation": {
+        "definition": "Coordination des processus pour éviter les conflits d'accès aux ressources.",
+        "problemes_classiques": [
+            "Section critique",
+            "Producteur-Consommateur",
+            "Dîner des philosophes"
+        ],
+        "outils": [
+            {
+                "nom": "Mutex",
+                "description": "Verrou d'exclusion mutuelle (un seul à la fois)."
+            },
+            {
+                "nom": "Sémaphore",
+                "description": "Compteur permettant de limiter le nombre d'accès simultanés."
+            }
+        ],
+        "interblocage": "Situation où deux processus s'attendent mutuellement éternellement."
+    },
+    "systeme_fichiers": {
+        "definition": "Manière dont les données sont stockées et organisées sur le disque.",
+        "concepts": [
+            "Arborescence (Dossiers/Fichiers)",
+            "Blocs de données",
+            "Table d'Allocation des Fichiers (FAT, NTFS, ext4)"
+        ],
+        "gestion_io": "Le SE gère les pilotes pour lire/écrire sur le matériel."
+    },
+    "securite_protection": {
+        "definition": "Mécanismes pour protéger les données et les ressources contre les accès non autorisés.",
+        "piliers": [
+            "Authentification (Qui êtes-vous ?)",
+            "Autorisation (Droits d'accès r/w/x)",
+            "Chiffrement (Confidentialité)"
+        ]
+    },
+    "reseaux_se": {
+        "definition": "Rôle du SE dans la communication entre ordinateurs.",
+        "services": [
+            "Gestion des piles TCP/IP",
+            "Partage de fichiers et imprimantes",
+            "Sécurité réseau (Pare-feu)"
+        ]
+    },
+    "virtualisation": {
+        "definition": "Création d'une version virtuelle d'une ressource (OS, Serveur, Réseau).",
+        "composants": [
+            "Hyperviseur : Logiciel qui gère les machines virtuelles.",
+            "Machine Virtuelle (VM) : Environnement isolé simulant un PC."
+        ]
+    },
+    "architectures": [
+        {
+            "type": "Monolithique",
+            "description": "Un seul bloc, rapide mais complexe."
+        },
+        {
+            "type": "À couches",
+            "description": "Divisé en couches indépendantes."
+        },
+        {
+            "type": "Micro-noyau",
+            "description": "Services minimums dans le noyau, le reste est à l'extérieur."
+        }
+    ]
+}

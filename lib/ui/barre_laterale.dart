@@ -12,6 +12,7 @@ import 'educational_panel.dart';
 import 'profile_modal.dart';
 import 'documentation_modal.dart';
 import 'ai_assistant_view.dart';
+import '../providers/graph_provider.dart';
 
 class BarreLaterale extends StatefulWidget {
   const BarreLaterale({super.key});
@@ -57,7 +58,7 @@ class _BarreLateraleState extends State<BarreLaterale> {
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(
-                      color: ThemeColors.editorBg(theme).withOpacity(0.2),
+                      color: ThemeColors.editorBg(theme).withValues(alpha: 0.2),
                     ),
                   ),
                 ),
@@ -80,6 +81,12 @@ class _BarreLateraleState extends State<BarreLaterale> {
                         theme: theme,
                       ),
                       _NavIcon(
+                        icon: Icons.auto_graph_outlined,
+                        isActive: appProvider.activeSidebarTab == 'graph',
+                        onTap: () => appProvider.setActiveSidebarTab('graph'),
+                        theme: theme,
+                      ),
+                      _NavIcon(
                         icon: Icons.bug_report_outlined,
                         isActive: appProvider.activeSidebarTab == 'debug',
                         onTap: () => appProvider.setActiveSidebarTab('debug'),
@@ -89,6 +96,14 @@ class _BarreLateraleState extends State<BarreLaterale> {
                         icon: Icons.auto_awesome,
                         isActive: appProvider.activeSidebarTab == 'ai',
                         onTap: () => appProvider.setActiveSidebarTab('ai'),
+                        theme: theme,
+                      ),
+
+                      _NavIcon(
+                        icon: Icons.emoji_events_outlined,
+                        isActive: appProvider.activeSidebarTab == 'challenges',
+                        onTap: () =>
+                            appProvider.setActiveSidebarTab('challenges'),
                         theme: theme,
                       ),
                       _NavIcon(
@@ -141,7 +156,8 @@ class _BarreLateraleState extends State<BarreLaterale> {
                 themeProvider,
               ),
             ),
-            if (MediaQuery.of(context).size.width < 768) ...[
+            if (MediaQuery.of(context).size.width < 768 &&
+                appProvider.activeSidebarTab != 'ai') ...[
               const Divider(height: 1),
               Padding(
                 padding: const EdgeInsets.all(12.0),
@@ -153,7 +169,9 @@ class _BarreLateraleState extends State<BarreLaterale> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        color: ThemeColors.textMain(theme).withOpacity(0.5),
+                        color: ThemeColors.textMain(
+                          theme,
+                        ).withValues(alpha: 0.5),
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -221,6 +239,7 @@ class _BarreLateraleState extends State<BarreLaterale> {
         return const AiAssistantView();
       case 'debug':
         return const VariableView();
+
       case 'merise':
         return Column(
           children: [
@@ -243,6 +262,7 @@ class _BarreLateraleState extends State<BarreLaterale> {
             ),
           ],
         );
+      case 'graph':
       default:
         return _buildExplorer(
           context,
@@ -266,6 +286,14 @@ class _BarreLateraleState extends State<BarreLaterale> {
       appProvider.setActiveSidebarTab('merise');
     } else if (ext == 'alg') {
       appProvider.setActiveSidebarTab('explorer');
+    } else if (ext == 'grp') {
+      try {
+        final content = File(path).readAsStringSync();
+        context.read<GraphProvider>().loadFromContent(content, path);
+      } catch (e) {
+        debugPrint("Erreur de lecture du fichier graphe: $e");
+      }
+      appProvider.setActiveSidebarTab('graph');
     }
   }
 
@@ -290,7 +318,7 @@ class _BarreLateraleState extends State<BarreLaterale> {
                     ? Icons.keyboard_arrow_down
                     : Icons.keyboard_arrow_right,
                 size: 16,
-                color: ThemeColors.textMain(theme).withOpacity(0.5),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
               ),
               Expanded(
                 child: _buildSectionHeader("FICHIERS OUVERTS", padding: 16),
@@ -354,7 +382,7 @@ class _BarreLateraleState extends State<BarreLaterale> {
                     ? Icons.keyboard_arrow_down
                     : Icons.keyboard_arrow_right,
                 size: 16,
-                color: ThemeColors.textMain(theme).withOpacity(0.5),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
               ),
               Expanded(
                 child: _buildSectionHeader(
@@ -430,7 +458,7 @@ class _BarreLateraleState extends State<BarreLaterale> {
                 if (entity is Directory) return true;
                 if (entity is File) {
                   final ext = p.extension(entity.path).toLowerCase();
-                  return ext == '.alg' || ext == '.csi';
+                  return ext == '.alg' || ext == '.csi' || ext == '.grp';
                 }
                 return false;
               }).toList();
@@ -497,7 +525,7 @@ class _SidebarHeader extends StatelessWidget {
               _getHeaderTitle(appProvider, fileProvider).toUpperCase(),
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: ThemeColors.textMain(theme).withOpacity(0.8),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.8),
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
               ),
@@ -563,7 +591,7 @@ class _SidebarHeader extends StatelessWidget {
           decoration: InputDecoration(
             enabledBorder: UnderlineInputBorder(
               borderSide: BorderSide(
-                color: ThemeColors.textMain(theme).withOpacity(0.2),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.2),
               ),
             ),
           ),
@@ -603,7 +631,7 @@ class _HeaderAction extends StatelessWidget {
         icon: Icon(
           icon,
           size: 16,
-          color: ThemeColors.textMain(theme).withOpacity(0.6),
+          color: ThemeColors.textMain(theme).withValues(alpha: 0.6),
         ),
         onPressed: onPressed,
       ),
@@ -642,7 +670,7 @@ class _FolderItem extends StatelessWidget {
                   ? Icons.keyboard_arrow_down
                   : Icons.keyboard_arrow_right,
               size: 16,
-              color: ThemeColors.textMain(theme).withOpacity(0.5),
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
             ),
             const Icon(Icons.folder, size: 16, color: Colors.blueAccent),
             const SizedBox(width: 8),
@@ -651,7 +679,7 @@ class _FolderItem extends StatelessWidget {
                 name,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: ThemeColors.textMain(theme).withOpacity(0.8),
+                  color: ThemeColors.textMain(theme).withValues(alpha: 0.8),
                   fontSize: 13,
                 ),
               ),
@@ -660,7 +688,7 @@ class _FolderItem extends StatelessWidget {
               icon: Icon(
                 Icons.more_vert,
                 size: 14,
-                color: ThemeColors.textMain(theme).withOpacity(0.4),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.4),
               ),
               padding: EdgeInsets.zero,
               itemBuilder: (context) => [
@@ -721,8 +749,8 @@ class _FileItem extends StatelessWidget {
       child: Container(
         color: isActive
             ? (isDark
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.05))
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.05))
             : null,
         padding: EdgeInsets.only(
           left: 32.0 + (indent * 12),
@@ -736,11 +764,13 @@ class _FileItem extends StatelessWidget {
               Image.asset('assets/icone.png', width: 16, height: 16)
             else if (extension == 'csi')
               Image.asset('assets/csiIcon.png', width: 16, height: 16)
+            else if (extension == 'grp')
+              Image.asset('assets/grp.png', width: 16, height: 16)
             else
               Icon(
                 Icons.description_outlined,
                 size: 16,
-                color: ThemeColors.textMain(theme).withOpacity(0.7),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.7),
               ),
             const SizedBox(width: 8),
             Expanded(
@@ -750,7 +780,7 @@ class _FileItem extends StatelessWidget {
                 style: TextStyle(
                   color: isActive
                       ? ThemeColors.textBright(theme)
-                      : ThemeColors.textMain(theme).withOpacity(0.7),
+                      : ThemeColors.textMain(theme).withValues(alpha: 0.7),
                   fontSize: 13,
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                   fontStyle: isModified ? FontStyle.italic : FontStyle.normal,
@@ -763,14 +793,14 @@ class _FileItem extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 onPressed: onClose,
-                color: ThemeColors.textMain(theme).withOpacity(0.5),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
               )
             else
               PopupMenuButton<String>(
                 icon: Icon(
                   Icons.more_horiz,
                   size: 14,
-                  color: ThemeColors.textMain(theme).withOpacity(0.4),
+                  color: ThemeColors.textMain(theme).withValues(alpha: 0.4),
                 ),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
@@ -823,7 +853,7 @@ class _NavIcon extends StatelessWidget {
         icon,
         color: isActive
             ? Colors.blueAccent
-            : ThemeColors.textMain(theme).withOpacity(0.4),
+            : ThemeColors.textMain(theme).withValues(alpha: 0.4),
         size: 20,
       ),
       onPressed: onTap,
@@ -855,7 +885,7 @@ class _ResourceItem extends StatelessWidget {
             Icon(
               icon,
               size: 20,
-              color: ThemeColors.textMain(theme).withOpacity(0.7),
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.7),
             ),
             const SizedBox(width: 12),
             Text(
@@ -894,7 +924,7 @@ void _showRenameDialog(
         decoration: InputDecoration(
           enabledBorder: UnderlineInputBorder(
             borderSide: BorderSide(
-              color: ThemeColors.textMain(theme).withOpacity(0.2),
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.2),
             ),
           ),
         ),

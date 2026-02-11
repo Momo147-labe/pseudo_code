@@ -41,6 +41,7 @@ class MotsCles {
   static const List<String> io = [
     'lire',
     'afficher',
+    'ecrire',
     'afficher_table',
     'afficher2D',
     'Afficher2D',
@@ -71,6 +72,8 @@ class MotsCles {
     'tantque':
         'Boucle conditionnelle : Tantque (condition) Faire ... FinTantQue',
     'afficher': 'Affiche une ou plusieurs valeurs dans la console.',
+    'ecrire':
+        'Affiche une ou plusieurs valeurs dans la console (alias de afficher).',
     'lire': 'Attend une saisie utilisateur et l\'enregistre dans une variable.',
     'const': 'Déclare une constante qui ne peut pas être modifiée.',
     'tableau': 'Stocke une liste ordonnée d\'éléments de même type.',

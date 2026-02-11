@@ -1,11 +1,23 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../outils/ai_service.dart';
+import 'package:pseudo_code/services/ai/illm_service.dart';
+import 'package:pseudo_code/services/ai/model_selector_service.dart';
+import 'package:pseudo_code/services/ai/ai_cache_service.dart';
+import 'package:pseudo_code/services/ai/retry_service.dart';
+import 'package:pseudo_code/services/ai/rate_limiter_service.dart';
+import 'package:pseudo_code/services/ai/analytics_service.dart';
 import '../interpreteur/validateur.dart';
 
 class AiProvider with ChangeNotifier {
-  final AiService _aiService = AiService();
+  // Services
+  final ModelSelectorService _modelSelector = ModelSelectorService();
+  final AiCacheService _cache = AiCacheService();
+  final RateLimiterService _rateLimiter = RateLimiterService();
+  final AnalyticsService _analytics = AnalyticsService();
+
+  ILlmService? _aiService;
+  bool _isInitialized = false;
 
   final List<Map<String, String>> _messages = [
     {
@@ -17,14 +29,57 @@ class AiProvider with ChangeNotifier {
 
   bool _isLoading = false;
   bool _isAgentMode = true;
+  bool _isExplainMode = false;
+  int _lastTokensUsed = 0;
+  double _lastCost = 0.0;
 
   List<Map<String, String>> get messages => _messages;
   bool get isLoading => _isLoading;
   bool get isAgentMode => _isAgentMode;
+  bool get isExplainMode => _isExplainMode;
+  int get lastTokensUsed => _lastTokensUsed;
+  double get lastCost => _lastCost;
+
+  /// Initialise le provider
+  Future<void> init() async {
+    if (_isInitialized) return;
+
+    await _modelSelector.init();
+    await _analytics.init();
+    _aiService = _modelSelector.getService();
+    _isInitialized = true;
+  }
 
   void setAgentMode(bool val) {
     _isAgentMode = val;
     notifyListeners();
+  }
+
+  void setExplainMode(bool val) {
+    _isExplainMode = val;
+    notifyListeners();
+  }
+
+  /// Change le modèle AI utilisé
+  Future<void> setModel(String modelId) async {
+    await _modelSelector.setSelectedModel(modelId);
+    _aiService = _modelSelector.getService();
+    notifyListeners();
+  }
+
+  /// Enregistre un feedback utilisateur
+  Future<void> recordFeedback(bool isPositive) async {
+    await _analytics.recordFeedback(isPositive);
+    notifyListeners();
+  }
+
+  /// Récupère les statistiques
+  Map<String, dynamic> getStats() {
+    return {
+      'analytics': _analytics.getStats(),
+      'cache': _cache.getCacheStats(),
+      'rateLimiter': _rateLimiter.getStats(),
+    };
   }
 
   Future<void> sendMessage(
@@ -39,34 +94,103 @@ class AiProvider with ChangeNotifier {
     Function()? onMeriseLayout,
     Function(String)? onReviewRequest,
   }) async {
+    if (!_isInitialized) {
+      await init();
+    }
+
     final bool agentMode = isAgentMode ?? _isAgentMode;
     if (text.trim().isEmpty) return;
+
+    // Vérifier le rate limit
+    if (!_rateLimiter.canMakeRequest()) {
+      final remaining = _rateLimiter.getTimeUntilReset();
+      _messages.add({
+        'role': 'assistant',
+        'content':
+            'Limite de requêtes atteinte. Veuillez patienter ${remaining.inSeconds} secondes.',
+      });
+      notifyListeners();
+      return;
+    }
 
     // Ajouter le message utilisateur
     _messages.add({'role': 'user', 'content': text.trim()});
     _isLoading = true;
     notifyListeners();
 
+    final startTime = DateTime.now();
+
     try {
-      // On garde les 6 derniers messages (environ 3 conversations)
+      // Préparer les messages pour l'historique
       final int start = _messages.length > 6 ? _messages.length - 6 : 0;
       final historyToSend = _messages
           .sublist(start)
           .map((m) => {"role": m['role']!, "content": m['content']!})
           .toList();
 
-      final response = await _aiService.getChatCompletion(
+      // Vérifier le cache
+      final cachedResponse = await _cache.get(
         historyToSend,
-        contextCode: contextCode,
-        mcdContext: mcdContext,
-        isAgentMode: agentMode,
-        // Passer les linter issues si présentes
-        userName: currentLints != null && currentLints.isNotEmpty
-            ? "Momo (Lints actifs: ${currentLints.join(', ')})"
-            : "Momo",
+        contextCode,
+        mcdContext,
+        agentMode,
       );
 
+      String fullResponse;
+
+      if (cachedResponse != null) {
+        // Utiliser la réponse en cache
+        fullResponse = cachedResponse;
+        _messages.add({'role': 'assistant', 'content': fullResponse});
+        notifyListeners();
+      } else {
+        // Faire une nouvelle requête avec retry et rate limiting
+        fullResponse = "";
+        _messages.add({'role': 'assistant', 'content': ''});
+        notifyListeners();
+
+        await _rateLimiter.execute(() async {
+          await RetryService.execute(
+            () async {
+              final stream = _aiService!.streamChatCompletion(
+                historyToSend,
+                contextCode: contextCode,
+                mcdContext: mcdContext,
+                isAgentMode: agentMode,
+                userName: currentLints != null && currentLints.isNotEmpty
+                    ? "Momo (Lints actifs: ${currentLints.join(', ')})"
+                    : "Momo",
+              );
+
+              await for (final chunk in stream) {
+                fullResponse += chunk;
+                _messages.last['content'] = fullResponse;
+                notifyListeners();
+              }
+            },
+            onRetry: (attempt, error) {
+              debugPrint('Retry tentative $attempt: $error');
+            },
+          );
+        });
+
+        // Mettre en cache
+        await _cache.set(
+          historyToSend,
+          contextCode,
+          mcdContext,
+          agentMode,
+          fullResponse,
+        );
+      }
+
+      final response = fullResponse;
       String finalResponseText = response;
+
+      // Calculer les tokens et le coût
+      _lastTokensUsed = _aiService!.estimateTokens(response);
+      final modelInfo = _aiService!.getModelInfo();
+      _lastCost = _analytics.estimateCost(modelInfo['model'], _lastTokensUsed);
 
       // Détection et application du code UNIQUEMENT en mode agent
       if (agentMode) {
@@ -114,7 +238,7 @@ class AiProvider with ChangeNotifier {
                   .map((e) => "- ${e.message} (Ligne ${e.line})")
                   .join('\n');
 
-              final correctionResponse = await _aiService.getChatCompletion(
+              final correctionResponse = await _aiService!.getChatCompletion(
                 [
                   ...historyToSend,
                   {"role": "assistant", "content": response},
@@ -238,8 +362,21 @@ class AiProvider with ChangeNotifier {
         }
       }
 
-      _messages.add({'role': 'assistant', 'content': finalResponseText});
+      // Enregistrer les analytics
+      final duration = DateTime.now().difference(startTime);
+      await _analytics.recordSuccess(
+        responseTimeMs: duration.inMilliseconds,
+        tokensUsed: _lastTokensUsed,
+      );
     } catch (e) {
+      // Enregistrer l'échec
+      await _analytics.recordFailure();
+
+      // Si on était en train de streamer, on a peut-être un message incomplet
+      if (_messages.last['role'] == 'assistant' &&
+          _messages.last['content']!.isEmpty) {
+        _messages.removeLast();
+      }
       _messages.add({
         'role': 'assistant',
         'content': 'Désolé, j\'ai rencontré une erreur : ${e.toString()}',
@@ -257,6 +394,12 @@ class AiProvider with ChangeNotifier {
       'content':
           'Bonjour ! Je suis votre assistant IA. Comment puis-je vous aider avec votre pseudo-code aujourd\'hui ?',
     });
+    notifyListeners();
+  }
+
+  /// Efface le cache
+  Future<void> clearCache() async {
+    await _cache.clear();
     notifyListeners();
   }
 
@@ -279,4 +422,9 @@ class AiProvider with ChangeNotifier {
     });
     debugPrint("Historique résumé pour économiser les tokens.");
   }
+
+  ModelSelectorService get modelSelector => _modelSelector;
+  RateLimiterService get rateLimiter => _rateLimiter;
+  AiCacheService get cache => _cache;
+  AnalyticsService get analytics => _analytics;
 }

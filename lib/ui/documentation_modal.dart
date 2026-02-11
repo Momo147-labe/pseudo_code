@@ -24,7 +24,7 @@ class DocumentationModal extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -123,7 +123,7 @@ class DocumentationModal extends StatelessWidget {
                 "© 2026 - Plateforme d'Apprentissage Pseudo-Code",
                 style: TextStyle(
                   fontSize: 12,
-                  color: ThemeColors.textMain(theme).withOpacity(0.5),
+                  color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
                 ),
               ),
             ),

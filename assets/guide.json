@@ -1,0 +1,357 @@
+[
+    {
+        "commande": "algorithme",
+        "contenu": "Suite d'instructions claires et ordonnées permettant de résoudre un problème ou d'accomplir une tâche ou encore Suite finie d'instructions non ambiguës transformant des données d'entrée en un résultat.",
+        "caracteristique": [
+            "instructions ordonnées",
+            "nombre fini d'étapes",
+            "résout un problème",
+            "produit un résultat"
+        ],
+        "exemple": {
+            "probleme": "Faire du thé",
+            "etapes": [
+                "Faire chauffer l'eau",
+                "Mettre le sachet dans la tasse",
+                "Verser l'eau chaude",
+                "Attendre 3 minutes",
+                "Retirer le sachet"
+            ]
+        }
+    },
+    {
+        "commande": "structure de base",
+        "contenu": "Le squelette standard d'un programme qui définit l'ordre de déclaration et d'exécution.",
+        "caracteristique": [
+            "En-tête (Nom)",
+            "Partie déclarative (Variables/Constantes)",
+            "Corps (Début...Fin)"
+        ],
+        "exemple": {
+            "probleme": "Structure type",
+            "etapes": [
+                "Algorithme Nom_Du_Programme",
+                "Constantes : PI = 3.14",
+                "Variables : Rayon : Réel",
+                "Début",
+                "  // Instructions ici",
+                "Fin"
+            ]
+        }
+    },
+    {
+        "commande": "variable",
+        "contenu": "Conteneur nommé stocké dans la mémoire de l'ordinateur permettant de conserver une valeur qui peut changer durant l'exécution de l'algorithme.",
+        "caracteristique": [
+            "nom (identifiant)",
+            "type (nature de la donnée)",
+            "valeur (contenu)"
+        ],
+        "exemple": {
+            "probleme": "Stocker l'âge d'un utilisateur",
+            "etapes": [
+                "Déclarer Age comme Entier",
+                "Affecter 25 à Age",
+                "Age devient Age + 1"
+            ]
+        }
+    },
+    {
+        "commande": "Constante",
+        "contenu": "Une donnée dont la valeur est fixée lors de sa déclaration et ne peut jamais être modifiée durant l'exécution.",
+        "caracteristique": [
+            "Valeur immuable",
+            "Déclarée avant les variables",
+            "Utilisée pour des valeurs universelles (ex: PI)"
+        ],
+        "exemple": {
+            "probleme": "Définir la TVA",
+            "etapes": [
+                "Constante TVA = 0.20",
+                "Prix_TTC ← Prix_HT * (1 + TVA)"
+            ]
+        }
+    },
+    {
+        "commande": "affectation",
+        "contenu": "Opération consistant à attribuer une valeur à une variable. Elle remplace l'ancienne valeur par la nouvelle.",
+        "caracteristique": [
+            "sens de droite à gauche",
+            "écrase la valeur précédente",
+            "symbole souvent représenté par une flèche (←)"
+        ],
+        "exemple": {
+            "probleme": "Initialiser un score",
+            "etapes": [
+                "Score ← 0",
+                "Score ← Score + 10"
+            ]
+        }
+    },
+    {
+        "commande": "Condition",
+        "contenu": "Mécanismes permettant d'orienter l'exécution de l'algorithme vers différents blocs d'instructions selon le résultat d'un test logique.",
+        "caracteristique": [
+            "Prise de décision",
+            "Utilisation d'opérateurs de comparaison",
+            "Exclusion mutuelle des blocs"
+        ],
+        "exemple": {
+            "probleme": "Choisir une action selon la condition",
+            "etapes": [
+                "Si (Condition) Alors (Action A)",
+                "Sinon (Action B)"
+            ]
+        }
+    },
+    {
+        "commande": "Si...Alors...Sinon (Alternative)",
+        "contenu": "La structure conditionnelle de base pour tester une ou deux possibilités.",
+        "caracteristique": [
+            "Test 'Vrai' ou 'Faux'",
+            "Le 'Sinon' est optionnel"
+        ],
+        "exemple": {
+            "probleme": "Tester la température",
+            "etapes": [
+                "Si Température > 30 Alors",
+                "  Afficher 'Il fait chaud'",
+                "Sinon",
+                "  Afficher 'Température agréable'",
+                "FinSi"
+            ]
+        }
+    },
+    {
+        "commande": "Selon...Cas (Choix multiple)",
+        "contenu": "Structure simplifiée pour tester plusieurs valeurs possibles d'une même variable, évitant d'imbriquer trop de 'Si'.",
+        "caracteristique": [
+            "Plus lisible que des Si imbriqués",
+            "Teste une valeur précise",
+            "Possède un cas par défaut ('Autrement')"
+        ],
+        "exemple": {
+            "probleme": "Menu de calculatrice",
+            "etapes": [
+                "Selon Choix faire",
+                "  Cas 1 : Additionner()",
+                "  Cas 2 : Soustraire()",
+                "  Autrement : Afficher 'Erreur'",
+                "FinSelon"
+            ]
+        }
+    },
+    {
+        "commande": "Structures Répétitives / Boucles (Généralités)",
+        "contenu": "Structures permettant d'exécuter un bloc d'instructions plusieurs fois de suite.",
+        "caracteristique": [
+            "Éviter la répétition de code",
+            "Nécessite une condition d'arrêt",
+            "Peut être déterminée ou indéterminée"
+        ],
+        "exemple": {
+            "probleme": "Répéter une action",
+            "etapes": [
+                "Tant que / Pour / Répéter jusqu'à"
+            ]
+        }
+    },
+    {
+        "commande": "Boucle Tantque",
+        "contenu": "Répète les instructions tant que la condition est vraie. Le test est fait AVANT l'exécution.",
+        "caracteristique": [
+            "0 à N itérations",
+            "Test au début",
+            "Idéal quand on ne sait pas combien de fois boucler"
+        ],
+        "exemple": {
+            "probleme": "Vider un réservoir",
+            "etapes": [
+                "Tantque Niveau > 0 faire",
+                "  Vider_Un_Litre()",
+                "FinTantque"
+            ]
+        }
+    },
+    {
+        "commande": "Boucle Répéter...Jusqu'à",
+        "contenu": "Exécute les instructions une première fois, puis répète tant que la condition n'est pas remplie. Le test est fait à la FIN.",
+        "caracteristique": [
+            "1 à N itérations (s'exécute au moins une fois)",
+            "Test à la fin",
+            "S'arrête quand la condition devient VRAIE"
+        ],
+        "exemple": {
+            "probleme": "Saisie contrôlée",
+            "etapes": [
+                "Répéter",
+                "  Lire(Note)",
+                "Jusqu'à Note >= 0 ET Note <= 20"
+            ]
+        }
+    },
+    {
+        "commande": "Tableau 1D (Vecteur)",
+        "contenu": "Une liste d'éléments de même type rangés sous un seul nom de variable, accessibles par un indice unique.",
+        "caracteristique": [
+            "Linéaire",
+            "Accès direct par l'index",
+            "Taille définie à la déclaration"
+        ],
+        "exemple": {
+            "probleme": "Liste de noms",
+            "etapes": [
+                "Tableau Noms[5] : Chaîne",
+                "Noms[1] ← 'Alice'",
+                "Afficher Noms[1]"
+            ]
+        }
+    },
+    {
+        "commande": "Tableau 2D (Matrice)",
+        "contenu": "Une structure de données organisée en lignes et en colonnes.",
+        "caracteristique": [
+            "Deux indices (Ligne, Colonne)",
+            "Représente des grilles ou des plans"
+        ],
+        "exemple": {
+            "probleme": "Grille de Morpion",
+            "etapes": [
+                "Tableau Grille[3, 3] : Caractère",
+                "Grille[1, 2] ← 'X'",
+                "Afficher Grille[1, 2]"
+            ]
+        }
+    },
+    {
+        "commande": "Fin",
+        "contenu": "Le mot-clé marquant l'arrêt définitif de l'algorithme et la libération des ressources mémoire.",
+        "caracteristique": [
+            "Dernière instruction",
+            "Indique la fin du bloc principal"
+        ],
+        "exemple": {
+            "probleme": "Clôture",
+            "etapes": [
+                "Fin"
+            ]
+        }
+    },
+    {
+        "commande": "Boucle Pour",
+        "contenu": "Structure répétitive utilisée lorsque le nombre d'itérations est connu à l'avance. Elle utilise un compteur qui s'incrémente ou se décrémente automatiquement.",
+        "caracteristique": [
+            "Compteur automatique",
+            "Bornes de début et de fin",
+            "Pas d'incrémentation (par défaut 1)"
+        ],
+        "exemple": {
+            "probleme": "Compter jusqu'à 10",
+            "etapes": [
+                "Pour i allant de 1 à 10 Faire",
+                "  Afficher i",
+                "FinPour"
+            ]
+        }
+    },
+    {
+        "commande": "Lire (Entrée)",
+        "contenu": "Instruction permettant de récupérer une donnée saisie par l'utilisateur au clavier et de la stocker dans une variable.",
+        "caracteristique": [
+            "Interaction utilisateur",
+            "Interruption du programme",
+            "Stockage dans une variable"
+        ],
+        "exemple": {
+            "probleme": "Demander le nom",
+            "etapes": [
+                "Afficher 'Quel est votre nom ?'",
+                "Lire Nom"
+            ]
+        }
+    },
+    {
+        "commande": "Ecrire / Afficher (Sortie)",
+        "contenu": "Instruction permettant d'afficher des résultats, des messages ou le contenu de variables sur l'écran.",
+        "caracteristique": [
+            "Communication vers l'utilisateur",
+            "Affichage de texte ou variables",
+            "Ne modifie pas les variables"
+        ],
+        "exemple": {
+            "probleme": "Saluer l'utilisateur",
+            "etapes": [
+                "Afficher 'Bonjour ', Nom"
+            ]
+        }
+    },
+    {
+        "commande": "Fonction",
+        "contenu": "Un sous-programme qui exécute une tâche spécifique et RETOURNE obligatoirement un résultat (une valeur) utilisable dans le programme principal.",
+        "caracteristique": [
+            "Retourne une valeur",
+            "A un type de retour",
+            "Utilisé dans des expressions"
+        ],
+        "exemple": {
+            "probleme": "Calculer le carré",
+            "etapes": [
+                "Fonction Carre(x : Entier) : Entier",
+                "  Retourner x * x",
+                "FinFonction"
+            ]
+        }
+    },
+    {
+        "commande": "Procédure",
+        "contenu": "Un sous-programme qui exécute une suite d'instructions sans retourner de valeur. Elle agit sur l'environnement ou effectue une action (affichage, modification par référence).",
+        "caracteristique": [
+            "Ne retourne rien (pas de type)",
+            "Appelée comme instruction autonome",
+            "Peut modifier des paramètres"
+        ],
+        "exemple": {
+            "probleme": "Afficher un menu",
+            "etapes": [
+                "Procédure AfficherMenu()",
+                "  Afficher '1. Jouer'",
+                "  Afficher '2. Quitter'",
+                "FinProcédure"
+            ]
+        }
+    },
+    {
+        "commande": "Structure (Enregistrement)",
+        "contenu": "Type de données complexe personnalisé permettant de regrouper plusieurs variables de types différents sous un même nom.",
+        "caracteristique": [
+            "Champs nommés",
+            "Types hétérogènes",
+            "Modélisation d'objets réels"
+        ],
+        "exemple": {
+            "probleme": "Définir un Etudiant",
+            "etapes": [
+                "Type etudiant =Structure",
+                "  Nom : Chaîne",
+                "  Note : Réel",
+                "FinStructure"
+            ]
+        }
+    },
+    {
+        "commande": "Opérateurs Arithmétiques (MOD / DIV)",
+        "contenu": "Opérateurs mathématiques spécifiques pour la division entière.",
+        "caracteristique": [
+            "DIV : Quotient entier de la division",
+            "MOD ou % : Reste de la division entière (Modulo)",
+            "Utile pour la parité ou les conversions"
+        ],
+        "exemple": {
+            "probleme": "Division de 10 par 3",
+            "etapes": [
+                "Q ← 10 DIV 3  // Donne 3",
+                "R ← 10 MOD 3  // Donne 1"
+            ]
+        }
+    }
+]

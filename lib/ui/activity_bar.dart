@@ -5,6 +5,9 @@ import '../providers/theme_provider.dart';
 import '../theme.dart';
 import 'profile_modal.dart';
 import 'documentation_modal.dart';
+import 'auth/auth_choice_modal.dart';
+import 'auth/user_profile_modal.dart';
+import '../providers/challenge_provider.dart';
 
 class ActivityBar extends StatelessWidget {
   const ActivityBar({super.key});
@@ -13,10 +16,12 @@ class ActivityBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final appProvider = context.watch<AppProvider>();
     final themeProvider = context.watch<ThemeProvider>();
+    final challengeProvider = context.watch<ChallengeProvider>();
     final theme = themeProvider.currentTheme;
+    final profile = challengeProvider.myProfile;
 
     return Container(
-      width: 48,
+      width: 45,
       color: ThemeColors.activityBarBg(theme),
       child: Column(
         children: [
@@ -33,10 +38,10 @@ class ActivityBar extends StatelessWidget {
             tooltip: "Modélisation Merise",
           ),
           _ActivityIcon(
-            icon: Icons.bug_report_outlined,
-            isActive: appProvider.activeSidebarTab == 'debug',
-            onTap: () => appProvider.setActiveSidebarTab('debug'),
-            tooltip: "Débogage",
+            icon: Icons.auto_graph_outlined,
+            isActive: appProvider.activeSidebarTab == 'graph',
+            onTap: () => appProvider.setActiveSidebarTab('graph'),
+            tooltip: "Graph Studio",
           ),
           _ActivityIcon(
             icon: Icons.auto_awesome,
@@ -44,15 +49,25 @@ class ActivityBar extends StatelessWidget {
             onTap: () => appProvider.setActiveSidebarTab('ai'),
             tooltip: "Assistant IA",
           ),
+
+          _ActivityIcon(
+            icon: Icons.emoji_events_outlined,
+            isActive: appProvider.activeSidebarTab == 'challenges',
+            onTap: () => appProvider.setActiveSidebarTab('challenges'),
+            tooltip: "Compétitions & Défis",
+          ),
+          _ActivityIcon(
+            icon: Icons.memory,
+            isActive: appProvider.activeSidebarTab == 'os',
+            onTap: () => appProvider.setActiveSidebarTab('os'),
+            tooltip: "Système d'Exploitation",
+          ),
+
           _ActivityIcon(
             icon: Icons.terminal_outlined,
             isActive: appProvider.isConsoleVisible,
             onTap: () => appProvider.toggleConsole(),
             tooltip: "Afficher/Masquer la console",
-          ),
-          const _ActivityIcon(
-            icon: Icons.grid_view_outlined,
-            tooltip: "Extensions (Bientôt)",
           ),
           const Spacer(),
           _ActivityIcon(
@@ -61,12 +76,17 @@ class ActivityBar extends StatelessWidget {
             tooltip: 'Changer de thème',
           ),
           _ActivityIcon(
-            icon: Icons.account_circle_outlined,
+            icon: profile != null
+                ? Icons.person
+                : Icons.account_circle_outlined,
+            imageUrl: profile?.avatarUrl,
             onTap: () => showDialog(
               context: context,
-              builder: (context) => const ProfileModal(),
+              builder: (context) => profile != null
+                  ? const UserProfileModal()
+                  : const AuthChoiceModal(),
             ),
-            tooltip: "Profil Développeur",
+            tooltip: profile != null ? "Mon Profil" : "Se Connecter",
           ),
           _ActivityIcon(
             icon: Icons.help_outline,
@@ -75,6 +95,14 @@ class ActivityBar extends StatelessWidget {
               builder: (context) => const DocumentationModal(),
             ),
             tooltip: "Documentation Plateforme",
+          ),
+          _ActivityIcon(
+            icon: Icons.code,
+            onTap: () => showDialog(
+              context: context,
+              builder: (context) => const ProfileModal(),
+            ),
+            tooltip: "Profil Développeur",
           ),
         ],
       ),
@@ -99,12 +127,14 @@ class ActivityBar extends StatelessWidget {
 
 class _ActivityIcon extends StatelessWidget {
   final IconData icon;
+  final String? imageUrl;
   final bool isActive;
   final VoidCallback? onTap;
   final String? tooltip;
 
   const _ActivityIcon({
     required this.icon,
+    this.imageUrl,
     this.isActive = false,
     this.onTap,
     this.tooltip,
@@ -124,11 +154,27 @@ class _ActivityIcon extends StatelessWidget {
                 ? const Border(left: BorderSide(color: Colors.white, width: 2))
                 : null,
           ),
-          child: Icon(
-            icon,
-            color: isActive ? Colors.white : Colors.white.withOpacity(0.4),
-            size: 24,
-          ),
+          child: imageUrl != null
+              ? Center(
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: NetworkImage(imageUrl!),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                )
+              : Icon(
+                  icon,
+                  color: isActive
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.4),
+                  size: 24,
+                ),
         ),
       ),
     );

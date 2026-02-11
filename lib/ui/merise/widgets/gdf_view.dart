@@ -79,7 +79,9 @@ class _GdfViewState extends State<GdfView> {
                   style: TextStyle(
                     fontSize: 14 * scale,
                     fontWeight: FontWeight.bold,
-                    color: ThemeColors.textMain(widget.theme).withOpacity(0.7),
+                    color: ThemeColors.textMain(
+                      widget.theme,
+                    ).withValues(alpha: 0.7),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -137,7 +139,7 @@ class _GdfViewState extends State<GdfView> {
         Center(
           child: Icon(
             Icons.arrow_downward,
-            color: Colors.blue.withOpacity(0.5),
+            color: Colors.blue.withValues(alpha: 0.5),
             size: 20,
           ),
         ),
@@ -190,7 +192,7 @@ class _GdfViewState extends State<GdfView> {
           label,
           style: TextStyle(
             fontSize: 11 * scale,
-            color: ThemeColors.textMain(widget.theme).withOpacity(0.6),
+            color: ThemeColors.textMain(widget.theme).withValues(alpha: 0.6),
           ),
         ),
         const SizedBox(height: 4),
@@ -199,7 +201,7 @@ class _GdfViewState extends State<GdfView> {
           decoration: BoxDecoration(
             color: widget.theme == AppTheme.dracula
                 ? Colors.black26
-                : Colors.black.withOpacity(0.05),
+                : Colors.black.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Wrap(
@@ -246,10 +248,10 @@ class _GdfViewState extends State<GdfView> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: widget.theme == AppTheme.dracula
-            ? Colors.white.withOpacity(0.05)
-            : Colors.white.withOpacity(0.5),
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.white.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blue.withOpacity(0.2)),
+        border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -357,10 +359,12 @@ class _GdfGraph extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: ThemeColors.sidebarBg(theme),
                     borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: Colors.blue.withOpacity(0.5)),
+                    border: Border.all(
+                      color: Colors.blue.withValues(alpha: 0.5),
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 4,
                       ),
                     ],
@@ -398,7 +402,7 @@ class _GdfPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.blue.withOpacity(0.4)
+      ..color = Colors.blue.withValues(alpha: 0.4)
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
 

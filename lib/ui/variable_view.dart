@@ -21,7 +21,7 @@ class VariableView extends StatelessWidget {
           "Lancez l'algorithme pour voir les variables",
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: ThemeColors.textMain(theme).withOpacity(0.5),
+            color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
             fontSize: 12,
           ),
         ),
@@ -36,7 +36,7 @@ class VariableView extends StatelessWidget {
           child: Text(
             "VARIABLES",
             style: TextStyle(
-              color: ThemeColors.textMain(theme).withOpacity(0.7),
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.7),
               fontSize: 11,
               fontWeight: FontWeight.bold,
             ),
@@ -57,8 +57,7 @@ class VariableView extends StatelessWidget {
                 tooltip: "Continuer",
                 onPressed: debugProvider.isPaused
                     ? () {
-                        debugProvider.setPaused(false);
-                        debugProvider.triggerNextStep();
+                        debugProvider.triggerContinue();
                       }
                     : null,
               ),
@@ -129,7 +128,7 @@ class _VariableItem extends StatelessWidget {
             child: Text(
               valueStr,
               style: TextStyle(
-                color: ThemeColors.textMain(theme).withOpacity(0.9),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.9),
                 fontFamily: 'JetBrainsMono',
                 fontSize: 13,
               ),

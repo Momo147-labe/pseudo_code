@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 enum ConsolePosition { bottom, right, top }
 
-enum ActiveMainView { algorithm, merise }
+enum ActiveMainView { algorithm, merise, graph, challenges, os }
 
 class AppProvider with ChangeNotifier {
   // --- UI STATE ---
@@ -31,6 +31,8 @@ class AppProvider with ChangeNotifier {
   ActiveMainView get activeMainView => _activeMainView;
 
   // Setters
+
+  // Setters
   void setShowMinimap(bool show) {
     if (_showMinimap != show) {
       _showMinimap = show;
@@ -50,6 +52,15 @@ class AppProvider with ChangeNotifier {
     if (tab == 'merise') {
       _isConsoleVisible = false;
       _activeMainView = ActiveMainView.merise;
+    } else if (tab == 'graph') {
+      _isConsoleVisible = false;
+      _activeMainView = ActiveMainView.graph;
+    } else if (tab == 'challenges') {
+      _isConsoleVisible = false;
+      _activeMainView = ActiveMainView.challenges;
+    } else if (tab == 'os') {
+      _isConsoleVisible = false;
+      _activeMainView = ActiveMainView.os;
     } else if (tab == 'explorer' || tab == 'debug') {
       _activeMainView = ActiveMainView.algorithm;
     }

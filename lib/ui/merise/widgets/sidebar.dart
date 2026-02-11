@@ -21,7 +21,9 @@ class MeriseSidebar extends StatelessWidget {
         color: ThemeColors.sidebarBg(theme),
         border: Border(
           right: BorderSide(
-            color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey[200]!,
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.1)
+                : Colors.grey[200]!,
           ),
         ),
       ),
@@ -143,7 +145,9 @@ class MeriseSidebar extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[100]!,
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.grey[100]!,
           ),
         ),
       ),
@@ -152,7 +156,7 @@ class MeriseSidebar extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E88E5).withOpacity(0.1),
+              color: const Color(0xFF1E88E5).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
@@ -221,7 +225,9 @@ class _NavItem extends StatelessWidget {
       padding: const EdgeInsets.only(right: 0),
       child: Container(
         decoration: BoxDecoration(
-          color: isActive ? primaryColor.withOpacity(0.1) : Colors.transparent,
+          color: isActive
+              ? primaryColor.withValues(alpha: 0.1)
+              : Colors.transparent,
           border: isActive
               ? Border(right: BorderSide(color: primaryColor, width: 4))
               : null,
@@ -248,7 +254,7 @@ class _NavItem extends StatelessWidget {
                       fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                       color: isActive
                           ? primaryColor
-                          : ThemeColors.textMain(theme).withOpacity(0.8),
+                          : ThemeColors.textMain(theme).withValues(alpha: 0.8),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -290,11 +296,11 @@ class _DraggableItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: primaryColor.withOpacity(0.9),
+            color: primaryColor.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -344,7 +350,7 @@ class _DraggableItem extends StatelessWidget {
           Icon(
             Icons.drag_indicator,
             size: 14 * scale,
-            color: color?.withOpacity(0.3),
+            color: color?.withValues(alpha: 0.3),
           ),
         ],
       ),
@@ -375,7 +381,7 @@ class _LinkToolItem extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: isActive
-                    ? primaryColor.withOpacity(0.1)
+                    ? primaryColor.withValues(alpha: 0.1)
                     : Colors.transparent,
                 border: Border.all(
                   color: isActive ? primaryColor : Colors.transparent,

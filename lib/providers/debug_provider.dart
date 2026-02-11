@@ -9,6 +9,10 @@ class DebugProvider with ChangeNotifier {
   Map<String, dynamic> _debugVariables = {};
   int? _errorLine;
 
+  // Stream to notify external systems (like Isolate) of control actions
+  final _controlActionController = StreamController<String>.broadcast();
+  Stream<String> get controlActionStream => _controlActionController.stream;
+
   Set<int> get breakpoints => _breakpoints;
   bool get isPaused => _isPaused;
   int? get currentHighlightLine => _currentHighlightLine;
@@ -53,8 +57,26 @@ class DebugProvider with ChangeNotifier {
   }
 
   void triggerNextStep() {
+    _controlActionController.add('step');
     if (_nextStepCompleter != null && !_nextStepCompleter!.isCompleted) {
       _nextStepCompleter!.complete();
     }
+  }
+
+  void triggerContinue() {
+    _controlActionController.add('continue');
+    setPaused(false);
+    triggerNextStep();
+  }
+
+  void triggerStop() {
+    _controlActionController.add('stop');
+    setPaused(false);
+  }
+
+  @override
+  void dispose() {
+    _controlActionController.close();
+    super.dispose();
   }
 }

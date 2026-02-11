@@ -43,7 +43,7 @@ class QueryView extends StatelessWidget {
             "Requêtes SQL générées automatiquement à partir de votre modèle.",
             style: TextStyle(
               fontSize: 14 * scale,
-              color: ThemeColors.textMain(theme).withOpacity(0.6),
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 32),
@@ -74,7 +74,7 @@ class QueryView extends StatelessWidget {
           Icon(
             Icons.query_stats,
             size: 64 * scale,
-            color: Colors.grey.withOpacity(0.3),
+            color: Colors.grey.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
@@ -85,7 +85,7 @@ class QueryView extends StatelessWidget {
             "Ajoutez des entités et des relations pour générer des requêtes.",
             style: TextStyle(
               fontSize: 14 * scale,
-              color: Colors.grey.withOpacity(0.7),
+              color: Colors.grey.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -132,7 +132,7 @@ class _QueryCard extends StatelessWidget {
               query.description,
               style: TextStyle(
                 fontSize: 13 * scale,
-                color: ThemeColors.textMain(theme).withOpacity(0.6),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.6),
               ),
             ),
             trailing: IconButton(
@@ -150,7 +150,9 @@ class _QueryCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
             decoration: BoxDecoration(
-              color: (isDark ? Colors.black : Colors.white).withOpacity(0.1),
+              color: (isDark ? Colors.black : Colors.white).withValues(
+                alpha: 0.1,
+              ),
               borderRadius: BorderRadius.circular(8),
             ),
             child: SelectableText.rich(

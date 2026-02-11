@@ -207,14 +207,14 @@ class _MerisePropertiesPanelState extends State<MerisePropertiesPanel> {
             Icon(
               Icons.touch_app_outlined,
               size: 48 * scale,
-              color: primaryColor.withOpacity(0.3),
+              color: primaryColor.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
               "Sélectionnez un élément\npour voir ses propriétés",
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: ThemeColors.textMain(theme).withOpacity(0.5),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
                 fontSize: 14 * scale,
               ),
             ),
@@ -251,7 +251,7 @@ class _MerisePropertiesPanelState extends State<MerisePropertiesPanel> {
             Icon(
               Icons.layers_outlined,
               size: 48 * scale,
-              color: primaryColor.withOpacity(0.3),
+              color: primaryColor.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
@@ -268,7 +268,7 @@ class _MerisePropertiesPanelState extends State<MerisePropertiesPanel> {
               "Vous pouvez les déplacer ou\nles supprimer ensemble.",
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: ThemeColors.textMain(theme).withOpacity(0.5),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
                 fontSize: 13 * scale,
               ),
             ),
@@ -322,7 +322,7 @@ class _MerisePropertiesPanelState extends State<MerisePropertiesPanel> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? Colors.black.withOpacity(0.2) : Colors.grey[50],
+        color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.grey[50],
         border: Border(
           bottom: BorderSide(
             color: isDark ? Colors.white10 : Colors.grey[200]!,
@@ -406,7 +406,9 @@ class _MerisePropertiesPanelState extends State<MerisePropertiesPanel> {
     final isDark = theme != AppTheme.light && theme != AppTheme.papier;
     return InputDecoration(
       filled: true,
-      fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[50],
+      fillColor: isDark
+          ? Colors.white.withValues(alpha: 0.05)
+          : Colors.grey[50],
       isDense: true,
       contentPadding: EdgeInsets.symmetric(
         horizontal: 12,
@@ -455,9 +457,9 @@ class _MerisePropertiesPanelState extends State<MerisePropertiesPanel> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: primaryColor.withOpacity(isDark ? 0.1 : 0.05),
+        color: primaryColor.withValues(alpha: isDark ? 0.1 : 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: primaryColor.withOpacity(0.2)),
+        border: Border.all(color: primaryColor.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -496,7 +498,7 @@ class _MerisePropertiesPanelState extends State<MerisePropertiesPanel> {
             style: TextStyle(
               fontSize: 13 * scale,
               fontStyle: FontStyle.italic,
-              color: ThemeColors.textMain(theme).withOpacity(0.7),
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.7),
               height: 1.4,
             ),
           ),
@@ -538,9 +540,9 @@ class _MerisePropertiesPanelState extends State<MerisePropertiesPanel> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? primaryColor.withOpacity(0.1)
+                      ? primaryColor.withValues(alpha: 0.1)
                       : (isDark
-                            ? Colors.white.withOpacity(0.05)
+                            ? Colors.white.withValues(alpha: 0.05)
                             : Colors.grey[50]),
                   border: Border.all(
                     color: isSelected ? primaryColor : Colors.transparent,
@@ -556,7 +558,7 @@ class _MerisePropertiesPanelState extends State<MerisePropertiesPanel> {
                         : FontWeight.normal,
                     color: isSelected
                         ? primaryColor
-                        : ThemeColors.textMain(theme).withOpacity(0.8),
+                        : ThemeColors.textMain(theme).withValues(alpha: 0.8),
                   ),
                 ),
               ),
@@ -624,7 +626,7 @@ class _MerisePropertiesPanelState extends State<MerisePropertiesPanel> {
                 "Aucune entité liée",
                 style: TextStyle(
                   fontSize: 12 * scale,
-                  color: ThemeColors.textMain(theme).withOpacity(0.5),
+                  color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
                 ),
               ),
             )
@@ -680,7 +682,7 @@ class _MerisePropertiesPanelState extends State<MerisePropertiesPanel> {
         isDense: true,
         style: TextStyle(
           fontSize: 10 * scale,
-          color: ThemeColors.textMain(theme).withOpacity(0.8),
+          color: ThemeColors.textMain(theme).withValues(alpha: 0.8),
         ),
         onChanged: (val) {
           if (val != null) {
@@ -731,12 +733,12 @@ class _AttributeItem extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: attr.isPrimaryKey
-            ? (isDark ? primaryColor.withOpacity(0.1) : Colors.grey[100])
-            : (isDark ? Colors.white.withOpacity(0.05) : Colors.grey[50]),
+            ? (isDark ? primaryColor.withValues(alpha: 0.1) : Colors.grey[100])
+            : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey[50]),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: attr.isPrimaryKey
-              ? primaryColor.withOpacity(0.3)
+              ? primaryColor.withValues(alpha: 0.3)
               : (isMobile
                     ? (isDark ? Colors.white10 : Colors.grey[300]!)
                     : Colors.transparent),
@@ -793,7 +795,7 @@ class _AttributeItem extends StatelessWidget {
                 },
                 style: TextStyle(
                   fontSize: (isMobile ? 12 : 10) * scale,
-                  color: ThemeColors.textMain(theme).withOpacity(0.7),
+                  color: ThemeColors.textMain(theme).withValues(alpha: 0.7),
                 ),
                 items: allowedTypes.map<DropdownMenuItem<String>>((
                   String value,

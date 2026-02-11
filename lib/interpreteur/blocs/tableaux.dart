@@ -1,5 +1,6 @@
 import 'package:pseudo_code/interpreteur/environnement.dart';
 import 'package:pseudo_code/interpreteur/blocs/structures.dart';
+import 'package:pseudo_code/interpreteur/utils.dart';
 
 class PseudoTableau {
   final List<int> mins;
@@ -265,8 +266,12 @@ class PseudoTableau {
 class GestionnaireTableaux {
   static final RegExp regAffectation = RegExp(
     r'^([a-zA-Z_]\w*)\s*\[(.*)\]\s*<-\s*(.*)$',
+    caseSensitive: false,
   );
-  static final RegExp regAcces = RegExp(r'^([a-zA-Z_]\w*)\s*\[(.*)\]$');
+  static final RegExp regAcces = RegExp(
+    r'^([a-zA-Z_]\w*)\s*\[(.*)\]$',
+    caseSensitive: false,
+  );
 
   static bool estAffectation(String ligne) => regAffectation.hasMatch(ligne);
 
@@ -286,7 +291,7 @@ class GestionnaireTableaux {
         throw Exception("'$nomTab' n'est pas un tableau.");
 
       // Découper les indices par virgules
-      final parts = _extraireArguments(indexExprs);
+      final parts = InterpreteurUtils.splitArguments(indexExprs);
       final indices = <int>[];
       for (final p in parts) {
         final idx = await evaluer(p);
@@ -300,28 +305,5 @@ class GestionnaireTableaux {
       final valeur = await evaluer(valExp);
       tab.assigner(indices, valeur);
     }
-  }
-
-  static List<String> _extraireArguments(String argsBruts) {
-    final args = <String>[];
-    String courant = "";
-    int parenStack = 0;
-    int crochetStack = 0;
-    for (var i = 0; i < argsBruts.length; i++) {
-      final char = argsBruts[i];
-      if (char == '(') parenStack++;
-      if (char == ')') parenStack--;
-      if (char == '[') crochetStack++;
-      if (char == ']') crochetStack--;
-
-      if (char == ',' && parenStack == 0 && crochetStack == 0) {
-        args.add(courant.trim());
-        courant = "";
-      } else {
-        courant += char;
-      }
-    }
-    if (courant.isNotEmpty) args.add(courant.trim());
-    return args;
   }
 }

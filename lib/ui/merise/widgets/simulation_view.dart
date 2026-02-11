@@ -101,7 +101,7 @@ class _SimulationViewState extends State<SimulationView> {
           "Testez votre modèle avec des données réelles et exécutez des requêtes SQL.",
           style: TextStyle(
             fontSize: 14 * scale,
-            color: ThemeColors.textMain(widget.theme).withOpacity(0.6),
+            color: ThemeColors.textMain(widget.theme).withValues(alpha: 0.6),
           ),
         ),
       ],
@@ -270,7 +270,7 @@ class _SimulationViewState extends State<SimulationView> {
                   await _refreshTableData(context.read<MeriseProvider>());
                 }
               },
-              selectedColor: const Color(0xFF1E88E5).withOpacity(0.2),
+              selectedColor: const Color(0xFF1E88E5).withValues(alpha: 0.2),
               labelStyle: TextStyle(
                 color: isSelected ? const Color(0xFF1E88E5) : null,
                 fontWeight: isSelected ? FontWeight.bold : null,
@@ -437,7 +437,10 @@ class _SimulationViewState extends State<SimulationView> {
                 controller: _sqlController,
                 enabled: isInitialized,
                 maxLines: 5,
-                style: TextStyle(fontFamily: 'JetBrainsMono', fontSize: 13 * scale),
+                style: TextStyle(
+                  fontFamily: 'JetBrainsMono',
+                  fontSize: 13 * scale,
+                ),
                 decoration: InputDecoration(
                   hintText: isInitialized
                       ? 'SELECT * FROM nom_table;'

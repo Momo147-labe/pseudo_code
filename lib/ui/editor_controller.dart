@@ -174,9 +174,13 @@ class CodeEditorController extends TextEditingController {
 
       // Ajout des styles de Diff (Vert pour ajout, Rouge pour suppression)
       if (_addedLines.contains(lineIdx)) {
-        style = style.copyWith(backgroundColor: Colors.green.withOpacity(0.2));
+        style = style.copyWith(
+          backgroundColor: Colors.green.withValues(alpha: 0.2),
+        );
       } else if (_deletedLines.contains(lineIdx)) {
-        style = style.copyWith(backgroundColor: Colors.red.withOpacity(0.2));
+        style = style.copyWith(
+          backgroundColor: Colors.red.withValues(alpha: 0.2),
+        );
       }
 
       return style;
@@ -349,7 +353,7 @@ class CodeEditorController extends TextEditingController {
   TextStyle _applyHighlightStyle(TextStyle? s, AppTheme theme) {
     final isDark = theme != AppTheme.light && theme != AppTheme.papier;
     return (s ?? const TextStyle()).copyWith(
-      backgroundColor: Colors.blue.withOpacity(isDark ? 0.3 : 0.2),
+      backgroundColor: Colors.blue.withValues(alpha: isDark ? 0.3 : 0.2),
     );
   }
 

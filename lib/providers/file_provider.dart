@@ -11,8 +11,14 @@ class AppFile {
   String path; // Changed from final to support rename
   String content;
   bool isModified;
+  List<LintIssue> lintIssues = [];
 
-  AppFile({required this.path, required this.content, this.isModified = false});
+  AppFile({
+    required this.path,
+    required this.content,
+    this.isModified = false,
+    this.lintIssues = const [],
+  });
 
   String get name => path.split(Platform.pathSeparator).last;
   String get extension => name.split('.').last;
@@ -376,6 +382,9 @@ class FileProvider with ChangeNotifier {
 
   void lancerAnalyseStatique(String code) {
     _anomalies = Linter.analyser(code);
+    if (activeFile != null) {
+      activeFile!.lintIssues = _anomalies;
+    }
     notifyListeners();
   }
 

@@ -1,28 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'ui/barre_haut.dart';
-import 'ui/editeur_widget.dart';
-import 'ui/console_widget.dart';
-import 'ui/barre_laterale.dart';
-import 'ui/activity_bar.dart';
-import 'ui/status_bar.dart';
-import 'ui/merise/merise_studio.dart';
-import 'package:pseudo_code/ui/educational_panel.dart';
-import 'theme.dart';
-import 'providers/merise_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
-import 'providers/app_provider.dart';
-import 'providers/file_provider.dart';
-import 'providers/theme_provider.dart';
-import 'providers/debug_provider.dart';
-import 'providers/example_provider.dart';
-import 'providers/ai_provider.dart';
-import 'repositories/example_repository.dart';
-import 'outils/file_open_service.dart';
+import 'package:pseudo_code/ui/barre_haut.dart';
+import 'package:pseudo_code/ui/editeur_widget.dart';
+import 'package:pseudo_code/ui/console_widget.dart';
+import 'package:pseudo_code/ui/barre_laterale.dart';
+import 'package:pseudo_code/ui/activity_bar.dart';
+import 'package:pseudo_code/ui/status_bar.dart';
+import 'package:pseudo_code/ui/merise/merise_studio.dart';
+import 'package:pseudo_code/ui/graph/graph_studio.dart';
+import 'package:pseudo_code/ui/educational_panel.dart';
+import 'package:pseudo_code/theme.dart';
+import 'package:pseudo_code/providers/merise_provider.dart';
+import 'package:pseudo_code/providers/app_provider.dart';
+import 'package:pseudo_code/providers/file_provider.dart';
+import 'package:pseudo_code/providers/theme_provider.dart';
+import 'package:pseudo_code/providers/debug_provider.dart';
+import 'package:pseudo_code/providers/example_provider.dart';
+import 'package:pseudo_code/providers/ai_provider.dart';
+import 'package:pseudo_code/providers/graph_provider.dart';
+import 'package:pseudo_code/repositories/example_repository.dart';
+import 'package:pseudo_code/outils/file_open_service.dart';
 import 'package:pseudo_code/l10n/app_localizations.dart';
+import 'package:pseudo_code/providers/challenge_provider.dart';
+import 'package:pseudo_code/providers/os_provider.dart';
+import 'package:pseudo_code/ui/challenges/challenges_main_view.dart';
+import 'package:pseudo_code/ui/os/os_studio.dart';
+// OS provider import remains below
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Chargement des variables d'environnement
+  await dotenv.load(fileName: ".env");
+
+  // Initialisation Supabase
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+  );
 
   // Initialisation du thème avant de lancer l'app pour éviter le scintillement
   final themeProvider = ThemeProvider();
@@ -44,7 +62,10 @@ void main(List<String> args) async {
           create: (_) => ExampleProvider(ExampleRepository()),
         ),
         ChangeNotifierProvider(create: (_) => MeriseProvider()),
+        ChangeNotifierProvider(create: (_) => GraphProvider()),
         ChangeNotifierProvider(create: (_) => AiProvider()),
+        ChangeNotifierProvider(create: (_) => ChallengeProvider()),
+        ChangeNotifierProvider(create: (_) => OSProvider()),
       ],
       child: const MyApp(),
     ),
@@ -157,118 +178,113 @@ class _HomePageState extends State<HomePage> {
                 endDrawer: EducationalPanel(isMobile: isMobile),
                 drawer: isMobile ? const BarreLaterale() : null,
                 body: SafeArea(
-                  child: Column(
-                    children: [
-                      BarreHaut(
-                        isMobile: isMobile,
-                        onExecuter: () {
-                          final activeFile = fileProvider.activeFile;
-                          if (activeFile != null) {
-                            debugProvider.setPaused(false);
-                            context.read<AppProvider>().setConsoleVisible(true);
-                            _runAlgorithm(activeFile, context);
-                          }
-                        },
-                        onDebug: () {
-                          final activeFile = fileProvider.activeFile;
-                          if (activeFile != null) {
-                            debugProvider.setPaused(true);
-                            context.read<AppProvider>().setActiveSidebarTab(
-                              'debug',
-                            );
-                            context.read<AppProvider>().setConsoleVisible(true);
-                            _runAlgorithm(activeFile, context);
-                          }
-                        },
-                      ),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            if (!isMobile) ...[
-                              const ActivityBar(),
-                              const BarreLaterale(),
-                            ],
-                            Expanded(
-                              child: Consumer<AppProvider>(
-                                builder: (context, p, _) {
-                                  final isBottomOrTop =
-                                      p.consolePosition ==
-                                          ConsolePosition.bottom ||
-                                      p.consolePosition == ConsolePosition.top;
+                  child: Consumer<AppProvider>(
+                    builder: (context, p, _) {
+                      final isBottomOrTop =
+                          p.consolePosition == ConsolePosition.bottom ||
+                          p.consolePosition == ConsolePosition.top;
 
-                                  if (isBottomOrTop) {
-                                    return Column(
-                                      children: [
-                                        if (p.isConsoleVisible &&
-                                            p.consolePosition ==
-                                                ConsolePosition.top) ...[
-                                          SizedBox(
-                                            height: p.consoleHeight,
-                                            child: ConsoleWidget(
-                                              key: consoleKey,
+                      return Column(
+                        children: [
+                          BarreHaut(
+                            isMobile: isMobile,
+                            onExecuter: () {
+                              final activeFile = fileProvider.activeFile;
+                              if (activeFile != null) {
+                                debugProvider.setPaused(false);
+                                p.setConsoleVisible(true);
+                                _runAlgorithm(activeFile, context);
+                              }
+                            },
+                            onDebug: () {
+                              final activeFile = fileProvider.activeFile;
+                              if (activeFile != null) {
+                                debugProvider.setPaused(true);
+                                p.setActiveSidebarTab('debug');
+                                p.setConsoleVisible(true);
+                                _runAlgorithm(activeFile, context);
+                              }
+                            },
+                          ),
+                          Expanded(
+                            child: Row(
+                              children: [
+                                if (!isMobile) ...[
+                                  const ActivityBar(),
+                                  const BarreLaterale(),
+                                ],
+                                Expanded(
+                                  child: isBottomOrTop
+                                      ? Column(
+                                          children: [
+                                            if (p.isConsoleVisible &&
+                                                p.consolePosition ==
+                                                    ConsolePosition.top) ...[
+                                              SizedBox(
+                                                height: p.consoleHeight,
+                                                child: ConsoleWidget(
+                                                  key: consoleKey,
+                                                ),
+                                              ),
+                                              _buildResizer(
+                                                p,
+                                                true,
+                                                isDark,
+                                                isMobile,
+                                              ),
+                                            ],
+                                            const Expanded(
+                                              child: _MainEditorArea(),
                                             ),
-                                          ),
-                                          _buildResizer(
-                                            p,
-                                            true,
-                                            isDark,
-                                            isMobile,
-                                          ),
-                                        ],
-                                        const Expanded(
-                                          child: _MainEditorArea(),
+                                            if (p.isConsoleVisible &&
+                                                p.consolePosition ==
+                                                    ConsolePosition.bottom) ...[
+                                              _buildResizer(
+                                                p,
+                                                true,
+                                                isDark,
+                                                isMobile,
+                                              ),
+                                              SizedBox(
+                                                height: p.consoleHeight,
+                                                child: ConsoleWidget(
+                                                  key: consoleKey,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        )
+                                      : Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            const Expanded(
+                                              child: _MainEditorArea(),
+                                            ),
+                                            if (p.isConsoleVisible) ...[
+                                              _buildResizer(
+                                                p,
+                                                false,
+                                                isDark,
+                                                isMobile,
+                                              ),
+                                              SizedBox(
+                                                width: p.consoleWidth,
+                                                child: ConsoleWidget(
+                                                  key: consoleKey,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
                                         ),
-                                        if (p.isConsoleVisible &&
-                                            p.consolePosition ==
-                                                ConsolePosition.bottom) ...[
-                                          _buildResizer(
-                                            p,
-                                            true,
-                                            isDark,
-                                            isMobile,
-                                          ),
-                                          SizedBox(
-                                            height: p.consoleHeight,
-                                            child: ConsoleWidget(
-                                              key: consoleKey,
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    );
-                                  } else {
-                                    return Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        const Expanded(
-                                          child: _MainEditorArea(),
-                                        ),
-                                        if (p.isConsoleVisible) ...[
-                                          _buildResizer(
-                                            p,
-                                            false,
-                                            isDark,
-                                            isMobile,
-                                          ),
-                                          SizedBox(
-                                            width: p.consoleWidth,
-                                            child: ConsoleWidget(
-                                              key: consoleKey,
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    );
-                                  }
-                                },
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                      const StatusBar(),
-                    ],
+                          ),
+                          const StatusBar(),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
@@ -356,6 +372,18 @@ class _MainEditorArea extends StatelessWidget {
 
     if (activeMainView == ActiveMainView.merise) {
       return const MeriseStudio();
+    }
+
+    if (activeMainView == ActiveMainView.graph) {
+      return const GraphStudio();
+    }
+
+    if (activeMainView == ActiveMainView.challenges) {
+      return const ChallengesMainView();
+    }
+
+    if (activeMainView == ActiveMainView.os) {
+      return const OSStudio();
     }
 
     return const EditeurWidget();

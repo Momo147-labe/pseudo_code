@@ -7,6 +7,8 @@ import 'package:printing/printing.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'package:file_picker/file_picker.dart';
+
 class Exportateur {
   static Future<void> exporterPDF(String titre, String code) async {
     final pdf = pw.Document();
@@ -51,7 +53,11 @@ class Exportateur {
     );
   }
 
-  static Future<void> exporterImage(BuildContext context, String code) async {
+  static Future<void> exporterImage(
+    BuildContext context,
+    String code, {
+    String titre = "Algorithme",
+  }) async {
     // Note: To export a widget as image, we need a separate widget or a global key.
     // For now, we'll suggest using a simpler method or capturing the current editor view if possible.
     // However, screenshotting a specific string can be done by rendering it in a hidden RepaintBoundary.
@@ -66,9 +72,9 @@ class Exportateur {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Pseudo-Code",
-            style: TextStyle(
+          Text(
+            titre,
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.blue,
@@ -89,16 +95,21 @@ class Exportateur {
     Uint8List? imageBytes = await controller.captureFromWidget(capturedWidget);
 
     if (imageBytes != null) {
-      // Save it as a file or share it
-      final tempDir = await getTemporaryDirectory();
-      final file = await File('${tempDir.path}/algorithme.png').create();
-      await file.writeAsBytes(imageBytes);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Image générée ! Enregistrée dans ${file.path}"),
-        ),
+      // Demander où enregistrer le fichier
+      String? outputFile = await FilePicker.platform.saveFile(
+        dialogTitle: 'Enregistrer l\'image',
+        fileName: 'capture.png',
+        type: FileType.image,
       );
+
+      if (outputFile != null) {
+        final file = File(outputFile);
+        await file.writeAsBytes(imageBytes);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Image enregistrée dans ${file.path}")),
+        );
+      }
     }
   }
 }

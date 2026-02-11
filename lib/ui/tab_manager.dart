@@ -21,7 +21,7 @@ class TabManager extends StatelessWidget {
       decoration: BoxDecoration(
         color: ThemeColors.sidebarBg(theme),
         border: Border(
-          bottom: BorderSide(color: Colors.black.withOpacity(0.1)),
+          bottom: BorderSide(color: Colors.black.withValues(alpha: 0.1)),
         ),
       ),
       child: ListView.builder(
@@ -86,10 +86,10 @@ class _TabItemState extends State<_TabItem> {
             color: isActive
                 ? ThemeColors.editorBg(theme)
                 : (_isHovered
-                      ? ThemeColors.editorBg(theme).withOpacity(0.5)
+                      ? ThemeColors.editorBg(theme).withValues(alpha: 0.5)
                       : ThemeColors.sidebarBg(theme)),
             border: Border(
-              right: BorderSide(color: Colors.black.withOpacity(0.1)),
+              right: BorderSide(color: Colors.black.withValues(alpha: 0.1)),
               top: BorderSide(
                 color: isActive ? ThemeColors.vscodeBlue : Colors.transparent,
                 width: 2,
@@ -115,7 +115,7 @@ class _TabItemState extends State<_TabItem> {
                   style: TextStyle(
                     color: isActive
                         ? ThemeColors.textBright(theme)
-                        : ThemeColors.textMain(theme).withOpacity(0.6),
+                        : ThemeColors.textMain(theme).withValues(alpha: 0.6),
                     fontSize: 12,
                     fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
                   ),
@@ -127,7 +127,7 @@ class _TabItemState extends State<_TabItem> {
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: ThemeColors.textMain(theme).withOpacity(0.5),
+                    color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
                     shape: BoxShape.circle,
                   ),
                 )
@@ -146,7 +146,7 @@ class _TabItemState extends State<_TabItem> {
                       Icons.close,
                       size: 14,
                       color: _isHovered || isActive
-                          ? ThemeColors.textMain(theme).withOpacity(0.8)
+                          ? ThemeColors.textMain(theme).withValues(alpha: 0.8)
                           : Colors.transparent,
                     ),
                   ),

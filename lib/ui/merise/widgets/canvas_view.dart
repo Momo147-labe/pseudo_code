@@ -183,8 +183,10 @@ class _MeriseCanvasViewState extends State<MeriseCanvasView> {
                                       offset1: start,
                                       offset2: end,
                                       strokeColor: isDark
-                                          ? Colors.white.withOpacity(0.3)
-                                          : Colors.black.withOpacity(0.38),
+                                          ? Colors.white.withValues(alpha: 0.3)
+                                          : Colors.black.withValues(
+                                              alpha: 0.38,
+                                            ),
                                       zoom: zoom,
                                       cardinalities: link.cardinalities,
                                       scale: scale,
@@ -268,14 +270,14 @@ class _MeriseCanvasViewState extends State<MeriseCanvasView> {
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
+                                  color: Colors.black.withValues(alpha: 0.1),
                                   blurRadius: 10,
                                 ),
                               ],
                               border: Border.all(
                                 color: isDark
-                                    ? Colors.white.withOpacity(0.1)
-                                    : Colors.black.withOpacity(0.05),
+                                    ? Colors.white.withValues(alpha: 0.1)
+                                    : Colors.black.withValues(alpha: 0.05),
                               ),
                             ),
                             child: Column(
@@ -291,7 +293,7 @@ class _MeriseCanvasViewState extends State<MeriseCanvasView> {
                                   decoration: BoxDecoration(
                                     color: isDark
                                         ? Colors.white10
-                                        : Colors.black.withOpacity(0.05),
+                                        : Colors.black.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Column(
@@ -373,14 +375,18 @@ class _MeriseCanvasViewState extends State<MeriseCanvasView> {
                                 decoration: BoxDecoration(
                                   color: ThemeColors.sidebarBg(
                                     widget.theme,
-                                  ).withOpacity(0.9),
+                                  ).withValues(alpha: 0.9),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: Colors.blueAccent.withOpacity(0.3),
+                                    color: Colors.blueAccent.withValues(
+                                      alpha: 0.3,
+                                    ),
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.1,
+                                      ),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -431,9 +437,9 @@ class _MeriseCanvasViewState extends State<MeriseCanvasView> {
                         rect: Rect.fromPoints(_selectionStart!, _selectionEnd!),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: Colors.blue.withValues(alpha: 0.1),
                             border: Border.all(
-                              color: Colors.blue.withOpacity(0.5),
+                              color: Colors.blue.withValues(alpha: 0.5),
                             ),
                           ),
                         ),
@@ -554,7 +560,7 @@ class _MeriseCanvasViewState extends State<MeriseCanvasView> {
       painter: _LinkPainter(
         offset1: start,
         offset2: provider.tempLinkEnd!,
-        strokeColor: const Color(0xFF1E88E5).withOpacity(0.5),
+        strokeColor: const Color(0xFF1E88E5).withValues(alpha: 0.5),
         strokeWidth: 2.0,
         zoom: zoom,
       ),
@@ -611,8 +617,8 @@ class _GridPainter extends CustomPainter {
     final isDark = theme != AppTheme.light && theme != AppTheme.papier;
     final paint = Paint()
       ..color = isDark
-          ? Colors.white.withOpacity(0.05)
-          : Colors.black.withOpacity(0.05)
+          ? Colors.white.withValues(alpha: 0.05)
+          : Colors.black.withValues(alpha: 0.05)
       ..strokeWidth = 1.0;
 
     final step = 20.0 * zoom;
@@ -781,15 +787,18 @@ class _Minimap extends StatelessWidget {
         width: 150,
         height: 100,
         decoration: BoxDecoration(
-          color: ThemeColors.sidebarBg(theme).withOpacity(0.8),
+          color: ThemeColors.sidebarBg(theme).withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isDark
-                ? Colors.white.withOpacity(0.1)
-                : Colors.black.withOpacity(0.1),
+                ? Colors.white.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.1),
           ),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 4,
+            ),
           ],
         ),
         clipBehavior: Clip.antiAlias,
@@ -842,15 +851,15 @@ class _MinimapPainter extends CustomPainter {
     final paint = Paint();
 
     // Dessiner les entités
-    paint.color = const Color(0xFF1E88E5).withOpacity(0.5);
+    paint.color = const Color(0xFF1E88E5).withValues(alpha: 0.5);
     for (final e in mcd.entities) {
       canvas.drawRect(e.position & const Size(150, 80), paint);
     }
 
     // Dessiner les relations
     paint.color = isDark
-        ? Colors.white.withOpacity(0.3)
-        : Colors.black.withOpacity(0.3);
+        ? Colors.white.withValues(alpha: 0.3)
+        : Colors.black.withValues(alpha: 0.3);
     for (final r in mcd.relations) {
       canvas.drawCircle(r.position + const Offset(22.5, 22.5), 22.5, paint);
     }
@@ -1044,19 +1053,21 @@ class _EntityWidgetState extends State<_EntityWidget> {
               color: isSelected
                   ? primaryColor
                   : (_isHovered
-                        ? primaryColor.withOpacity(0.5)
+                        ? primaryColor.withValues(alpha: 0.5)
                         : (isDark
-                              ? const Color(0xFFF8F7F5).withOpacity(0.5)
-                              : const Color(0xFF333333).withOpacity(0.5))),
+                              ? const Color(0xFFF8F7F5).withValues(alpha: 0.5)
+                              : const Color(
+                                  0xFF333333,
+                                ).withValues(alpha: 0.5))),
               width: (isSelected || _isHovered ? 2.0 : 1.0) * zoom,
             ),
             boxShadow: [
               BoxShadow(
                 color: isSelected
-                    ? primaryColor.withOpacity(0.3)
+                    ? primaryColor.withValues(alpha: 0.3)
                     : (_isHovered
-                          ? primaryColor.withOpacity(0.1)
-                          : Colors.black.withOpacity(0.1)),
+                          ? primaryColor.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.1)),
                 blurRadius: (isSelected || _isHovered) ? 8 * zoom : 4 * zoom,
                 spreadRadius: isSelected ? 2 * zoom : 0,
                 offset: isSelected ? Offset.zero : Offset(0, 2 * zoom),
@@ -1073,8 +1084,8 @@ class _EntityWidgetState extends State<_EntityWidget> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected || _isHovered
-                      ? primaryColor.withOpacity(0.2)
-                      : primaryColor.withOpacity(0.1),
+                      ? primaryColor.withValues(alpha: 0.2)
+                      : primaryColor.withValues(alpha: 0.1),
                   border: Border(
                     bottom: BorderSide(
                       color: isDark ? Colors.grey[600]! : Colors.grey[300]!,
@@ -1151,7 +1162,7 @@ class _EntityWidgetState extends State<_EntityWidget> {
                                       : FontWeight.normal,
                                   color: ThemeColors.textMain(
                                     theme,
-                                  ).withOpacity(0.8),
+                                  ).withValues(alpha: 0.8),
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -1355,19 +1366,19 @@ class _RelationWidgetState extends State<_RelationWidget> {
               color: isSelected
                   ? const Color(0xFF1E88E5)
                   : (_isHovered
-                        ? const Color(0xFF1E88E5).withOpacity(0.5)
+                        ? const Color(0xFF1E88E5).withValues(alpha: 0.5)
                         : (isDark
-                              ? Colors.white.withOpacity(0.5)
-                              : Colors.black.withOpacity(0.5))),
+                              ? Colors.white.withValues(alpha: 0.5)
+                              : Colors.black.withValues(alpha: 0.5))),
               width: (isSelected || _isHovered ? 2.0 : 1.0) * zoom,
             ),
             boxShadow: [
               BoxShadow(
                 color: isSelected
-                    ? const Color(0xFF1E88E5).withOpacity(0.3)
+                    ? const Color(0xFF1E88E5).withValues(alpha: 0.3)
                     : (_isHovered
-                          ? const Color(0xFF1E88E5).withOpacity(0.1)
-                          : Colors.black.withOpacity(0.1)),
+                          ? const Color(0xFF1E88E5).withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.1)),
                 blurRadius: (isSelected || _isHovered) ? 10 * zoom : 4 * zoom,
                 spreadRadius: isSelected ? 2 * zoom : 0,
               ),
@@ -1423,7 +1434,7 @@ class _RelationWidgetState extends State<_RelationWidget> {
                                 fontSize: 7 * zoom * scale,
                                 color: ThemeColors.textMain(
                                   theme,
-                                ).withOpacity(0.8),
+                                ).withValues(alpha: 0.8),
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),

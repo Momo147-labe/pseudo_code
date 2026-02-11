@@ -119,7 +119,7 @@ class _NormalizationViewState extends State<NormalizationView>
               : "Nous avons trouvé $issueCount point${issueCount > 1 ? 's' : ''} d'attention dans votre modèle.",
           style: TextStyle(
             fontSize: (widget.isMobile ? 12 : 15) * scale,
-            color: ThemeColors.textMain(theme).withOpacity(0.6),
+            color: ThemeColors.textMain(theme).withValues(alpha: 0.6),
           ),
         ),
       ],
@@ -132,7 +132,7 @@ class _NormalizationViewState extends State<NormalizationView>
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: ThemeColors.textMain(theme).withOpacity(0.1),
+            color: ThemeColors.textMain(theme).withValues(alpha: 0.1),
           ),
         ),
       ),
@@ -140,7 +140,9 @@ class _NormalizationViewState extends State<NormalizationView>
         controller: _tabController,
         isScrollable: true,
         labelColor: const Color(0xFF1E88E5),
-        unselectedLabelColor: ThemeColors.textMain(theme).withOpacity(0.5),
+        unselectedLabelColor: ThemeColors.textMain(
+          theme,
+        ).withValues(alpha: 0.5),
         indicatorColor: const Color(0xFF1E88E5),
         labelStyle: TextStyle(
           fontSize: 14 * scale,
@@ -249,10 +251,10 @@ class _NormalizationViewState extends State<NormalizationView>
       decoration: BoxDecoration(
         color: ThemeColors.sidebarBg(theme),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2), width: 1.5),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.05),
+            color: color.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -292,7 +294,9 @@ class _NormalizationViewState extends State<NormalizationView>
                       label,
                       style: TextStyle(
                         fontSize: 12 * scale,
-                        color: ThemeColors.textMain(theme).withOpacity(0.5),
+                        color: ThemeColors.textMain(
+                          theme,
+                        ).withValues(alpha: 0.5),
                       ),
                     ),
                   ],
@@ -389,9 +393,9 @@ class _NormalizationViewState extends State<NormalizationView>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.05),
+              color: Colors.blue.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue.withOpacity(0.2)),
+              border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -409,7 +413,7 @@ class _NormalizationViewState extends State<NormalizationView>
                   "La normalisation évite la redondance des données et les anomalies lors des mises à jour.",
                   style: TextStyle(
                     fontSize: 12 * scale,
-                    color: ThemeColors.textMain(theme).withOpacity(0.7),
+                    color: ThemeColors.textMain(theme).withValues(alpha: 0.7),
                     height: 1.5,
                   ),
                 ),
@@ -445,7 +449,7 @@ class _NormalizationViewState extends State<NormalizationView>
             desc,
             style: TextStyle(
               fontSize: 12 * scale,
-              color: ThemeColors.textMain(theme).withOpacity(0.6),
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.6),
               height: 1.5,
             ),
           ),
@@ -482,7 +486,10 @@ class _IssueCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: ThemeColors.sidebarBg(theme),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: severityColor.withOpacity(0.2), width: 1),
+        border: Border.all(
+          color: severityColor.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -531,7 +538,7 @@ class _IssueCard extends StatelessWidget {
             issue.description,
             style: TextStyle(
               fontSize: 14 * scale,
-              color: ThemeColors.textMain(theme).withOpacity(0.8),
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.8),
               height: 1.4,
             ),
           ),
@@ -540,7 +547,7 @@ class _IssueCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: severityColor.withOpacity(0.05),
+                color: severityColor.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -553,7 +560,9 @@ class _IssueCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13 * scale,
                         fontStyle: FontStyle.italic,
-                        color: ThemeColors.textMain(theme).withOpacity(0.7),
+                        color: ThemeColors.textMain(
+                          theme,
+                        ).withValues(alpha: 0.7),
                       ),
                     ),
                   ),

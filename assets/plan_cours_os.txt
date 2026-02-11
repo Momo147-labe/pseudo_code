@@ -1,0 +1,506 @@
+UNIVERSITE DE LABE
+DEPARTEMENT INFORMATIQUE
+PROGRAMME DE LICENCE EN INFORMATIQUE
+Classe de Licence 1– Semestre 1
+Année Universitaire 2024/2025
+
+PLAN DE COURS
+Département : Informatique
+Année Universitaire : 2024-2025
+Code du cours :
+1. Titre du Cours : Système d’Exploitation des ordinateurs (SE ou OS)
+2. Informations générales sur le cours
+Nombre crédits : 6
+Volume horaire prévu dans le programme : Total de 150h (leçons et évaluations : 45h - Travail personnel de l’étudiant - 105h)
+Durée du cours prévue dans le programme : 15 semaines
+Chargés de cours (CC) : M. Fodé CAMARA ; Informaticien
+Responsable : M. Fodé CAMARA ; Informaticien.
+Adresses de contact : M. Fodé CAMARA ; Informaticien: fdcamara2001@gmail.com
+Evaluation : Exposée des différents groupes E1a et E1b : E1= (E1a + E1b)/2 (30% de la moyenne de cours), un contrôle écrit E2
+(30%) et une évaluation de synthèse E3 (40%) ; Moyenne de cours E= 0,3E1 + 0,3E2 + 0,4E3
+Nombre d’étudiants de la classe :
+3. Horaires prévus :
+Nombre de semaine (calendrier universitaire) : 12 semaines d’activités (leçons, travail personnel/étudiant et évaluations) ;
+Nombre de semaine probable d’exécution du cours : 15 semaines
+Volume horaire par semaine pour les leçons et évaluations : 8 heures
+Horaires prévus dans l’emploi du temps : Mardi 9h à 13h (Cours et travaux pratiques), Vendredi 9h à 13h (Cours et travaux
+pratiques)
+1
+
+Leçons et évaluations : 45 heures ;
+Temps de travail personnel de l’étudiant : 105 heures
+4. CONTEXTE ET BUT :
+Comprendre les concepts fondamentaux des systèmes d'exploitation (SE), leur architecture et leur rôle dans la gestion
+des ressources matérielles et logicielles.
+Maîtriser les mécanismes de gestion des processus, mémoire, fichiers et périphériques d'un ordinateur.
+Acquérir des compétences pratiques dans l'utilisation, la configuration et l'administration des systèmes d'exploitation
+courants (Linux, Windows).
+Connaître les principes de sécurité des systèmes d'exploitation et les techniques de protection des ressources et des
+données.
+Contenu :
+Le cours couvre les aspects suivants :
+•
+
+Introduction aux systèmes d'exploitation.
+
+•
+
+Architecture d’un SE : processus, mémoire, périphériques, systèmes de fichiers.
+
+•
+
+Gestion des processus et des threads, synchronisation et interblocages.
+
+•
+
+Gestion de la mémoire (pagination, segmentation, mémoire virtuelle).
+
+•
+
+Systèmes de fichiers, gestion des entrées/sorties.
+
+•
+
+Sécurité et protection dans les systèmes d'exploitation.
+
+•
+
+Réseaux de communication et rôle du SE dans le réseau.
+
+•
+
+Introduction à la virtualisation et aux systèmes multiprogrammation.
+
+À la fin du cours, l'étudiant devrait être en mesure de :
+✓ Maîtriser les concepts fondamentaux des systèmes d'exploitation, notamment la gestion des processus, de la mémoire, des
+fichiers et des entrées/sorties.
+
+2
+
+✓ Utiliser un système d'exploitation pour exécuter des tâches courantes telles que la gestion de fichiers, l'administration des
+utilisateurs et la configuration du réseau.
+✓ Installer et configurer un système d'exploitation, en comprenant les différentes étapes d'installation et les options de
+configuration matérielle.
+✓ Gérer et optimiser les ressources du système, notamment la mémoire, le processeur et les périphériques, en utilisant des
+outils et des commandes appropriés.
+✓ Implémenter des mécanismes de sécurité pour protéger le système contre les accès non autorisés et les attaques, en
+configurant les permissions et les politiques de sécurité.
+✓ Utiliser des systèmes virtualisés pour créer et gérer des machines virtuelles dans des environnements partagés.
+✓ Diagnostiquer et résoudre des problèmes liés à la performance et à la gestion des processus, de la mémoire et des fichiers.
+✓ Comprendre et appliquer les concepts de concurrence et de synchronisation dans des environnements multitâches, en
+utilisant des outils comme les sémaphores et les mutex.
+Description officielle du cours :
+Ce cours présente les concepts et mécanismes sous-jacents aux systèmes d'exploitation modernes. Les étudiants apprendront
+comment les SE gèrent les ressources informatiques et comment ils assurent le bon fonctionnement des programmes et des
+systèmes matériels. Le cours couvre la gestion des processus, de la mémoire, des fichiers, des périphériques, la sécurité, ainsi que
+la virtualisation et les réseaux de communication.
+Prérequis :
+✓ Connaissances de base en informatique et architecture des ordinateurs.
+✓ Notions d'algorithmes et de programmation (ex. Python, C, ou Java).
+5. Objectif général :
+Former les étudiants à la compréhension, la manipulation et l'administration des systèmes d'exploitation, en développant leur capacité
+à résoudre des problèmes liés à la gestion des ressources matérielles et logicielles dans des environnements multi-utilisateurs et
+multitâches.
+6. objectifs spécifiques :
+3
+
+•
+
+'approprier les outils informatiques essentiels régulièrement rencontrés dans l'environnement de travail en lien avec les
+systèmes d'exploitation.
+
+•
+
+Utiliser les systèmes d'exploitation et logiciels associés pour résoudre des problèmes courants rencontrés dans un
+environnement professionnel ou technique.
+
+•
+
+Se familiariser avec les éléments de contenu suivants :
+
+•
+
+Introduction :
+
+•
+
+Système informatique et Systèmes d'exploitation
+o Architecture d’un ordinateur : unité centrale de traitement (UCT), types de mémoire (RAM, ROM, cache), typologie des
+ordinateurs (serveurs, PC, portables), périphériques d'entrée et de sortie (clavier, souris, imprimante, etc.).
+b. Systèmes d’exploitation (SE) :
+
+•
+
+Rôle du SE dans la gestion des ressources matérielles et logicielles.
+
+•
+
+Exemples de SE (Windows, Linux, macOS).
+
+•
+
+Notions de système de fichiers, de programmes et de logiciels.
+7. Méthodologie d'apprentissage :
+
+•
+
+Diverses méthodes pédagogiques seront utilisées :
+o Exposés magistraux (cours en présentiel), démonstrations pratiques, devoirs et lectures personnelles.
+o Les étudiant(e)s sont attendus à investir environ 90 heures de travail personnel en plus des 45 heures de cours et des
+heures de laboratoire.
+
+•
+
+Séances d'exercices :
+
+•
+
+Soutien pratique : o Des séances d'exercices sont prévues à l'horaire pour faciliter l'apprentissage des logiciels et des
+systèmes d'exploitation, ainsi que la réalisation des devoirs pratiques. o La participation à ces séances est fortement
+recommandée, notamment pour les étudiants débutant avec les nouvelles technologies de l'information.
+o Une répartition des séances d'exercices sera présentée dans le plan de cours.
+o Moyens pédagogiques :
+
+Une moyenne de 50 % du total des notes des deux examens est une condition nécessaire pour réussir ce cours.
+4
+
+Les devoirs seront le fruit du travail personnel de l'étudiant(e). Même si les devoirs doivent répondre à certains critères
+spécifiques, au moins 25 % de la note pourra être attribuée pour des éléments tels que : qualité de la langue, qualité de la
+présentation, propreté du travail, utilisation des notions couvertes et expérimentation supplémentaire des logiciels.
+Aucun délai pour la remise des travaux ne sera négociable (sauf force majeure) moins de 4 jours avant l’échéance prévue.
+Pour atteindre les objectifs fixés, le cours sera donné dans une salle de formation climatisée et équipée (un ordinateur par étudiant,
+vidéo projecteur un tableau blanc.) plus le support de cours.
+✓ Stratégie d’enseignement :
+o Cours magistraux, travaux dirigés et travaux pratiques
+•
+
+Exposés magistraux : introduction aux concepts théoriques.
+
+•
+
+Démonstrations en temps réel de l’administration de systèmes d’exploitation.
+
+•
+
+Travaux pratiques en laboratoire pour familiariser les étudiants avec les outils et techniques d'administration de SE.
+
+•
+
+Études de cas et résolutions de problèmes pour appliquer les concepts dans des situations réelles.
+
+•
+
+Lectures et devoirs pour consolider les connaissances acquises en classe.
+
+8- Stratégie d’évaluation :
+•
+
+Contrôles continus : tests et quiz réguliers pour évaluer la compréhension des concepts.
+
+•
+
+Travaux pratiques : résolution de problèmes techniques, configuration et gestion des SE.
+
+•
+
+Evaluation groupale
+
+•
+
+Devoirs et projets : création de scénarios d'administration de SE, gestion des ressources, mise en place de la sécurité.
+
+•
+
+Examen final : évaluation globale des connaissances théoriques et pratiques.
+
+•
+
+Evaluation individuelle
+
+Formation des groupes d’étude d’étudiants : Les groupes sont formés autour des meilleurs étudiants en Informatique le premier
+cours ; opération à consolider par l’enseignant responsable à partir de la correction du premier devoir individuel
+Evaluations sous forme de contrôle écrit, d’exposée de groupe et examen final individuel en pratique.
+
+5
+
+9-Contenu et organisation du cours
+
+Semaine
+
+1
+
+2
+
+3
+
+Objectifs spécifiques
+Introduction aux SE et
+leur importance.
+
+Comprendre l'architecture
+des SE
+Gestion des processus et
+des threads.
+
+4
+5
+
+6
+
+Synchronisation et
+interblocages
+
+•
+
+Gestion de la mémoire
+
+7
+
+Sécurité des systèmes
+d'exploitation
+
+8
+
+Réseaux de
+communication et
+interaction avec les SE
+
+Histoire et
+évolution des
+systèmes
+d'exploitation.
+Composants des systèmes
+d'exploitation (UCT,
+mémoire).des données
+Processus, états de
+processus, threads.
+1ère Evaluation
+Techniques de
+synchronisation
+(sémaphores, mutex).
+
+Volume horaire
+TD TP TPE
+VHT
+
+Stratégies
+
+Types
+d’évaluation
+
+Cours Magistral
+
+Diagnostique
+et formative
+
+1h
+
+3h
+
+10h
+
+14h
+
+9%
+
+Cours Magistral
+Exposé +
+démonstration
+
+Formative
+
+1h
+
+3h
+
+10h
+
+14h
+
+9%
+
+2h
+
+4h
+
+10h
+
+16h
+
+13%
+
+2h
+
+4h
+
+10h
+
+16h
+
+13%
+
+2h
+
+4h
+
+10h
+
+16h
+
+13%
+
+Contenu
+
+Cours Magistral
+Exposé + TD
+
+Cours Magistral
+Exposé +
+travaux dirigés
+
+pagination, segmentation,
+mémoire virtuelle.
+Concepts de sécurité,
+protection des données.
+
+Cours Magistral
+et TP
+Exposé + études
+de cas
+
+Introduction aux réseaux
+et leur gestion par le SE.
+
+Exposé +
+démonstration
+
+6
+
+Formative
+TP sur
+interblocage
+Sommative
+Formative
+Devoir sur
+gestion de
+mémoire
+Formative
+Devoir sur
+sécurité
+TP sur
+gestion de
+réseau
+
+CM
+
+%
+
+9
+
+10
+11
+12
+
+Systèmes de fichiers et
+gestion des
+entrées/sorties
+Introduction à la
+virtualisation
+Révisions et préparation à
+l'examen final
+Examen final
+
+13
+
+Evaluation finale
+
+14
+15
+
+Rattrapage
+
+Organisation et gestion des Cours Magistral
+fichiers, périphériques.
+et Exposé + TP
+Concepts de virtualisation,
+gestion de machines
+virtuelles.
+Synthèse des concepts clés
+abordés.
+Évaluation globale des
+connaissances.
+Rattrapage
+
+Exposé + TP
+
+Discussions,
+corrections
+Examen écrit +
+pratique
+Sommative
+
+Formative
+Quiz + TP
+sur SF
+
+1h
+
+2h
+
+10h
+
+13h
+
+7%
+
+105
+
+150
+
+100%
+
+TP sur
+virtualisation
+Examen final
+
+Rattrapage
+Rattrapage
+
+Volume d’Heure
+
+45
+
+Légende :
+CM : Cours magistral, TD : Travaux dirigés, TP ; Travaux pratiques, TPE ; Travaux personnels de l’étudiant, VHT : Volume horaire
+total
+Biographies:
+➢ "Operating System Concepts" – Abraham Silberschatz, Peter Baer Galvin, Greg Gagne. Wiley.
+Référence classique, ce livre couvre les concepts fondamentaux et avancés des systèmes d'exploitation.
+➢ "Modern Operating Systems" – Andrew S. Tanenbaum, Herbert Bos. Pearson.
+Un autre manuel clé qui met l'accent sur les aspects théoriques et pratiques des SE modernes.
+➢ "Linux Administration Handbook" – Evi Nemeth, Garth Snyder, Trent R. Hein. Prentice Hall.
+Un manuel pratique pour la gestion des systèmes Linux.
+
+7
+
+➢ "The Design and Implementation of the FreeBSD Operating System" – Marshall Kirk McKusick, George V. Neville-Neil,
+Robert N. M. Watson. Addison-Wesley.
+Un guide avancé sur la conception et la mise en œuvre d'un système d'exploitation.
+➢ "Principles of Computer Systems and Network Management" – Dinesh Chandra Verma. Springer.
+Ouvrage recommandé pour approfondir la gestion des systèmes et des réseaux.
+Labé, le 10 Octobre 2024
+Le Chargé du cours
+
+Le Directeur du Programme
+
+Le Vice-Recteur Chargé des Etudes
+
+M. Fodé CAMARA
+
+M. Koliko DELAMOU
+
+Dr Lanan Wassy SOROMOU
+
+8
+
+

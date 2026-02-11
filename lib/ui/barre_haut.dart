@@ -64,7 +64,7 @@ class BarreHaut extends StatelessWidget {
               child: Text(
                 _buildTitleText(appProvider, activeFile),
                 style: TextStyle(
-                  color: ThemeColors.textMain(theme).withOpacity(0.5),
+                  color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
                   fontSize: 12,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -84,7 +84,7 @@ class BarreHaut extends StatelessWidget {
             Text(
               "${appProvider.fontSize.toInt()}",
               style: TextStyle(
-                color: ThemeColors.textMain(theme).withOpacity(0.5),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
                 fontSize: 11,
               ),
             ),
@@ -326,8 +326,11 @@ class BarreHaut extends StatelessWidget {
             "Exporter en Image (PNG)",
             style: TextStyle(color: ThemeColors.textMain(theme)),
           ),
-          onTap: () =>
-              Exportateur.exporterImage(context, activeFile?.content ?? ""),
+          onTap: () => Exportateur.exporterImage(
+            context,
+            activeFile?.content ?? "",
+            titre: activeFile?.name ?? "Algorithme",
+          ),
         ),
       ],
     );
@@ -368,6 +371,22 @@ class BarreHaut extends StatelessWidget {
               child: const Text("Copier"),
             ),
             TextButton(
+              onPressed: () {
+                Exportateur.exporterPDF("Traduction $lang", translated);
+              },
+              child: const Text("PDF"),
+            ),
+            TextButton(
+              onPressed: () {
+                Exportateur.exporterImage(
+                  context,
+                  translated,
+                  titre: "Code $lang",
+                );
+              },
+              child: const Text("Image"),
+            ),
+            TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text("Fermer"),
             ),
@@ -399,7 +418,7 @@ class _HeaderAction extends StatelessWidget {
         icon: Icon(
           icon,
           size: 16,
-          color: ThemeColors.textMain(theme).withOpacity(0.6),
+          color: ThemeColors.textMain(theme).withValues(alpha: 0.6),
         ),
         onPressed: onPressed,
         tooltip: tooltip,

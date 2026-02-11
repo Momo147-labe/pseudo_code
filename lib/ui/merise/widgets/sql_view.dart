@@ -135,7 +135,7 @@ class _SqlViewState extends State<SqlView> {
                   label: Text(d.name.toUpperCase()),
                   selected: isSelected,
                   onSelected: (_) => provider.setSqlDialect(d),
-                  selectedColor: const Color(0xFF1E88E5).withOpacity(0.2),
+                  selectedColor: const Color(0xFF1E88E5).withValues(alpha: 0.2),
                   checkmarkColor: const Color(0xFF1E88E5),
                 ),
               );
@@ -166,12 +166,12 @@ class _SqlViewState extends State<SqlView> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark
-              ? Colors.white.withOpacity(0.08)
-              : Colors.black.withOpacity(0.05),
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.black.withValues(alpha: 0.05),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -328,7 +328,10 @@ class _TableCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: isDark ? Colors.white10 : Colors.grey[200]!),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+          ),
         ],
       ),
       child: Column(
@@ -340,8 +343,8 @@ class _TableCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF1E88E5).withOpacity(0.15),
-                  const Color(0xFF1E88E5).withOpacity(0.05),
+                  const Color(0xFF1E88E5).withValues(alpha: 0.15),
+                  const Color(0xFF1E88E5).withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: const BorderRadius.vertical(
@@ -430,7 +433,7 @@ class _TableCard extends StatelessWidget {
                       "FK: ${fk.columnName} -> ${fk.referencedTable}(${fk.referencedColumn})",
                       style: TextStyle(
                         fontSize: 12 * scale,
-                        color: const Color(0xFF1E88E5).withOpacity(0.8),
+                        color: const Color(0xFF1E88E5).withValues(alpha: 0.8),
                       ),
                     ),
                   ),

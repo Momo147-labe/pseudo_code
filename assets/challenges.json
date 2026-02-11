@@ -1,0 +1,2412 @@
+[
+  {
+    "id": "7f2a1b3c-4d5e-6f7g-8h9i-0j1k2l3m4n5o",
+    "title": "Exercice 1: LES INSTRUCTION DE BASES",
+    "description": "Écrire un algorithme qui permet d'afficher le message Bonjour.",
+    "instructions": "Objectif : Écrire un algorithme qui permet d'afficher le message Bonjour.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "Bonjour"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "8g3b2c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+    "title": "Exercice 2: LES INSTRUCTION DE BASES",
+    "description": "Ecrire un algorithme qui permet de saisir un nombre au clavier puis l'affiche à l'écran.",
+    "instructions": "Objectif : Ecrire un algorithme qui permet de saisir un nombre au clavier puis l'affiche à l'écran.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "42",
+        "output": "42"
+      },
+      {
+        "input": "-5",
+        "output": "-5"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "9h4c3d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+    "title": "Exercice 3: LES INSTRUCTION DE BASES",
+    "description": "Écrire un algorithme qui convertit une température entrée au clavier exprimée en degrés Fahrenheit et affiche une valeur approchée de la même température en degrés Celsius (Formule : C = 0.55556 * (F - 32)).",
+    "instructions": "Objectif : Écrire un algorithme qui convertit une température Fahrenheit en Celsius.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "32",
+        "output": "0"
+      },
+      {
+        "input": "212",
+        "output": "100"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "0i5d4e6f-7g8h-9i0j-1k2l-3m4n5o6p7q8r",
+    "title": "Exercice 4: LES INSTRUCTION DE BASES",
+    "description": "Même question que l'exo 3, pour la conversion inverse : de degrés Celsius en degrés Fahrenheit.",
+    "instructions": "Objectif : Convertir Celsius en Fahrenheit (Formule : F = (C * 1.8) + 32).",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "0",
+        "output": "32"
+      },
+      {
+        "input": "100",
+        "output": "212"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "1j6e5f7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s",
+    "title": "Exercice 5: LES INSTRUCTION DE BASES",
+    "description": "Pour un cercle dont la valeur du rayon est lue, écrire un algorithme qui calcule et affiche avec l'unité choisie : Le périmètre du cercle; La surface du cercle; Le volume de la sphère.",
+    "instructions": "Objectif : Calculer P, S et V pour un rayon R donné.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10",
+        "output": "P=62.83, S=314.16, V=4188.79"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "2k7f6g8h-9i0j-1k2l-3m4n-5o6p7q8r9s0t",
+    "title": "Exercice 6: LES INSTRUCTION DE BASES",
+    "description": "Ecrire un algorithme qui calcule et affiche le salaire net d'un employé après avoir demandé les informations nécessaires (Indice, valeur point d'indice, taux de ristourne).",
+    "instructions": "Objectif : Calculer le salaire net.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "500\n10\n10",
+        "output": "4500"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "3l8g7h9i-0j1k-2l3m-4n5o-6p7q8r9s0t1u",
+    "title": "Exercice 7: LES INSTRUCTION DE BASES",
+    "description": "Écrire un algorithme permettant de saisir deux nombres et d'afficher leur produit.",
+    "instructions": "Objectif : Afficher le produit de deux nombres.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "5\n4",
+        "output": "20"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "a4db3862-b93b-4beb-87b7-65b54ddf6854",
+    "title": "Exercice 8: LES INSTRUCTION DE BASES",
+    "description": "Écrire un algorithme qui permet d'échange le contenu de deux entiers A et B saisis par l'utilisateur et afficher ces entiers après l'échange.",
+    "instructions": "Objectif : Échanger les valeurs de A et B.",
+    "difficulty": "Easy",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10\n20",
+        "output": "A=20, B=10"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "5n0i9j1k-2l3m-4n5o-6p7q-8r9s0t1u2v3w",
+    "title": "Exercice 9: LES INSTRUCTION DE BASES",
+    "description": "Ecrire un algorithme qui demande à l'utilisateur les valeurs de deux variables réelles x1 et x2; calcule et affiche la valeur de la distance d entre les points A et B d'abscisse respective x1 et x2.",
+    "instructions": "Objectif : Calculer la distance d = |x1 - x2|.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "15.5\n5.5",
+        "output": "10"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "6o1j0k2l-3m4n-5o6p-7q8r-9s0t1u2v3w4x",
+    "title": "Exercice 10: LES INSTRUCTION DE BASES",
+    "description": "Ecrire un algorithme qui demande à l'utilisateur les valeurs des coordonnées de deux points A et B (A(xa,ya)) et (B(xb,yb)); calcule la valeur de la variable d1 mesurant la distance entre les points.",
+    "instructions": "Objectif : Calculer la distance entre deux points dans un plan.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "0\n0\n3\n4",
+        "output": "5"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "7p2k1l3m-4n5o-6p7q-8r9s-0t1u2v3w4x5y",
+    "title": "Exercice 11: LES INSTRUCTION DE BASES",
+    "description": "a) Écrire un programme qui calcule et affiche une longueur en pouce à partir d'une saisie en pied et pouce (1 pied = 12 pouces). b) Faire l'inverse.",
+    "instructions": "Objectif : Gérer les conversions pieds/pouces.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "2\n3",
+        "output": "27 pouces"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "8q3l2m4n-5o6p-7q8r-9s0t-1u2v3w4x5y6z",
+    "title": "Exercice 12: LES INSTRUCTION DE BASES",
+    "description": "Écrire un algorithme qui lit le prix d'un composant et affiche le prix calculé après une réduction de 10%.",
+    "instructions": "Objectif : Calculer une réduction de 10%.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "100",
+        "output": "90"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "9r4m3n5o-6p7q-8r9s-0t1u-2v3w4x5y6z7a",
+    "title": "Exercice 13: LES INSTRUCTION DE BASES",
+    "description": "Écrire un algorithme qui calcule la hauteur h d'une chute libre au bout d'un temps t saisi (Formule: h = 0.5 * g * t^2 avec g=9.81).",
+    "instructions": "Objectif : Calculer la hauteur d'une chute libre.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "2",
+        "output": "19.62"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "0s5n4o6p-7q8r-9s0t-1u2v-3w4x5y6z7a8b",
+    "title": "Exercice 14: LES INSTRUCTION DE BASES",
+    "description": "Écrire un algorithme qui calcule la durée totale de la chute connaissant la hauteur totale h de l'immeuble.",
+    "instructions": "Objectif : Calculer le temps de chute.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "19.62",
+        "output": "2"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "1t6o5p7q-8r9s-0t1u-2v3w-4x5y6z7a8b9c",
+    "title": "Exercice 15: LES INSTRUCTION DE BASES",
+    "description": "Écrire un algorithme qui permet de calculer la moyenne de trois entiers saisis par l'utilisateur.",
+    "instructions": "Objectif : Calculer la moyenne arithmétique de 3 nombres.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10\n15\n20",
+        "output": "15"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "2u7p6q8r-9s0t-1u2v-3w4x-5y6z7a8b9c0d",
+    "title": "Exercice 16: LES STRUCTURES CONDITIONNELLES",
+    "description": "Écrire un algorithme qui permet d'afficher si un nombre entier saisi au clavier est pair ou impair.",
+    "instructions": "Objectif : Utiliser le modulo pour tester la parité.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "8",
+        "output": "pair"
+      },
+      {
+        "input": "7",
+        "output": "impair"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "3v8q7r9s-0t1u-2v3w-4x5y-6z7a8b9c0d1e",
+    "title": "Exercice 17: LES STRUCTURES CONDITIONNELLES",
+    "description": "Écrire un algorithme qui permet d'afficher le plus grand de trois entiers saisis au clavier.",
+    "instructions": "Objectif : Comparer trois valeurs.",
+    "difficulty": "Easy",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10\n50\n30",
+        "output": "50"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "4w9r8s0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f",
+    "title": "Exercice 18: LES STRUCTURES CONDITIONNELLES",
+    "description": "Écrire un algorithme qui permet d'évaluer une note saisie au clavier (si note > 10 affiche 'validé', sinon 'non validé').",
+    "instructions": "Objectif : Condition simple sur une note.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "12",
+        "output": "validé"
+      },
+      {
+        "input": "8",
+        "output": "non validé"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "5x0s9t1u-2v3w-4x5y-6z7a-8b9c0d1e2f3g",
+    "title": "Exercice 19: LES STRUCTURES CONDITIONNELLES",
+    "description": "Écrire un algorithme qui informe si le produit de deux nombres m et n est positif, négatif ou nul sans faire le produit.",
+    "instructions": "Objectif : Déterminer le signe du produit par comparaison des signes.",
+    "difficulty": "Easy",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "-5\n4",
+        "output": "négatif"
+      },
+      {
+        "input": "-2\n-3",
+        "output": "positif"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "6y1t0u2v-3w4x-5y6z-7a8b-9c0d1e2f3g4h",
+    "title": "Exercice 20: LES STRUCTURES CONDITIONNELLES",
+    "description": "Écrire un algorithme qui permet de calculer la valeur absolue d'un entier saisi par l'utilisateur.",
+    "instructions": "Objectif : Afficher la valeur absolue.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "-10",
+        "output": "10"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "7z2u1v3w-4x5y-6z7a-8b9c-0d1e2f3g4h5i",
+    "title": "Exercice 21: LES STRUCTURES CONDITIONNELLES",
+    "description": "Ecrire un algorithme qui calcule et affiche : a) Le reste de la division de a par b. b) La partie entière de la division de a par b.",
+    "instructions": "Objectif : Utiliser Modulo et Division entière.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10\n3",
+        "output": "Quotient=3, Reste=1"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "8a3v2w4x-5y6z-7a8b-9c0d-1e2f3g4h5i6j",
+    "title": "Exercice 22: LES STRUCTURES CONDITIONNELLES",
+    "description": "Ecrire un algorithme qui résout une équation du 1er degré de la forme ax + b = 0.",
+    "instructions": "Objectif : Résoudre une équation linéaire.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "2\n-4",
+        "output": "x=2"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "9b4w3x5y-6z7a-8b9c-0d1e-2f3g4h5i6j7k",
+    "title": "Exercice 23: LES STRUCTURES CONDITIONNELLES",
+    "description": "Ecrire un algorithme qui résout une équation du 2e degré de la forme ax^2 + bx + c = 0.",
+    "instructions": "Objectif : Résoudre via le discriminant Delta.",
+    "difficulty": "Hard",
+    "xp_reward": 40,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "1\n-3\n2",
+        "output": "x1=2, x2=1"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "0c5x4y6z-7a8b-9c0d-1e2f-3g4h5i6j7k8l",
+    "title": "Exercice 24: LES STRUCTURES CONDITIONNELLES",
+    "description": "Écrire un programme qui lit le prix HT et le type de produit (A ou B) pour afficher le taux de TVA (5.5% ou 19.6%) et le prix TTC.",
+    "instructions": "Objectif : Appliquer un taux selon le type.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "100\nA",
+        "output": "TVA=5.5, TTC=105.5"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "1d6y5z7a-8b9c-0d1e-2f3g-4h5i6j7k8l9m",
+    "title": "Exercice 25: LES STRUCTURES CONDITIONNELLES",
+    "description": "Calculer la franchise d'assurance (10% des réparations) avec un minimum de 1000 FG et un maximum de 4000 FG.",
+    "instructions": "Objectif : Appliquer des bornes min/max sur un calcul.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "20000",
+        "output": "2000"
+      },
+      {
+        "input": "5000",
+        "output": "1000"
+      },
+      {
+        "input": "100000",
+        "output": "4000"
+      }
+    ],
+    "created_at": "2026-02-11T15:00:00.000Z"
+  },
+  {
+    "id": "2e7z6a8b-9c0d-1e2f-3g4h-5i6j7k8l9m0n",
+    "title": "Exercice 26: LES STRUCTURES CONDITIONNELLES",
+    "description": "Proposer un menu pour tester la parité de la somme/produit ou le signe de la somme/produit de deux nombres a et b.",
+    "instructions": "Objectif : Créer un menu (1-4) pour tester parité/signe de la somme ou du produit.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "5\n3\n1",
+        "output": "Somme 8 est pair"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "3f8a7b9c-0d1e-2f3g-4h5i-6j7k8l9m0n1o",
+    "title": "Exercice 27: LES STRUCTURES CONDITIONNELLES",
+    "description": "Simuler une calculatrice simplifiée (+, -, *, /) gérant la division par zéro.",
+    "instructions": "Objectif : Saisir deux nombres et un opérateur, puis afficher le résultat.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10\n0\n/",
+        "output": "Erreur : Division par zéro"
+      },
+      {
+        "input": "5\n4\n*",
+        "output": "20"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "4g9b8c0d-1e2f-3g4h-5i6j-7k8l9m0n1o2p",
+    "title": "Exercice 28: LES STRUCTURES CONDITIONNELLES",
+    "description": "Menu pour trouver Somme, Produit, Moyenne, Minimum ou Maximum de trois nombres réels.",
+    "instructions": "Objectif : Proposer un choix multiple sur trois variables.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10\n20\n30\n5",
+        "output": "Maximum=30"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "5h0c9d1e-2f3g-4h5i-6j7k-8l9m0n1o2p3q",
+    "title": "Exercice 29: LES STRUCTURES CONDITIONNELLES",
+    "description": "Afficher l'heure qu'il sera une minute après l'heure et les minutes saisies.",
+    "instructions": "Objectif : Gérer le passage à l'heure suivante (ex: 11h59 -> 12h00).",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "23\n59",
+        "output": "00:00"
+      },
+      {
+        "input": "10\n15",
+        "output": "10:16"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "6i1d0e2f-3g4h-5i6j-7k8l-9m0n1o2p3q4r",
+    "title": "Exercice 30: LES STRUCTURES CONDITIONNELLES",
+    "description": "Afficher l'heure qu'il sera une seconde après l'heure, les minutes et les secondes saisies.",
+    "instructions": "Objectif : Gérer les retenues pour secondes, minutes et heures.",
+    "difficulty": "Hard",
+    "xp_reward": 40,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "23\n59\n59",
+        "output": "00:00:00"
+      },
+      {
+        "input": "12\n30\n10",
+        "output": "12:30:11"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "7j2e1f3g-4h5i-6j7k-8l9m-0n1o2p3q4r5s",
+    "title": "Exercice 31: LES STRUCTURES CONDITIONNELLES",
+    "description": "Calculer le prix TTC (TVA 20%) avec une réduction de 15% pour les achats > 200 dh.",
+    "instructions": "Objectif : Appliquer TVA puis réduction conditionnelle.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "100",
+        "output": "120"
+      },
+      {
+        "input": "300",
+        "output": "306"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "8k3f2g4h-5i6j-7k8l-9m0n-1o2p3q4r5s6t",
+    "title": "Exercice 32: LES STRUCTURES CONDITIONNELLES",
+    "description": "Calculer la facture de photocopies : 0,25 DH les 10 premières, 0,20 DH les 20 suivantes, 0,10 DH au-delà.",
+    "instructions": "Objectif : Calculer un prix par paliers cumulatifs.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10",
+        "output": "2.5"
+      },
+      {
+        "input": "35",
+        "output": "7.0"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "9l4g3h5i-6j7k-8l9m-0n1o-2p3q4r5s6t7u",
+    "title": "Exercice 33: LES STRUCTURES CONDITIONNELLES",
+    "description": "Informer de la catégorie d'un enfant selon son âge (6-7: Poussin, 8-9: Pupille, 10-11: Minime, 12+: Cadet).",
+    "instructions": "Objectif : Utiliser des structures Si imbriquées ou Selon.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "7",
+        "output": "Poussin"
+      },
+      {
+        "input": "13",
+        "output": "Cadet"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "0m5h4i6j-7k8l-9m0n-1o2p-3q4r5s6t7u8v",
+    "title": "Exercice 34: LES STRUCTURES CONDITIONNELLES",
+    "description": "Afficher le mois en lettres selon le numéro saisi (1 pour Janvier, etc.).",
+    "instructions": "Objectif : Utiliser la structure Selon (Switch).",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "1",
+        "output": "Janvier"
+      },
+      {
+        "input": "12",
+        "output": "Décembre"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "1n6i5j7k-8l9m-0n1o-2p3q-4r5s6t7u8v9w",
+    "title": "Exercice 35: LES STRUCTURES ITERATIVES",
+    "description": "Afficher 'Bonsoir' 10 fois avec la boucle Tant Que.",
+    "instructions": "Objectif : Initialiser un compteur et utiliser Tant Que.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "Bonsoir (x10)"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "2o7j6k8l-9m0n-1o2p-3q4r-5s6t7u8v9w0x",
+    "title": "Exercice 36: LES STRUCTURES ITERATIVES",
+    "description": "Calculer la somme S = 1+2+3+...+10 avec la boucle Tant Que.",
+    "instructions": "Objectif : Accumuler des valeurs dans une variable Somme.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "55"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "3p8k7l9m-0n1o-2p3q-4r5s-6t7u8v9w0x1y",
+    "title": "Exercice 37: LES STRUCTURES ITERATIVES",
+    "description": "Calculer la somme S = 1+2+3+...+N avec la boucle Tant Que.",
+    "instructions": "Objectif : Saisir N et boucler jusqu'à N.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "5",
+        "output": "15"
+      },
+      {
+        "input": "100",
+        "output": "5050"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "4q9l8m0n-1o2p-3q4r-5s6t-7u8v9w0x1y2z",
+    "title": "Exercice 38: LES STRUCTURES ITERATIVES",
+    "description": "Afficher 'Bonjour' 10 fois avec la boucle Pour.",
+    "instructions": "Objectif : Utiliser la boucle Pour (for).",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "Bonjour (x10)"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "5r0m9n1o-2p3q-4r5s-6t7u-8v9w0x1y2z3a",
+    "title": "Exercice 39: LES STRUCTURES ITERATIVES",
+    "description": "Calculer la somme S = 1+2+3+...+10 avec la boucle Pour.",
+    "instructions": "Objectif : Accumulation simple avec Pour.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "55"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "6s1n0o2p-3q4r-5s6t-7u8v-9w0x1y2z3a4b",
+    "title": "Exercice 40: LES STRUCTURES ITERATIVES",
+    "description": "Calculer la somme S = 1+2+3+...+N avec la boucle Pour.",
+    "instructions": "Objectif : Saisir N et utiliser Pour i allant de 1 à N.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10",
+        "output": "55"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "7t2o1p3q-4r5s-6t7u-8v9w-0x1y2z3a4b5c",
+    "title": "Exercice 41: LES STRUCTURES ITERATIVES",
+    "description": "Afficher la table de multiplication de 5 avec la boucle Pour.",
+    "instructions": "Objectif : Afficher i * 5 pour i de 1 à 10.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "5, 10, 15, ..., 50"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "8u3p2q4r-5s6t-7u8v-9w0x-1y2z3a4b5c6d",
+    "title": "Exercice 42: LES STRUCTURES ITERATIVES",
+    "description": "Afficher la table de multiplication d'un entier saisi avec la boucle Pour.",
+    "instructions": "Objectif : Généraliser l'exercice 41 pour n'importe quel nombre N.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "7",
+        "output": "7, 14, 21, ..., 70"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "9v4q3r5s-6t7u-8v9w-0x1y-2z3a4b5c6d7e",
+    "title": "Exercice 43: LES STRUCTURES ITERATIVES",
+    "description": "Afficher 'Bonjour' 10 fois avec la boucle Répéter Jusqu’à.",
+    "instructions": "Objectif : Utiliser une boucle à condition de fin.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "Bonjour (x10)"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "0w5r4s6t-7u8v-9w0x-1y2z-3a4b5c6d7e8f",
+    "title": "Exercice 44: LES STRUCTURES ITERATIVES",
+    "description": "Calculer la somme S = 1+2+3+...+10 avec la boucle Répéter Jusqu’à.",
+    "instructions": "Objectif : Accumulation avec boucle Répéter.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "55"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "1x6s5t7u-8v9w-0x1y-2z3a-4b5c6d7e8f9g",
+    "title": "Exercice 45: LES STRUCTURES ITERATIVES",
+    "description": "Afficher la table de multiplication de 8 avec la boucle Répéter Jusqu’à.",
+    "instructions": "Objectif : Table de 8 avec Répéter.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "8, 16, 24, ..., 80"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "2y7t6u8v-9w0x-1y2z-3a4b-5c6d7e8f9g0h",
+    "title": "Exercice 46: LES STRUCTURES ITERATIVES",
+    "description": "Demander un nombre entre 1 et 3 jusqu’à ce que la réponse convienne.",
+    "instructions": "Objectif : Faire un contrôle de saisie robuste.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "5\n0\n2",
+        "output": "Saisie acceptée : 2"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "3z8u7v9w-0x1y-2z3a-4b5c-6d7e8f9g0h1i",
+    "title": "Exercice 47: LES STRUCTURES ITERATIVES",
+    "description": "Demander un nombre entre 10 et 20 avec messages 'Plus petit !' ou 'Plus grand !' jusqu'à réussite.",
+    "instructions": "Objectif : Guider l'utilisateur vers l'intervalle correct.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "5\n25\n15",
+        "output": "Plus grand !\nPlus petit !\nBravo"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "4a9v8w0x-1y2z-3a4b-5c6d-7e8f9g0h1i2j",
+    "title": "Exercice 48: LES STRUCTURES ITERATIVES",
+    "description": "Afficher les dix nombres suivants un nombre de départ (ex: 17 -> 18 à 27).",
+    "instructions": "Objectif : Utiliser Tant Que ou Répéter pour afficher une suite.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "17",
+        "output": "18, 19, 20, 21, 22, 23, 24, 25, 26, 27"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "5b0w9x1y-2z3a-4b5c-6d7e-8f9g0h1i2j3k",
+    "title": "Exercice 49: LES STRUCTURES ITERATIVES",
+    "description": "Réécrire l'exercice 48 en utilisant la boucle Pour.",
+    "instructions": "Objectif : Même résultat qu'en 48 mais avec la boucle Pour.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10",
+        "output": "11, 12, 13, 14, 15, 16, 17, 18, 19, 20"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "6c1x0y2z-3a4b-5c6d-7e8f-9g0h1i2j3k4l",
+    "title": "Exercice 50: LES STRUCTURES ITERATIVES",
+    "description": "Calculer la factorielle d'un nombre de départ (ex: 8! = 1*2*3*4*5*6*7*8).",
+    "instructions": "Objectif : Multiplier les nombres de 1 à N.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "5",
+        "output": "120"
+      },
+      {
+        "input": "0",
+        "output": "1"
+      }
+    ],
+    "created_at": "2026-02-11T15:10:00.000Z"
+  },
+  {
+    "id": "7d2y1z3a-4b5c-6d7e-8f9g-0h1i2j3k4l5m",
+    "title": "Exercice 51: LES STRUCTURES ITERATIVES",
+    "description": "Saisir 20 nombres, afficher le plus grand et sa position de saisie.",
+    "instructions": "Objectif : Parcourir 20 saisies, stocker le maximum et son indice.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "1\n5\n10\n... (20 nombres)",
+        "output": "Le plus grand est 10 à la position 3"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "8e3z2a4b-5c6d-7e8f-9g0h-1i2j3k4l5m6n",
+    "title": "Exercice 52: LES STRUCTURES ITERATIVES",
+    "description": "Même que 51, mais la saisie s'arrête quand l'utilisateur entre zéro.",
+    "instructions": "Objectif : Utiliser une boucle Tant Que pour une fin de saisie sentinelle (0).",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "12\n45\n8\n0",
+        "output": "Le plus grand est 45 à la position 2"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "9f4a3b5c-6d7e-8f9g-0h1i-2j3k4l5m6n7o",
+    "title": "Exercice 53: LES STRUCTURES ITERATIVES",
+    "description": "Calculer les chances de gagner au tiercé/quarté dans l'ordre et le désordre (calcul de combinaisons).",
+    "instructions": "Objectif : Appliquer les formules de probabilités (n! / (n-p)!) et (n! / (p!(n-p)!)).",
+    "difficulty": "Hard",
+    "xp_reward": 45,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "20\n3",
+        "output": "Ordre: 1 sur 6840, Désordre: 1 sur 1140"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "0g5b4c6d-7e8f-9g0h-1i2j-3k4l5m6n7o8p",
+    "title": "Exercice 54: LES STRUCTURES ITERATIVES",
+    "description": "Simuler une réservation d'avion (Guinée-Paris) avec choix de classe, poids bagage et calcul du total.",
+    "instructions": "Objectif : Gérer des tarifs fixes par classe et des suppléments bagages par kilo.",
+    "difficulty": "Hard",
+    "xp_reward": 40,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "Economique\n25",
+        "output": "Total à payer: [Prix]"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "1h6c5d7e-8f9g-0h1i-2j3k-4l5m6n7o8p9q",
+    "title": "Exercice 55: LES STRUCTURES ITERATIVES",
+    "description": "Afficher la plus grande puissance de 2 inférieure ou égale à un nombre saisi.",
+    "instructions": "Objectif : Boucler en multipliant par 2 jusqu'à dépasser N.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "20",
+        "output": "16"
+      },
+      {
+        "input": "100",
+        "output": "64"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "2i7d6e8f-9g0h-1i2j-3k4l-5m6n7o8p9q0r",
+    "title": "Exercice 56: LES STRUCTURES ITERATIVES",
+    "description": "Calculer le PGCD de deux nombres entiers positifs.",
+    "instructions": "Objectif : Utiliser l'algorithme d'Euclide (soustractions successives ou modulo).",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "18\n12",
+        "output": "6"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "3j8e7f9g-0h1i-2j3k-4l5m-6n7o8p9q0r1s",
+    "title": "Exercice 57: LES STRUCTURES ITERATIVES",
+    "description": "Afficher le carré de la valeur saisie tant que celle-ci n'est pas 0.",
+    "instructions": "Objectif : Boucle de traitement continu jusqu'à la valeur de sortie 0.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "5\n3\n0",
+        "output": "25\n9"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "4k9f8g0h-1i2j-3k4l-5m6n-7o8p9q0r1s2t",
+    "title": "Exercice 58: LES STRUCTURES ITERATIVES",
+    "description": "Demander nom et prénom et les afficher 50 fois.",
+    "instructions": "Objectif : Répétition simple d'une chaîne concaténée.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "Jean\nDupont",
+        "output": "Jean Dupont (x50)"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "5l0g9h1i-2j3k-4l5m-6n7o-8p9q0r1s2t3u",
+    "title": "Exercice 59: LES STRUCTURES ITERATIVES",
+    "description": "Demander un mot de passe ('Informatique') jusqu'à ce qu'il soit correct.",
+    "instructions": "Objectif : Boucle de validation de mot de passe.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "test\nInformatique",
+        "output": "Accès autorisé"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "6m1h0i2j-3k4l-5m6n-7o8p-9q0r1s2t3u4v",
+    "title": "Exercice 60: LES STRUCTURES ITERATIVES",
+    "description": "Afficher tous les diviseurs d'un entier positif n.",
+    "instructions": "Objectif : Tester tous les nombres de 1 à n avec le modulo.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10",
+        "output": "1, 2, 5, 10"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "7n2i1j3k-4l5m-6n7o-8p9q-0r1s2t3u4v5w",
+    "title": "Exercice 61: LES STRUCTURES ITERATIVES",
+    "description": "Afficher les nombres 10, 20, 30, 40 et 50.",
+    "instructions": "Objectif : Utiliser une boucle avec un pas de 10.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "10, 20, 30, 40, 50"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "8o3j2k4l-5m6n-7o8p-9q0r-1s2t3u4v5w6x",
+    "title": "Exercice 62: LES STRUCTURES ITERATIVES",
+    "description": "Calculer la somme versée sur un compte après 3 ans (50€ au départ + versements mensuels augmentant de 1€).",
+    "instructions": "Objectif : Simuler 36 mois de versements incrémentaux.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "[Total après 36 mois]"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "9p4k3l5m-6n7o-8p9q-0r1s-2t3u4v5w6x7y",
+    "title": "Exercice 63: LES STRUCTURES ITERATIVES",
+    "description": "Même que 62, mais pour un nombre N de mois saisi.",
+    "instructions": "Objectif : Généraliser le calcul d'épargne pour N mois.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "12",
+        "output": "[Total après 12 mois]"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "0q5l4m6n-7o8p-9q0r-1s2t-3u4v5w6x7y8z",
+    "title": "Exercice 64: LES STRUCTURES ITERATIVES",
+    "description": "Afficher les nombres entiers positifs pairs entre 0 et 100.",
+    "instructions": "Objectif : Boucle avec un pas de 2 ou test de parité.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "0, 2, 4, ..., 100"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "1r6m5n7o-8p9q-0r1s-2t3u-4v5w6x7y8z9a",
+    "title": "Exercice 65: LES STRUCTURES ITERATIVES",
+    "description": "Afficher les nombres entiers positifs impairs entre 1 et 100.",
+    "instructions": "Objectif : Boucle affichant 1, 3, 5, ..., 99.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "1, 3, 5, ..., 99"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "2s7n6o8p-9q0r-1s2t-3u4v-5w6x7y8z9a0b",
+    "title": "Exercice 66: LES STRUCTURES ITERATIVES",
+    "description": "Calculer le PGCD de deux nombres entiers strictement positifs.",
+    "instructions": "Objectif : Assurer que les entrées sont > 0 avant calcul.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "21\n14",
+        "output": "7"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "3t8o7p9q-0r1s-2t3u-4v5w-6x7y8z9a0b1c",
+    "title": "Exercice 67: LES TABLEAUX",
+    "description": "Saisir 10 entiers dans un tableau et les afficher.",
+    "instructions": "Objectif : Déclarer un tableau de taille 10 et utiliser une boucle pour le remplissage/affichage.",
+    "difficulty": "Easy",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10",
+        "output": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "4u9p8q0r-1s2t-3u4v-5w6x-7y8z9a0b1c2d",
+    "title": "Exercice 68: LES TABLEAUX",
+    "description": "Saisir les informations (nom, âge, etc.) de 5 personnes dans un tableau et les afficher.",
+    "instructions": "Objectif : Gérer des tableaux parallèles ou des structures simples.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "Ali\n20\n...",
+        "output": "Personne 1: Ali, 20 ans..."
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "5v0q9r1s-2t3u-4v5w-6x7y-8z9a0b1c2d3e",
+    "title": "Exercice 69: LES TABLEAUX",
+    "description": "Calculer la somme et la moyenne des éléments d'un tableau de 10 réels.",
+    "instructions": "Objectif : Parcourir le tableau pour sommer les valeurs, puis diviser par 10.",
+    "difficulty": "Easy",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10\n10\n...\n10",
+        "output": "Somme=100, Moyenne=10"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "6w1r0s2t-3u4v-5w6x-7y8z-9a0b1c2d3e4f",
+    "title": "Exercice 70: LES TABLEAUX",
+    "description": "Afficher la plus grande valeur d'un tableau réel et sa position.",
+    "instructions": "Objectif : Algorithme de recherche de maximum dans un ensemble fini.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "5.5\n12.0\n8.2",
+        "output": "Max=12.0 à l'indice 2"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "7x2s1t3u-4v5w-6x7y-8z9a-0b1c2d3e4f5g",
+    "title": "Exercice 71: LES TABLEAUX",
+    "description": "Créer un tableau qui est la somme de deux autres tableaux de même longueur.",
+    "instructions": "Objectif : Tab3[i] = Tab1[i] + Tab2[i].",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "T1:[1,2], T2:[3,4]",
+        "output": "T3:[4,6]"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "8y3t2u4v-5w6x-7y8z-9a0b-1c2d3e4f5g6h",
+    "title": "Exercice 72: LES TABLEAUX",
+    "description": "À partir d'un tableau de 100 valeurs, créer deux nouveaux tableaux (un pour les pairs, un pour les impairs).",
+    "instructions": "Objectif : Filtrer les éléments d'un tableau vers deux autres selon un critère.",
+    "difficulty": "Hard",
+    "xp_reward": 35,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "[1, 2, 3, 4]",
+        "output": "Pairs:[2, 4], Impairs:[1, 3]"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "9z4u3v5w-6x7y-8z9a-0b1c-2d3e4f5g6h7i",
+    "title": "Exercice 73: LES TABLEAUX",
+    "description": "Saisir 10 notes, calculer la moyenne, trouver la meilleure et afficher un nouveau tableau avec +15%.",
+    "instructions": "Objectif : Effectuer plusieurs traitements (calcul, recherche, transformation) sur une série de notes.",
+    "difficulty": "Hard",
+    "xp_reward": 35,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10\n10\n...",
+        "output": "Moy=10, Max=10, NewTab:[11.5, ...]"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "0a5v4w6x-7y8z-9a0b-1c2d-3e4f5g6h7i8j",
+    "title": "Exercice 74: LES TABLEAUX",
+    "description": "Chercher si un nombre n existe dans un tableau de 10 entiers.",
+    "instructions": "Objectif : Recherche séquentielle (booléen trouvé/non trouvé).",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "7\n[1, 5, 7, 9]",
+        "output": "7 est présent"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "1b6w5x7y-8z9a-0b1c-2d3e-4f5g6h7i8j9k",
+    "title": "Exercice 75: LES TABLEAUX",
+    "description": "Saisir 10 réels, calculer la somme, le produit et la moyenne.",
+    "instructions": "Objectif : Parcourir le tableau une seule fois pour calculer les 3 indicateurs.",
+    "difficulty": "Easy",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "2\n2\n2",
+        "output": "Somme=20, Produit=1024, Moyenne=2"
+      }
+    ],
+    "created_at": "2026-02-11T15:20:00.000Z"
+  },
+  {
+    "id": "2c7x6y8z-9a0b-1c2d-3e4f-5g6h7i8j9k0l",
+    "title": "Exercice 76: LES TABLEAUX",
+    "description": "Déterminer et afficher le minimum d'un tableau de 10 entiers.",
+    "instructions": "Objectif : Initialiser le min avec le premier élément et comparer avec le reste.",
+    "difficulty": "Easy",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "[10, 5, 8, 2, 20, 15, 30, 12, 7, 9]",
+        "output": "Minimum = 2"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "3d8y7z9a-0b1c-2d3e-4f5g-6h7i8j9k0l1m",
+    "title": "Exercice 77: LES TABLEAUX",
+    "description": "Saisir 10 notes et afficher leur moyenne.",
+    "instructions": "Objectif : Calculer la somme cumulative des notes puis diviser par 10.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "12\n14\n10\n16\n12\n14\n10\n16\n12\n14",
+        "output": "Moyenne = 13.0"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "4e9z8a0b-1c2d-3e4f-5g6h-7i8j9k0l1m2n",
+    "title": "Exercice 78: LES TABLEAUX",
+    "description": "Calculer le nombre d'occurrences d'un élément N dans un tableau de 10 entiers.",
+    "instructions": "Objectif : Parcourir le tableau et incrémenter un compteur chaque fois que l'élément est trouvé.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "5\n[1, 5, 2, 5, 3, 5, 4, 8, 9, 5]",
+        "output": "L'élément 5 apparaît 4 fois"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "5f0a9b1c-2d3e-4f5g-6h7i-8j9k0l1m2n3o",
+    "title": "Exercice 79: LES TABLEAUX",
+    "description": "Trier un tableau de 10 entiers par ordre croissant.",
+    "instructions": "Objectif : Implémenter un algorithme de tri (ex: tri à bulles ou tri par sélection).",
+    "difficulty": "Hard",
+    "xp_reward": 40,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "[5, 2, 9, 1, 5, 6, 3, 8, 4, 7]",
+        "output": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 9]"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "6g1b0c2d-3e4f-5g6h-7i8j-9k0l1m2n3o4p",
+    "title": "Exercice 80: LES PROCEDURES",
+    "description": "Écrire une procédure pour saisir une matrice carrée.",
+    "instructions": "Objectif : Utiliser deux boucles imbriquées (i, j) pour remplir la matrice.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Procédure SaisirMatrice(Mat: Tableau de Entier)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "7h2c1d3e-4f5g-6h7i-8j9k-0l1m2n3o4p5q",
+    "title": "Exercice 81: LES PROCEDURES",
+    "description": "Écrire une procédure pour afficher les éléments d'une matrice.",
+    "instructions": "Objectif : Parcourir et afficher chaque ligne de la matrice.",
+    "difficulty": "Easy",
+    "xp_reward": 20,
+    "initial_code": "Procédure AfficherMatrice(Mat: Tableau de Entier)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "8i3d2e4f-5g6h-7i8j-9k0l-1m2n3o4p5q6r",
+    "title": "Exercice 82: LES PROCEDURES",
+    "description": "Écrire une procédure pour additionner deux matrices.",
+    "instructions": "Objectif : C[i,j] = A[i,j] + B[i,j] pour toutes les positions.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Procédure Addition(A, B: Matrices)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "9j4e3f5g-6h7i-8j9k-0l1m-2n3o4p5q6r7s",
+    "title": "Exercice 83: LES PROCEDURES",
+    "description": "Écrire une procédure pour multiplier deux matrices.",
+    "instructions": "Objectif : Implémenter le produit matriciel (somme des produits ligne par colonne).",
+    "difficulty": "Hard",
+    "xp_reward": 45,
+    "initial_code": "Procédure Multiplication(A, B: Matrices)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "0k5f4g6h-7i8j-9k0l-1m2n-3o4p5q6r7s8t",
+    "title": "Exercice 84: LES PROCEDURES",
+    "description": "Écrire une procédure Menu pour choisir l'opération à effectuer sur les matrices.",
+    "instructions": "Objectif : Créer une interface utilisateur textuelle pour appeler les procédures précédentes.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Procédure Menu()\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "1l6g5h7i-8j9k-0l1m-2n3o-4p5q6r7s8t9u",
+    "title": "Exercice 85: LES PROCEDURES",
+    "description": "Calculer le max et le min de 4 entiers en utilisant des procédures.",
+    "instructions": "Objectif : Utiliser le passage de paramètres par référence pour retourner les deux valeurs.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Procédure MaxMin4(n1, n2, n3, n4: Entier, Var max, min: Entier)\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10\n20\n5\n15",
+        "output": "Max=20, Min=5"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "2m7h6i8j-9k0l-1m2n-3o4p-5q6r7s8t9u0v",
+    "title": "Exercice 86: LES PROCEDURES",
+    "description": "Calculer produit, somme et quotient de deux entiers via une procédure.",
+    "instructions": "Objectif : Retourner trois résultats via une seule procédure (paramètres Var).",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Procédure Calculs(a, b: Entier, Var s, p: Entier, Var q: Réel)\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10\n2",
+        "output": "Somme=12, Produit=20, Quotient=5"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "3n8i7j9k-0l1m-2n3o-4p5q-6r7s8t9u0v1w",
+    "title": "Exercice 87: LES PROCEDURES",
+    "description": "Calculer la différence entre deux longueurs (pied/pouce) en utilisant des procédures.",
+    "instructions": "Objectif : Convertir en pouces, soustraire, puis reconvertir le résultat.",
+    "difficulty": "Hard",
+    "xp_reward": 35,
+    "initial_code": "Procédure DiffLongueurs(...)\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "L1: 2p 5i, L2: 1p 8i",
+        "output": "Différence: 0p 9i"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "4o9j8k0l-1m2n-3o4p-5q6r-7s8t9u0v1w2x",
+    "title": "Exercice 88: LES PROCEDURES",
+    "description": "Trouver les nombres d'Armstrong < 1000 en utilisant une procédure de décomposition.",
+    "instructions": "Objectif : Un nombre d'Armstrong est égal à la somme des cubes de ses chiffres (ex: 153 = 1³+5³+3³).",
+    "difficulty": "Hard",
+    "xp_reward": 40,
+    "initial_code": "Procédure Armstrong()\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "153, 370, 371, 407"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "5p0k9l1m-2n3o-4p5q-6r7s-8t9u0v1w2x3y",
+    "title": "Exercice 89: LES PROCEDURES",
+    "description": "Convertir un nombre de minutes (<1440) en heures et minutes via une procédure.",
+    "instructions": "Objectif : Utiliser les opérateurs Div et Mod pour extraire heures et minutes.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Procédure ConvMinutes(minTotal: Entier, Var h, m: Entier)\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "130",
+        "output": "2h 10min"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "6q1l0m2n-3o4p-5q6r-7s8t-9u0v1w2x3y4z",
+    "title": "Exercice 90: LES PROCEDURES",
+    "description": "Algorithme du jeu des 50 allumettes avec procédure de contrôle de saisie.",
+    "instructions": "Objectif : Gérer le retrait de 1 à 3 allumettes par tour et vérifier la validité.",
+    "difficulty": "Hard",
+    "xp_reward": 50,
+    "initial_code": "Algorithme JeuAllumettes\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "7r2m1n3o-4p5q-6r7s-8t9u-0v1w2x3y4z5a",
+    "title": "Exercice 91: FONCTIONS RECURSIVES",
+    "description": "Calculer la factorielle d'un entier via une fonction récursive.",
+    "instructions": "Objectif : Fact(n) = n * Fact(n-1) avec Fact(0) = 1.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Fonction Fact(n: Entier): Entier\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "5",
+        "output": "120"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "8s3n2o4p-5q6r-7s8t-9u0v-1w2x3y4z5a6b",
+    "title": "Exercice 92: FONCTIONS RECURSIVES",
+    "description": "Calculer la somme 1+2+...+N via une fonction récursive.",
+    "instructions": "Objectif : Somme(n) = n + Somme(n-1).",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Fonction Somme(n: Entier): Entier\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10",
+        "output": "55"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "9t4o3p5q-6r7s-8t9u-0v1w-2x3y4z5a6b7c",
+    "title": "Exercice 93: FONCTIONS RECURSIVES",
+    "description": "Calculer x à la puissance n via une fonction récursive.",
+    "instructions": "Objectif : Puiss(x, n) = x * Puiss(x, n-1) avec Puiss(x, 0) = 1.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Fonction Puissance(x, n: Entier): Entier\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "2, 3",
+        "output": "8"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "0u5p4q6r-7s8t-9u0v-1w2x-3y4z5a6b7c8d",
+    "title": "Exercice 94: FONCTIONS RECURSIVES",
+    "description": "Afficher les entiers de A à B via une fonction récursive.",
+    "instructions": "Objectif : Afficher A, puis appeler la fonction pour A+1 tant que A <= B.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Fonction AfficherAB(a, b: Entier)\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "3, 6",
+        "output": "3, 4, 5, 6"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "1v6q5r7s-8t9u-0v1w-2x3y-4z5a6b7c8d9e",
+    "title": "Exercice 95: FONCTIONS RECURSIVES",
+    "description": "Afficher les entiers de 0 à 10 via une fonction récursive à un paramètre.",
+    "instructions": "Objectif : Varier l'ordre d'affichage (ascendant ou descendant) selon la position de l'appel récursif.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Fonction Afficher10(n: Entier)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "2w7r6s8t-9u0v-1w2x-3y4z-5a6b7c8d9e0f",
+    "title": "Exercice 96: FONCTIONS RECURSIVES",
+    "description": "Calculer le PGCD de deux entiers via l'algorithme d'Euclide récursif.",
+    "instructions": "Objectif : PGCD(a, b) = PGCD(b, a mod b) avec PGCD(a, 0) = a.",
+    "difficulty": "Medium",
+    "xp_reward": 35,
+    "initial_code": "Fonction PGCD(a, b: Entier): Entier\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "48, 18",
+        "output": "6"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "3x8s7t9u-0v1w-2x3y-4z5a-6b7c8d9e0f1g",
+    "title": "Exercice 97: FONCTIONS RECURSIVES",
+    "description": "Afficher les éléments d'une matrice via une fonction récursive.",
+    "instructions": "Objectif : Parcourir les lignes et colonnes récursivement.",
+    "difficulty": "Hard",
+    "xp_reward": 40,
+    "initial_code": "Fonction AffMatRec(M, i, j: Entier)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "4y9t8u0v-1w2x-3y4z-5a6b-7c8d9e0f1g2h",
+    "title": "Exercice 98: FONCTIONS RECURSIVES",
+    "description": "Calculer le Nième terme de la suite de Fibonacci récursivement.",
+    "instructions": "Objectif : F(n) = F(n-1) + F(n-2) avec F(0)=0 et F(1)=1.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Fonction Fibo(n: Entier): Entier\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "6",
+        "output": "8"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "5z0u9v1w-2x3y-4z5a-6b7c-8d9e0f1g2h3i",
+    "title": "Exercice 99: FONCTIONS RECURSIVES",
+    "description": "Calculer Y = (Produit des Ai) / (Somme des Bj) avec des fonctions dédiées.",
+    "instructions": "Objectif : Utiliser une fonction récursive pour le numérateur et une autre pour le dénominateur.",
+    "difficulty": "Hard",
+    "xp_reward": 45,
+    "initial_code": "Algorithme CalculY\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "6a1v0w2x-3y4z-5a6b-7c8d-9e0f1g2h3i4j",
+    "title": "Exercice 100: FONCTIONS RECURSIVES",
+    "description": "Écrire une fonction qui calcule la somme des cubes de 1 à n.",
+    "instructions": "Objectif : SommeCubes(n) = n³ + SommeCubes(n-1).",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Fonction SommeCubes(n: Entier): Entier\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "3",
+        "output": "36 (1+8+27)"
+      }
+    ],
+    "created_at": "2026-02-11T15:30:00.000Z"
+  },
+  {
+    "id": "7b2w1v3y-4x5z-6a7b-8c9d-0e1f2g3h4i5j",
+    "title": "Exercice 101: TRAVAUX DIRIGES",
+    "description": "Afficher les nombres pairs de 0 à N.",
+    "instructions": "Objectif : Utiliser une boucle (Pour ou Tant Que) avec un pas de 2 ou un test de parité.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10",
+        "output": "0, 2, 4, 6, 8, 10"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "8c3x2w4z-5a6b-7c8d-9e0f-1g2h3i4j5k6l",
+    "title": "Exercice 102: TRAVAUX DIRIGES",
+    "description": "Tester si un nombre entier positif est premier.",
+    "instructions": "Objectif : Vérifier si le nombre n'a pas de diviseurs entre 2 et sa racine carrée.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "7",
+        "output": "7 est premier"
+      },
+      {
+        "input": "10",
+        "output": "10 n'est pas premier"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "9d4y3x5a-6b7c-8d9e-0f1g-2h3i4j5k6l7m",
+    "title": "Exercice 103: TRAVAUX DIRIGES",
+    "description": "Afficher un nom sous forme de triangle (ex: M, MO, MOU...).",
+    "instructions": "Objectif : Utiliser des sous-chaînes de caractères de longueur croissante.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "MOMO",
+        "output": "M\nMO\nMOM\nMOMO"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "0e5z4y6b-7c8d-9e0f-1g2h-3i4j5k6l7m8n",
+    "title": "Exercice 104: TRAVAUX DIRIGES",
+    "description": "Calculer la somme des entiers impairs de 1 à N.",
+    "instructions": "Objectif : Boucler de 1 à N et sommer uniquement si l'indice est impair.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "5",
+        "output": "9 (1+3+5)"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "1f6a5z7c-8d9e-0f1g-2h3i-4j5k6l7m8n9o",
+    "title": "Exercice 105: TRAVAUX DIRIGES",
+    "description": "Calculer le PGCD de deux entiers (ex: PGCD(15,10)=5).",
+    "instructions": "Objectif : Implémenter l'algorithme d'Euclide par soustractions ou modulo.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "15\n10",
+        "output": "5"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "2g7b6a8d-9e0f-1g2h-3i4j-5k6l7m8n9o0p",
+    "title": "Exercice 106: TRAVAUX DIRIGES",
+    "description": "Afficher un triangle d'entiers (ex: 1, 22, 333, 4444).",
+    "instructions": "Objectif : Utiliser des boucles imbriquées pour répéter le chiffre i, i fois.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "3",
+        "output": "1\n22\n333"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "3h8c7b9e-0f1g-2h3i-4j5k-6l7m8n9o0p1q",
+    "title": "Exercice 107: TRAVAUX DIRIGES",
+    "description": "Calculer le nombre de chiffres d'un entier N.",
+    "instructions": "Objectif : Diviser le nombre par 10 de façon répétée jusqu'à ce qu'il soit nul.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "1250",
+        "output": "4"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "4i9d8c0f-1g2h-3i4j-5k6l-7m8n9o0p1q2r",
+    "title": "Exercice 108: TRAVAUX DIRIGES",
+    "description": "Inverser les chiffres d'un entier N (ex: 356 -> 653).",
+    "instructions": "Objectif : Reconstruire le nombre en extrayant les unités via le modulo 10.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "356",
+        "output": "653"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "5j0e9d1g-2h3i-4j5k-6l7m-8n9o0p1q2r3s",
+    "title": "Exercice 109: TRAVAUX DIRIGES",
+    "description": "Afficher un triangle d'étoiles pour une hauteur N.",
+    "instructions": "Objectif : Boucles imbriquées pour gérer les lignes et les colonnes d'étoiles.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "3",
+        "output": "*\n**\n***"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "6k1f0e2h-3i4j-5k6l-7m8n-9o0p1q2r3s4t",
+    "title": "Exercice 110: TRAVAUX DIRIGES",
+    "description": "Saisir 10 entiers et compter les pairs et impairs.",
+    "instructions": "Objectif : Utiliser un tableau ou une boucle de saisie avec deux compteurs.",
+    "difficulty": "Easy",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
+        "output": "Pairs: 5, Impairs: 5"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "7l2g1f3i-4j5k-6l7m-8n9o-0p1q2r3s4t5u",
+    "title": "Exercice 111: TRAVAUX DIRIGES",
+    "description": "Tester si un nombre N est Premier ou non.",
+    "instructions": "Objectif : Varier l'approche (boucle Pour vs boucle Tant Que) pour l'exercice 102.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "8m3h2g4j-5k6l-7m8n-9o0p-1q2r3s4t5u6v",
+    "title": "Exercice 112: TRAVAUX DIRIGES",
+    "description": "Séparer les éléments pairs et impairs d'un tableau T vers T1 et T2.",
+    "instructions": "Objectif : Parcourir T et remplir T1 ou T2 selon le critère de parité.",
+    "difficulty": "Hard",
+    "xp_reward": 35,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "9n4i3h5k-6l7m-8n9o-0p1q-2r3s4t5u6v7w",
+    "title": "Exercice 113: TRAVAUX DIRIGES",
+    "description": "Compter les occurrences du chiffre 5 dans une suite finissant par 0.",
+    "instructions": "Objectif : Boucle Tant Que avec saisie répétée jusqu'à la sentinelle 0.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "5\n12\n5\n7\n0",
+        "output": "Le chiffre 5 apparaît 2 fois"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "0o5j4i6l-7m8n-9o0p-1q2r-3s4t5u6v7w8x",
+    "title": "Exercice 114: TRAVAUX DIRIGES",
+    "description": "Dire si 10 entiers saisis sont consécutifs.",
+    "instructions": "Objectif : Vérifier si Tab[i+1] = Tab[i] + 1 pour tout i.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
+        "output": "Les nombres sont consécutifs"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "1p6k5j7m-8n9o-0p1q-2r3s-4t5u6v7w8x9y",
+    "title": "Exercice 115: TRAVAUX DIRIGES",
+    "description": "Calculer (Somme des pairs) - (Somme des impairs) pour 10 entiers.",
+    "instructions": "Objectif : Effectuer les deux sommes séparément ou simultanément puis soustraire.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "2q7l6k8n-9o0p-1q2r-3s4t-5u6v7w8x9y0z",
+    "title": "Exercice 116: TRAVAUX DIRIGES",
+    "description": "Calculer x puissance n.",
+    "instructions": "Objectif : Utiliser une boucle simple pour multiplier x par lui-même n fois.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "2\n3",
+        "output": "8"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "3r8m7l9o-0p1q-2r3s-4t5u-6v7w8x9y0z1a",
+    "title": "Exercice 117: TRAVAUX DIRIGES",
+    "description": "Tester l'égalité position par position entre deux tableaux de taille 10.",
+    "instructions": "Objectif : Parcourir les deux tableaux et s'arrêter si une différence est trouvée.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "4s9n8m0p-1q2r-3s4t-5u6v-7w8x9y0z1a2b",
+    "title": "Exercice 118: TRAVAUX DIRIGES",
+    "description": "Compter le nombre d'éléments en double dans un tableau.",
+    "instructions": "Objectif : Comparer chaque élément avec tous les éléments suivants.",
+    "difficulty": "Hard",
+    "xp_reward": 40,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "5t0o9n1q-2r3s-4t5u-6v7w-8x9y0z1a2b3c",
+    "title": "Exercice 119: TRAVAUX DIRIGES",
+    "description": "Calculer facture photocopie (identique à l'exercice 32).",
+    "instructions": "Objectif : Appliquer les tranches de tarifs dégressifs.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "6u1p0o2r-3s4t-5u6v-7w8x-9y0z1a2b3c4d",
+    "title": "Exercice 120: TRAVAUX DIRIGES",
+    "description": "Lire un caractère : dire si c'est une lettre et préciser sa casse (Maj/Min).",
+    "instructions": "Objectif : Utiliser les codes ASCII ou des tests sur les intervalles ['a'..'z'] et ['A'..'Z'].",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "A",
+        "output": "Lettre Majuscule"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "7v2q1p3s-4t5u-6v7w-8x9y-0z1a2b3c4d5e",
+    "title": "Exercice 121: TRAVAUX DIRIGES",
+    "description": "Décaler les zéros d'un tableau vers la fin sans changer l'ordre des autres éléments.",
+    "instructions": "Objectif : Créer un nouveau tableau ou tasser les éléments non nuls.",
+    "difficulty": "Hard",
+    "xp_reward": 45,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "[0, 5, 0, 3, 1]",
+        "output": "[5, 3, 1, 0, 0]"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "8w3r2q4t-5u6v-7w8x-9y0z-1a2b3c4d5e6f",
+    "title": "Exercice 122: TRAVAUX DIRIGES",
+    "description": "Trier 3 entiers A, B, C par permutation pour avoir A < B < C.",
+    "instructions": "Objectif : Faire une série de tests SI et échanger les valeurs si nécessaire.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme Solution\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "10, 5, 8",
+        "output": "5, 8, 10"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "9x4s3r5u-6v7w-8x9y-0z1a-2b3c4d5e6f7g",
+    "title": "Exercice 123: LES FONCTIONS",
+    "description": "Échanger A et B sans utiliser de troisième variable auxiliaire.",
+    "instructions": "Objectif : Utiliser des opérations arithmétiques (A = A + B; B = A - B; A = A - B).",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Fonction Echanger(Var A, B: Entier)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "0y5t4s6v-7w8x-9y0z-1a2b-3c4d5e6f7g8h",
+    "title": "Exercice 124: LES FONCTIONS",
+    "description": "Fonction pour calculer le prix TTC à partir du prix HT et de la TVA.",
+    "instructions": "Objectif : Retourner HT * (1 + TVA/100).",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Fonction CalculTTC(ht: Réel, tva: Réel): Réel\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "100\n20",
+        "output": "120"
+      }
+    ],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "1z6u5t7w-8x9y-0z1a-2b3c-4d5e6f7g8h9i",
+    "title": "Exercice 125: LES FONCTIONS",
+    "description": "Procédure pour afficher si un nombre est pair ou impair.",
+    "instructions": "Objectif : Utiliser le modulo 2 dans une procédure simple.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Procédure PairImpair(n: Entier)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:40:00.000Z"
+  },
+  {
+    "id": "2a7v6u8x-9y0z-1a2b-3c4d-5e6f7g8h9i0j",
+    "title": "Exercice 126: LES FONCTIONS",
+    "description": "Fonction retournant la longueur d'une chaîne de caractères.",
+    "instructions": "Objectif : Parcourir la chaîne jusqu'au caractère de fin ou utiliser une fonction native.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Fonction Longueur(ch: Chaîne): Entier\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "\"MOMO\"",
+        "output": "4"
+      }
+    ],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "3b8w7v9y-0z1a-2b3c-4d5e-6f7g8h9i0j1k",
+    "title": "Exercice 127: LES FONCTIONS",
+    "description": "Fonction comptant l'occurrence d'un caractère dans une chaîne.",
+    "instructions": "Objectif : Parcourir la chaîne et incrémenter un compteur si le caractère correspond.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Fonction CompterChar(ch: Chaîne, c: Caractère): Entier\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "\"ALGORITHME\", \"O\"",
+        "output": "1"
+      }
+    ],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "4c9x8w0z-1a2b-3c4d-5e6f-7g8h9i0j1k2l",
+    "title": "Exercice 128: LES FONCTIONS",
+    "description": "Fonction ou procédure calculant la valeur absolue d'un nombre.",
+    "instructions": "Objectif : Si n < 0 alors retourner -n, sinon retourner n.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Fonction Absolu(n: Réel): Réel\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "-15",
+        "output": "15"
+      }
+    ],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "5d0y9x1a-2b3c-4d5e-6f7g-8h9i0j1k2l3m",
+    "title": "Exercice 129: LES FONCTIONS",
+    "description": "Procédure affichant la table de multiplication de x.",
+    "instructions": "Objectif : Utiliser une boucle Pour de 1 à 10 pour afficher x * i.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Procédure TableMult(x: Entier)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "6e1z0y2b-3c4d-5e6f-7g8h-9i0j1k2l3m4n",
+    "title": "Exercice 130: LES FONCTIONS",
+    "description": "Fonction calculant le PGCD de deux entiers positifs.",
+    "instructions": "Objectif : Implémenter l'algorithme d'Euclide sous forme de fonction.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Fonction PGCD(a, b: Entier): Entier\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "48, 18",
+        "output": "6"
+      }
+    ],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "7f2a1z3c-4d5e-6f7g-8h9i-0j1k2l3m4n5o",
+    "title": "Exercice 131: LES FONCTIONS",
+    "description": "Procédure calculant somme et produit de deux nombres et testant leurs signes.",
+    "instructions": "Objectif : Retourner les résultats par référence et afficher si positif/négatif.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Procédure Analyse(a, b: Réel)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "8g3b2a4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+    "title": "Exercice 132: LES FONCTIONS",
+    "description": "Procédure comptant les pairs et leur pourcentage dans une liste finissant par -1.",
+    "instructions": "Objectif : Boucle Tant Que avec compteur de pairs et compteur total.",
+    "difficulty": "Hard",
+    "xp_reward": 35,
+    "initial_code": "Procédure StatsPairs()\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "9h4c3b5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+    "title": "Exercice 133: LES FONCTIONS",
+    "description": "Procédure affichant les valeurs paires entre M et N.",
+    "instructions": "Objectif : Boucle de M à N avec test (i Mod 2 = 0).",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Procédure AfficherPairsMN(m, n: Entier)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "0i5d4c6f-7g8h-9i0j-1k2l-3m4n5o6p7q8r",
+    "title": "Exercice 134: LES FONCTIONS",
+    "description": "Procédure testant si un nombre est premier.",
+    "instructions": "Objectif : Afficher le résultat directement dans la procédure.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Procédure EstPremier(n: Entier)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "1j6e5d7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s",
+    "title": "Exercice 135: LES FONCTIONS",
+    "description": "Calculer l'image de x par la fonction f(x) = 4x - 2*sqrt(x) + 2.",
+    "instructions": "Objectif : Utiliser la fonction RacineCarrée (sqrt) et gérer les x négatifs.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Fonction F(x: Réel): Réel\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "4",
+        "output": "14 (16 - 4 + 2)"
+      }
+    ],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "2k7f6e8h-9i0j-1k2l-3m4n-5o6p7q8r9s0t",
+    "title": "Exercice 136: LES FONCTIONS",
+    "description": "Compter le nombre total d'éléments dupliqués dans un tableau de 10 entiers.",
+    "instructions": "Objectif : Utiliser deux boucles pour comparer chaque élément.",
+    "difficulty": "Hard",
+    "xp_reward": 40,
+    "initial_code": "Fonction CompterDoublons(T: Tableau): Entier\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "3l8g7f9i-0j1k-2l3m-4n5o-6p7q8r9s0t1u",
+    "title": "Exercice 137: LES FONCTIONS",
+    "description": "Procédure traitant un tableau finissant par -1 pour compter les pairs et leur pourcentage.",
+    "instructions": "Objectif : Similaire à 132 mais appliqué à une structure de tableau.",
+    "difficulty": "Hard",
+    "xp_reward": 35,
+    "initial_code": "Procédure StatsTab(T: Tableau)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "4m9h8g0j-1k2l-3m4n-5o6p-7q8r9s0t1u2v",
+    "title": "Exercice 138: APPROFONDISSEMENTS",
+    "description": "Identifier les nombres parfaits (somme des diviseurs) entre 1 et 10000 via une procédure.",
+    "instructions": "Objectif : Un nombre est parfait si la somme de ses diviseurs propres égale lui-même (ex: 6 = 1+2+3).",
+    "difficulty": "Hard",
+    "xp_reward": 45,
+    "initial_code": "Procédure NombresParfaits()\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "",
+        "output": "6, 28, 496, 8128"
+      }
+    ],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "5n0i9h1k-2l3m-4n5o-6p7q-8r9s0t1u2v3w",
+    "title": "Exercice 139: APPROFONDISSEMENTS",
+    "description": "Procédure affichant le max et sa position dans un tableau de taille n.",
+    "instructions": "Objectif : Parcourir le tableau et mettre à jour Max et IndiceMax.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Procédure AfficherMaxPos(T: Tableau, n: Entier)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "6o1j0i2l-3m4n-5o6p-7q8r-9s0t1u2v3w4x",
+    "title": "Exercice 140: APPROFONDISSEMENTS",
+    "description": "Procédures pour tester si deux nombres sont opposés (somme=0) ou inverses (produit=1).",
+    "instructions": "Objectif : Écrire deux procédures distinctes avec des tests SI.",
+    "difficulty": "Easy",
+    "xp_reward": 15,
+    "initial_code": "Procédure TestOpposes(a, b: Réel)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "7p2k1j3m-4n5o-6p7q-8r9s-0t1u2v3w4x5y",
+    "title": "Exercice 141: APPROFONDISSEMENTS",
+    "description": "Procédure affichant toutes les valeurs paires entre M et N.",
+    "instructions": "Objectif : (Identique à l'exercice 133).",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Procédure AffPairs(m, n: Entier)\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "8q3l2k4n-5o6p-7q8r-9s0t-1u2v3w4x5y6z",
+    "title": "Exercice 142: APPROFONDISSEMENTS",
+    "description": "Fonction calculant la partie entière d'un nombre positif.",
+    "instructions": "Objectif : Utiliser l'opérateur DIV ou une conversion de type (Tronquer).",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Fonction PartEntiere(x: Réel): Entier\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "12.75",
+        "output": "12"
+      }
+    ],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "9r4m3l5o-6p7q-8r9s-0t1u-2v3w4x5y6z7a",
+    "title": "Exercice 143: APPROFONDISSEMENTS",
+    "description": "Synthétiser un tableau via des fonctions Somme, Moyenne, Max et Min.",
+    "instructions": "Objectif : Créer un algorithme appelant ces 4 fonctions sur un même tableau.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme SyntheseTab\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "0s5n4m6p-7q8r-9s0t-1u2v-3w4x5y6z7a8b",
+    "title": "Exercice 144: APPROFONDISSEMENTS",
+    "description": "Calculer la somme de la série 1/1! + 2/2! + ... + n/n! en utilisant une fonction factorielle.",
+    "instructions": "Objectif : Créer une fonction Fact(i) puis sommer les termes i/Fact(i).",
+    "difficulty": "Hard",
+    "xp_reward": 40,
+    "initial_code": "Fonction SommeSerie(n: Entier): Réel\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "1t6o5n7q-8r9s-0t1u-2v3w-4x5y6z7a8b9c",
+    "title": "Exercice 145: APPROFONDISSEMENTS",
+    "description": "Résoudre ax^2 + bx + c = 0 en utilisant une fonction pour le déterminant et une procédure pour les racines.",
+    "instructions": "Objectif : Modulariser la résolution de l'équation du second degré.",
+    "difficulty": "Hard",
+    "xp_reward": 45,
+    "initial_code": "Algorithme EquationSecondDegre\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "2u7p6o8r-9s0t-1u2v-3w4x-5y6z7a8b9c0d",
+    "title": "Exercice 146: APPROFONDISSEMENTS",
+    "description": "Algorithme avec procédure de tri croissant et fonction de calcul de moyenne pour un tableau.",
+    "instructions": "Objectif : Combiner plusieurs traitements modulaires sur un jeu de données.",
+    "difficulty": "Hard",
+    "xp_reward": 40,
+    "initial_code": "Algorithme GestionTableau\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "3v8q7p9s-0t1u-2v3w-4x5y-6z7a8b9c0d1e",
+    "title": "Exercice 147: APPROFONDISSEMENTS",
+    "description": "Calculer le produit de deux tableaux, trouver le max du résultat et compter les occurrences d'un nombre.",
+    "instructions": "Objectif : Produit scalaire ou élément par élément selon l'énoncé.",
+    "difficulty": "Hard",
+    "xp_reward": 40,
+    "initial_code": "Algorithme AnalyseDoubleTab\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "4w9r8q0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f",
+    "title": "Exercice 148: APPROFONDISSEMENTS",
+    "description": "a) Fonction de saisie de tableau. b) Fonction OccurrenceTab. c) Algorithme principal d'appel.",
+    "instructions": "Objectif : Maîtriser le passage de tableaux en paramètres de fonctions.",
+    "difficulty": "Hard",
+    "xp_reward": 35,
+    "initial_code": "Algorithme Principal\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "5x0s9r1u-2v3w-4x5y-6z7a-8b9c0d1e2f3g",
+    "title": "Exercice 149: APPROFONDISSEMENTS",
+    "description": "Fonction calculant A * B en utilisant uniquement l'addition.",
+    "instructions": "Objectif : Ajouter A à lui-même B fois dans une boucle.",
+    "difficulty": "Medium",
+    "xp_reward": 20,
+    "initial_code": "Fonction MultAddition(a, b: Entier): Entier\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "3, 4",
+        "output": "12"
+      }
+    ],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "6y1t0s2v-3w4x-5y6z-7a8b-9c0d1e2f3g4h",
+    "title": "Exercice 150: APPROFONDISSEMENTS",
+    "description": "Fonction récursive pour calculer le Nième terme d'une suite définie par récurrence d'ordre 3.",
+    "instructions": "Objectif : U(n) dépend de U(n-1), U(n-2) et U(n-3). Définir 3 cas de base.",
+    "difficulty": "Hard",
+    "xp_reward": 50,
+    "initial_code": "Fonction SuiteRec(n: Entier): Entier\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "7z2u1t3w-4x5y-6z7a-8b9c-0d1e2f3g4h5i",
+    "title": "Exercice 151: FIN",
+    "description": "Fonction qui affiche la phrase « Merci MOMO » 50 fois.",
+    "instructions": "Objectif : Utiliser une boucle simple pour la répétition.",
+    "difficulty": "Easy",
+    "xp_reward": 10,
+    "initial_code": "Procédure MerciMomo()\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "8a3v2u4x-5y6z-7a8b-9c0d-1e2f3g4h5i6j",
+    "title": "Bonus: Somme Diagonale (MATRICES)",
+    "description": "Calculer la somme des éléments de la diagonale principale d'une matrice carrée 3x3.",
+    "instructions": "Objectif : Sommer les éléments M[i, i] pour i de 1 à 3.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Algorithme SommeDiag\nDébut\n\nFin",
+    "test_cases": [
+      {
+        "input": "[[1,0,0],[0,2,0],[0,0,3]]",
+        "output": "6"
+      }
+    ],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "9b4w3v5y-6z7a-8b9c-0d1e-2f3g4h5i6j7k",
+    "title": "Bonus: Transposition (MATRICES)",
+    "description": "Saisir une matrice 2x2 et afficher sa transposée.",
+    "instructions": "Objectif : Échanger les lignes et colonnes : T[i,j] = M[j,i].",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme Transposée\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "0c5x4w6z-7a8b-9c0d-1e2f-3g4h5i6j7k8l",
+    "title": "Bonus: Recherche Matrice (MATRICES)",
+    "description": "Chercher si un nombre X existe dans une matrice 3x3 et affiche sa position (ligne, colonne).",
+    "instructions": "Objectif : Double boucle imbriquée et arrêt dès que X est trouvé.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme RechercheMat\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "1d6y5x7a-8b9c-0d1e-2f3g-4h5i6j7k8l9m",
+    "title": "Bonus: Gestion Produit (STRUCTURES)",
+    "description": "Définir une structure Produit (nom, prix, quantite) et afficher le montant total en stock.",
+    "instructions": "Objectif : Montant = prix * quantite.",
+    "difficulty": "Medium",
+    "xp_reward": 25,
+    "initial_code": "Structure Produit\n  nom: Chaîne\n  prix: Réel\n  quantite: Entier\nFinStructure",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "2e7z6y8b-9c0d-1e2f-3g4h-5i6j7k8l9m0n",
+    "title": "Bonus: Comparaison Âges (STRUCTURES)",
+    "description": "Définir une structure Personne (nom, age). Afficher le nom de la plus âgée sur deux saisies.",
+    "instructions": "Objectif : Comparer le champ 'age' des deux structures.",
+    "difficulty": "Easy",
+    "xp_reward": 20,
+    "initial_code": "Algorithme ComparerAge\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "3f8a7z9c-0d1e-2f3g-4h5i-6j7k8l9m0n1o",
+    "title": "Bonus: Annuaire Simple (TAB STRUCTURES)",
+    "description": "Créer un tableau de 5 structures 'Contact' (nom, tel) et les afficher sous forme de liste.",
+    "instructions": "Objectif : Utiliser une boucle pour la saisie et une autre pour l'affichage.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme Annuaire\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "4g9b8a0d-1e2f-3g4h-5i6j-7k8l9m0n1o2p",
+    "title": "Bonus: Moyenne Classe (TAB STRUCTURES)",
+    "description": "Définir une structure Etudiant (nom, note). Calculer la moyenne générale pour 10 étudiants.",
+    "instructions": "Objectif : Sommer toutes les notes du tableau de structures et diviser par 10.",
+    "difficulty": "Medium",
+    "xp_reward": 35,
+    "initial_code": "Algorithme MoyenneClasse\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  },
+  {
+    "id": "5h0c9b1e-2f3g-4h5i-6j7k-8l9m0n1o2p3q",
+    "title": "Bonus: Stock Magasin (TAB STRUCTURES)",
+    "description": "Gérer un stock de 20 articles (nom, prix). Afficher uniquement les articles > 1000 FG.",
+    "instructions": "Objectif : Parcourir le tableau et filtrer l'affichage avec une condition SI.",
+    "difficulty": "Medium",
+    "xp_reward": 30,
+    "initial_code": "Algorithme StockFiltre\nDébut\n\nFin",
+    "test_cases": [],
+    "created_at": "2026-02-11T15:50:00.000Z"
+  }
+]

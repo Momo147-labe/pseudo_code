@@ -51,7 +51,10 @@ class GestionnaireFonctions {
   );
 
   // Regex pour détecter un appel : addition(x, y)
-  static final regAppel = RegExp(r'^([a-zA-Z_]\w*)\s*\((.*)\)$');
+  static final regAppel = RegExp(
+    r'^([a-zA-Z_]\w*)\s*\((.*)\)$',
+    caseSensitive: false,
+  );
 
   static List<Parametre> extraireParametres(String paramsBruts) {
     if (paramsBruts.trim().isEmpty) return [];

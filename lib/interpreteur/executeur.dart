@@ -94,8 +94,9 @@ class Executeur {
       return await _ioHandler.executerAfficherTabStructure(ligne);
     }
 
-    // 5. Affichage (Afficher)
-    if (ligne.toLowerCase().startsWith('afficher')) {
+    // 5. Affichage (Afficher/Ecrire)
+    if (ligne.toLowerCase().startsWith('afficher') ||
+        ligne.toLowerCase().startsWith('ecrire')) {
       return await _ioHandler.executerAfficher(ligne);
     }
 

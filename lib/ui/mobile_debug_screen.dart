@@ -145,7 +145,7 @@ class _MobileDebugScreenState extends State<MobileDebugScreen> {
             decoration: InputDecoration(
               hintText: 'Entrez la valeur...',
               hintStyle: TextStyle(
-                color: ThemeColors.textMain(theme).withOpacity(0.5),
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
               ),
               enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.blueAccent),
@@ -297,7 +297,7 @@ class _MobileDebugScreenState extends State<MobileDebugScreen> {
         color: ThemeColors.editorBg(theme),
         border: Border(
           bottom: BorderSide(
-            color: ThemeColors.textMain(theme).withOpacity(0.1),
+            color: ThemeColors.textMain(theme).withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -311,8 +311,8 @@ class _MobileDebugScreenState extends State<MobileDebugScreen> {
           return Container(
             color: isCurrentLine
                 ? (isDark
-                      ? Colors.blue.withOpacity(0.2)
-                      : Colors.yellow.withOpacity(0.3))
+                      ? Colors.blue.withValues(alpha: 0.2)
+                      : Colors.yellow.withValues(alpha: 0.3))
                 : Colors.transparent,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Row(
@@ -324,7 +324,7 @@ class _MobileDebugScreenState extends State<MobileDebugScreen> {
                   child: Text(
                     '${index + 1}',
                     style: TextStyle(
-                      color: ThemeColors.textMain(theme).withOpacity(0.5),
+                      color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
                       fontSize: 12,
                       fontFamily: 'JetBrainsMono',
                     ),
@@ -373,7 +373,7 @@ class _MobileDebugScreenState extends State<MobileDebugScreen> {
         color: ThemeColors.sidebarBg(theme),
         border: Border(
           bottom: BorderSide(
-            color: ThemeColors.textMain(theme).withOpacity(0.1),
+            color: ThemeColors.textMain(theme).withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -446,7 +446,9 @@ class _MobileDebugScreenState extends State<MobileDebugScreen> {
 
                 // Colorier selon le type de message
                 if (line.startsWith('>')) {
-                  textColor = ThemeColors.textMain(theme).withOpacity(0.7);
+                  textColor = ThemeColors.textMain(
+                    theme,
+                  ).withValues(alpha: 0.7);
                 } else if (line.startsWith('▶')) {
                   textColor = Colors.greenAccent;
                 } else if (line.startsWith('⏸')) {
@@ -481,7 +483,7 @@ class _MobileDebugScreenState extends State<MobileDebugScreen> {
         color: ThemeColors.sidebarBg(theme),
         border: Border(
           top: BorderSide(
-            color: ThemeColors.textMain(theme).withOpacity(0.1),
+            color: ThemeColors.textMain(theme).withValues(alpha: 0.1),
             width: 1,
           ),
         ),
