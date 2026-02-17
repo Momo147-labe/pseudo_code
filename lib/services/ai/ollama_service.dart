@@ -52,6 +52,7 @@ class OllamaService implements ILlmService {
     List<Map<String, String>> messages,
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
     bool isAgentMode,
     String userName,
   ) {
@@ -60,6 +61,7 @@ class OllamaService implements ILlmService {
       isAgentMode,
       contextCode: contextCode,
       mcdContext: mcdContext,
+      graphContext: graphContext,
     );
 
     return [
@@ -73,6 +75,7 @@ class OllamaService implements ILlmService {
     List<Map<String, String>> messages, {
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
     bool isAgentMode = true,
     String userName = "Momo",
   }) async {
@@ -91,6 +94,7 @@ class OllamaService implements ILlmService {
         messages,
         contextCode,
         mcdContext,
+        graphContext,
         isAgentMode,
         userName,
       );
@@ -125,6 +129,7 @@ class OllamaService implements ILlmService {
     List<Map<String, String>> messages, {
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
     bool isAgentMode = true,
     String userName = "Momo",
   }) async* {
@@ -142,6 +147,7 @@ class OllamaService implements ILlmService {
       messages,
       contextCode,
       mcdContext,
+      graphContext,
       isAgentMode,
       userName,
     );

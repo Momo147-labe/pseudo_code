@@ -86,9 +86,36 @@ class _EditeurWidgetState extends State<EditeurWidget> {
       _insertSubscription = _fileProvider?.insertRequests.listen((text) {
         _handleInsertionRequest(text);
       });
+      _fileProvider?.addListener(_handleFileProviderChange);
     }
 
     _controller.addListener(_onControllerChanged);
+    _controller.addListener(_updateFoldableLines);
+    _controller.addListener(_handleCursorChange);
+
+    _editorScrollController.addListener(_onEditorScroll);
+    _focusNode.onKeyEvent = _handleKeyEvent;
+
+    // Charger le contenu du fichier initial
+    if (!widget.isStandalone) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _handleFileProviderChange();
+      });
+    }
+  }
+
+  void _onEditorScroll() {
+    if (_gutterScrollController.hasClients) {
+      _gutterScrollController.jumpTo(_editorScrollController.offset);
+    }
+    if (_minimapScrollController.hasClients) {
+      _minimapScrollController.jumpTo(_editorScrollController.offset / 5);
+    }
+    if (_quickFixOverlay != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _quickFixOverlay?.markNeedsBuild();
+      });
+    }
   }
 
   void _onControllerChanged() {
@@ -102,25 +129,6 @@ class _EditeurWidgetState extends State<EditeurWidget> {
       _foldedLines[lineNum] = !(_foldedLines[lineNum] ?? false);
       _syncHiddenLines();
     });
-    _focusNode.onKeyEvent = _handleKeyEvent;
-    _editorScrollController.addListener(() {
-      if (_gutterScrollController.hasClients) {
-        _gutterScrollController.jumpTo(_editorScrollController.offset);
-      }
-      if (_minimapScrollController.hasClients) {
-        _minimapScrollController.jumpTo(_editorScrollController.offset / 5);
-      }
-      if (_quickFixOverlay != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _quickFixOverlay?.markNeedsBuild();
-        });
-      }
-    });
-    if (!widget.isStandalone) {
-      context.read<FileProvider>().addListener(_handleFileProviderChange);
-    }
-    _controller.addListener(_updateFoldableLines);
-    _controller.addListener(_handleCursorChange);
   }
 
   void _handleCursorChange() {
@@ -368,6 +376,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
     _controller.removeListener(_updateFoldableLines);
     _controller.removeListener(_onControllerChanged);
     _controller.removeListener(_handleCursorChange);
+    _editorScrollController.removeListener(_onEditorScroll);
     if (_ownsController) {
       _controller.dispose();
     }
@@ -981,29 +990,36 @@ class _EditeurWidgetState extends State<EditeurWidget> {
                               link: _layerLink,
                               child: CompositedTransformTarget(
                                 link: _quickFixLink,
-                                child: TextField(
-                                  controller: _controller,
-                                  focusNode: _focusNode,
-                                  scrollController: _editorScrollController,
-                                  maxLines: null,
-                                  expands: true,
-                                  readOnly:
-                                      !widget.isStandalone &&
-                                      fileProvider.isReviewMode,
-                                  textAlignVertical: TextAlignVertical.top,
-                                  cursorColor: ThemeColors.textBright(theme),
-                                  style: TextStyle(
-                                    color: ThemeColors.textBright(theme),
-                                    fontFamily: 'JetBrainsMono',
-                                    fontSize: appProvider.fontSize,
+                                child: MouseRegion(
+                                  onHover: (event) => _handleMouseHover(
+                                    event,
+                                    appProvider.fontSize,
                                   ),
-                                  decoration: const InputDecoration(
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                    contentPadding: EdgeInsets.only(top: 12),
+                                  onExit: (_) => _hideHoverTooltip(),
+                                  child: TextField(
+                                    controller: _controller,
+                                    focusNode: _focusNode,
+                                    scrollController: _editorScrollController,
+                                    maxLines: null,
+                                    expands: true,
+                                    readOnly:
+                                        !widget.isStandalone &&
+                                        fileProvider.isReviewMode,
+                                    textAlignVertical: TextAlignVertical.top,
+                                    cursorColor: ThemeColors.textBright(theme),
+                                    style: TextStyle(
+                                      color: ThemeColors.textBright(theme),
+                                      fontFamily: themeProvider.fontFamily,
+                                      fontSize: appProvider.fontSize,
+                                    ),
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      isDense: true,
+                                      contentPadding: EdgeInsets.only(top: 12),
+                                    ),
+                                    onChanged: (text) =>
+                                        _onChanged(text, fileProvider),
                                   ),
-                                  onChanged: (text) =>
-                                      _onChanged(text, fileProvider),
                                 ),
                               ),
                             ),
@@ -1021,7 +1037,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
                                 ).withValues(alpha: 0.2),
                                 fontSize: 3,
                                 height: 1.5,
-                                fontFamily: 'JetBrainsMono',
+                                fontFamily: themeProvider.fontFamily,
                               ),
                               withComposing: false,
                             ),
@@ -1050,6 +1066,83 @@ class _EditeurWidgetState extends State<EditeurWidget> {
                 onReplaceAll: _replaceAll,
                 onClose: () => setState(() => _isSearchVisible = false),
               ),
+            // Sticky Scroll Header
+            if (!isMobile)
+              _buildStickyHeader(
+                theme,
+                appProvider.fontSize,
+                themeProvider.fontFamily,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStickyHeader(
+    AppTheme theme,
+    double fontSize,
+    String fontFamily,
+  ) {
+    if (!_editorScrollController.hasClients ||
+        _editorScrollController.offset < 50) {
+      return const SizedBox.shrink();
+    }
+
+    final lineHeight = fontSize * 1.5;
+    final firstVisibleLineIndex = (_editorScrollController.offset / lineHeight)
+        .floor();
+
+    // Find the current enclosing block
+    String? currentBlock;
+    final lines = _controller.text.split('\n');
+
+    final blockRegex = RegExp(
+      r'^\s*(Algorithme|Fonction|Proc[eé]dure|Structure)\s+([a-zA-Z_]\w*)',
+      caseSensitive: false,
+    );
+
+    for (int i = firstVisibleLineIndex; i >= 0; i--) {
+      if (i < lines.length) {
+        final match = blockRegex.firstMatch(lines[i]);
+        if (match != null) {
+          currentBlock = "${match.group(1)} ${match.group(2)}";
+          break;
+        }
+      }
+    }
+
+    if (currentBlock == null) return const SizedBox.shrink();
+
+    return Positioned(
+      top: widget.isStandalone ? 0 : 40, // Account for TabManager
+      left: 50, // Account for Gutter
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        decoration: BoxDecoration(
+          color: ThemeColors.sidebarBg(theme).withValues(alpha: 0.95),
+          border: Border(
+            bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.segment,
+              size: 14,
+              color: ThemeColors.syntaxStructure(theme),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              currentBlock,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                fontFamily: fontFamily,
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.8),
+              ),
+            ),
           ],
         ),
       ),
@@ -1272,6 +1365,119 @@ class _EditeurWidgetState extends State<EditeurWidget> {
         ],
       ),
     );
+  }
+
+  OverlayEntry? _hoverOverlay;
+  Timer? _hoverTimer;
+
+  void _handleMouseHover(PointerHoverEvent event, double fontSize) {
+    _hoverTimer?.cancel();
+    _hoverTimer = Timer(const Duration(milliseconds: 500), () {
+      _showHoverTooltip(event.localPosition, fontSize);
+    });
+  }
+
+  void _hideHoverTooltip() {
+    _hoverTimer?.cancel();
+    _hoverOverlay?.remove();
+    _hoverOverlay = null;
+  }
+
+  void _showHoverTooltip(Offset localPos, double fontSize) {
+    _hideHoverTooltip();
+
+    final lineHeight = fontSize * 1.5;
+    final charWidth = fontSize * 0.6; // Approximation for JetBrainsMono
+
+    final lineIndex =
+        ((localPos.dy + _editorScrollController.offset - 12) / lineHeight)
+            .floor();
+    final charIndex = (localPos.dx / charWidth).floor();
+
+    final lines = _controller.text.split('\n');
+    if (lineIndex < 0 || lineIndex >= lines.length) return;
+
+    final line = lines[lineIndex];
+    if (charIndex < 0 || charIndex >= line.length) return;
+
+    // Find word under cursor
+    int start = charIndex;
+    while (start > 0 && RegExp(r'\w').hasMatch(line[start - 1])) start--;
+    int end = charIndex;
+    while (end < line.length && RegExp(r'\w').hasMatch(line[end])) end++;
+
+    final word = line.substring(start, end).toLowerCase();
+    if (word.isEmpty) return;
+
+    final docs = {
+      'si': 'Structure de contrôle conditionnelle.',
+      'alors':
+          'Délimiteur de début de bloc d\'instructions si la condition est vraie.',
+      'sinon': 'Bloc exécuté si la condition du Si est fausse.',
+      'finsi': 'Fin de la structure conditionnelle.',
+      'pour': 'Boucle itérative avec un compteur.',
+      'tantque': 'Boucle répétitive tant qu\'une condition reste vraie.',
+      'faire': 'Délimiteur marquant le début du corps d\'une boucle.',
+      'fonction': 'Sous-programme retournant une valeur.',
+      'procedure': 'Sous-programme exécutant des instructions sans retour.',
+      'algorithme': 'Début de la déclaration du programme principal.',
+      'variables': 'Section de déclaration des variables.',
+      'entier': 'Type de donnée pour les nombres sans virgule.',
+      'reel': 'Type de donnée pour les nombres à virgule.',
+      'chaine': 'Type de donnée pour le texte.',
+      'booleen': 'Type de donnée vrai/faux.',
+      'lire': 'Instruction pour saisir une donnée.',
+      'ecrire': 'Instruction pour afficher une donnée.',
+    };
+
+    if (!docs.containsKey(word)) return;
+
+    final theme = context.read<ThemeProvider>().currentTheme;
+
+    _hoverOverlay = OverlayEntry(
+      builder: (context) => Positioned(
+        left: localPos.dx + 60, // Offset from gutter
+        top: localPos.dy + (widget.isStandalone ? 20 : 60), // Offset from tabs
+        child: Material(
+          elevation: 4,
+          borderRadius: BorderRadius.circular(4),
+          color: ThemeColors.sidebarBg(theme),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: Colors.blueAccent.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  word.toUpperCase(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    color: Colors.blueAccent,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  docs[word]!,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: ThemeColors.textMain(theme),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_hoverOverlay!);
   }
 }
 

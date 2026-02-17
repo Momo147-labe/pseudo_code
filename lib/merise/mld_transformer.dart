@@ -5,9 +5,11 @@ class MldColumn {
   final String type;
   final bool isPrimaryKey;
   final bool isForeignKey;
+
   /// Whether the column can be NULL in the generated schema.
   /// Defaults to true because Merise MLD is concept-level; constraints are derived from cardinalities.
   final bool isNullable;
+
   /// Whether the column should be UNIQUE (useful for enforcing 1:1).
   final bool isUnique;
 
@@ -68,6 +70,16 @@ class Mld {
   const Mld({required this.tables});
 }
 
+/// Transformateur MCD → MLD selon les règles Merise standard
+///
+/// Les règles de transformation sont définies dans:
+/// assets/regles_de_MCD_à_MLD.json
+///
+/// Règles appliquées:
+/// - Règle 1: Toute entité devient une relation (table)
+/// - Règle 2: Association binaire (1,1) → Clé étrangère
+/// - Règle 3: Association n-aire ou N:N → Table d'association
+/// - Règle 4: Association réflexive → Relation
 class MldTransformer {
   static _Card _parseCardinality(String raw) {
     // Expected formats: "0,1", "1,1", "0,n", "1,n" (case-insensitive on N)
@@ -93,7 +105,13 @@ class MldTransformer {
   static Mld transform(Mcd mcd) {
     final tables = <MldTable>[];
 
-    // 1. Créer les tables pour chaque entité
+    // ═══════════════════════════════════════════════════════════════════
+    // RÈGLE 1 (assets/regles_de_MCD_à_MLD.json)
+    // ═══════════════════════════════════════════════════════════════════
+    // "Toute entité devient une relation dans laquelle les attributs
+    // traduisent les propriétés de l'entité et la clé primaire traduit
+    // l'identifiant de l'entité"
+    // ═══════════════════════════════════════════════════════════════════
     final entityTables = <String, MldTable>{};
     for (final entity in mcd.entities) {
       final columns = entity.attributes
@@ -114,7 +132,9 @@ class MldTransformer {
       entityTables[entity.id] = table;
     }
 
-    // 2. Gérer les associations
+    // ═══════════════════════════════════════════════════════════════════
+    // Traitement des associations selon les règles Merise
+    // ═══════════════════════════════════════════════════════════════════
     for (final relation in mcd.relations) {
       final links = mcd.links
           .where((l) => l.relationId == relation.id)
@@ -122,8 +142,7 @@ class MldTransformer {
 
       if (links.isEmpty) continue;
 
-      // Cas 1: Relation N-aire (3+ entités), Association avec attributs, ou N:N
-      // Dans ces cas, on crée TOUJOURS une table d'association
+      // Analyser le type d'association
       bool isNary = links.length > 2;
       bool hasAttributes = relation.attributes.isNotEmpty;
 
@@ -133,6 +152,19 @@ class MldTransformer {
           .length;
       bool isManyToMany = maxNCount > 1;
 
+      // ═══════════════════════════════════════════════════════════════════
+      // RÈGLE 3 (assets/regles_de_MCD_à_MLD.json)
+      // ═══════════════════════════════════════════════════════════════════
+      // "Une association de dimension supérieur ou égal à 2 avec cardinalité
+      // maximale égale à n sur chaque pate est traduite par une realtion et
+      // la clé primaire de la realtion résultante est composée des
+      // identifiants des entités impliqueées dans la collection"
+      //
+      // RÈGLE 4 (assets/regles_de_MCD_à_MLD.json)
+      // ═══════════════════════════════════════════════════════════════════
+      // "une association réflexive est traduite par une relation quelque
+      // soit la cardinalité"
+      // ═══════════════════════════════════════════════════════════════════
       if (isNary || hasAttributes || isManyToMany) {
         final columns = <MldColumn>[];
         final fks = <MldForeignKey>[];
@@ -178,7 +210,18 @@ class MldTransformer {
           MldTable(name: relation.name, columns: columns, foreignKeys: fks),
         );
       }
-      // Cas 2: Relation binaire 1:N (ou 1:1)
+      // ═══════════════════════════════════════════════════════════════════
+      // RÈGLE 2 (assets/regles_de_MCD_à_MLD.json)
+      // ═══════════════════════════════════════════════════════════════════
+      // "Une association de dimension 2 avec cardinalité (1,1) n'est pas
+      // traduite par une relation mais occasionne l'apparition de
+      // l'indentifiant de l'autre entité dans la relation traduisant
+      // l'entité implique avec la cardinalité(1,1)"
+      //
+      // Application: Pour les relations binaires 1:N ou 1:1, on ajoute
+      // une clé étrangère dans la table appropriée au lieu de créer
+      // une table d'association.
+      // ═══════════════════════════════════════════════════════════════════
       else if (links.length == 2) {
         // Correct Merise→Relational mapping:
         // - For 1:N: the FK is placed on the N-side table referencing the 1-side table.
@@ -199,7 +242,8 @@ class MldTransformer {
           fkReceiverLink = c1.maxIsMany ? linkA : linkB; // N-side
           referencedLink = c1.maxIsMany ? linkB : linkA; // 1-side
           fkIsUnique = false;
-          fkIsNullable = _parseCardinality(fkReceiverLink.cardinalities).min == 0;
+          fkIsNullable =
+              _parseCardinality(fkReceiverLink.cardinalities).min == 0;
         } else {
           // 1:1 case (both max=1) or N:N (should have been caught earlier)
           // Enforce 1:1 with UNIQUE on the FK.
@@ -216,11 +260,13 @@ class MldTransformer {
             // (stable and avoids random diffs).
             final ea = mcd.entities.firstWhere((e) => e.id == linkA.entityId);
             final eb = mcd.entities.firstWhere((e) => e.id == linkB.entityId);
-            final receiverIsA = ea.name.toLowerCase().compareTo(eb.name.toLowerCase()) >= 0;
+            final receiverIsA =
+                ea.name.toLowerCase().compareTo(eb.name.toLowerCase()) >= 0;
             fkReceiverLink = receiverIsA ? linkA : linkB;
             referencedLink = receiverIsA ? linkB : linkA;
           }
-          fkIsNullable = _parseCardinality(fkReceiverLink.cardinalities).min == 0;
+          fkIsNullable =
+              _parseCardinality(fkReceiverLink.cardinalities).min == 0;
         }
 
         final fkReceiverEntity = mcd.entities.firstWhere(

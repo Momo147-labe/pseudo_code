@@ -28,12 +28,17 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-        # 5️⃣ Supprimer les builds précédents
-      - name: Nettoyer l'ancienne build
-        run: flutter clean
-  
+      # 5️⃣ Générer le fichier .env à partir des secrets GitHub
+      - name: Create .env file
+        shell: pwsh
+        run: |
+          "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" | Out-File -FilePath .env -Encoding utf8
+          "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" | Out-File -FilePath .env -Append -Encoding utf8
+          "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" | Out-File -FilePath .env -Append -Encoding utf8
+          "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" | Out-File -FilePath .env -Append -Encoding utf8
+          "OLLAMA_BASE_URL=${{ secrets.OLLAMA_BASE_URL }}" | Out-File -FilePath .env -Append -Encoding utf8
 
-      # 5️⃣ Build Windows Release
+      # 6️⃣ Build Windows Release
       - name: Build Windows EXE
         run: flutter build windows --release
 

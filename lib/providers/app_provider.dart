@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 enum ConsolePosition { bottom, right, top }
 
-enum ActiveMainView { algorithm, merise, graph, challenges, os }
+enum ActiveMainView { algorithm, merise, graph, challenges }
 
 class AppProvider with ChangeNotifier {
   // --- UI STATE ---
@@ -58,9 +58,6 @@ class AppProvider with ChangeNotifier {
     } else if (tab == 'challenges') {
       _isConsoleVisible = false;
       _activeMainView = ActiveMainView.challenges;
-    } else if (tab == 'os') {
-      _isConsoleVisible = false;
-      _activeMainView = ActiveMainView.os;
     } else if (tab == 'explorer' || tab == 'debug') {
       _activeMainView = ActiveMainView.algorithm;
     }

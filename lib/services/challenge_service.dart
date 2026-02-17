@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/challenge_model.dart';
 
 class ChallengeService {
-  final _supabase = Supabase.instance.client;
+  static const String _completedKey = 'completed_challenges';
+  static const String _pointsKey = 'user_points';
 
   Future<List<Challenge>> getChallenges() async {
     try {
@@ -12,7 +13,24 @@ class ChallengeService {
         'assets/challenges.json',
       );
       final List<dynamic> jsonList = json.decode(jsonString);
-      return jsonList.map((c) => Challenge.fromJson(c)).toList();
+      final List<Challenge> allChallenges = jsonList
+          .map((c) => Challenge.fromJson(c))
+          .toList();
+
+      // Mark locked state based on completion of the previous challenge
+      final prefs = await SharedPreferences.getInstance();
+      final completedIds = prefs.getStringList(_completedKey) ?? [];
+
+      for (int i = 0; i < allChallenges.length; i++) {
+        // First challenge (i=0) is always unlocked
+        // Subsequent challenges (i>0) are unlocked if the previous one is completed
+        bool isUnlocked =
+            i == 0 || completedIds.contains(allChallenges[i - 1].id);
+        // We need to add a "locked" flag or similar to the Challenge model or handle it in the UI/Provider.
+        // For now, the service just returns the list, and we'll handle the logic in the Provider.
+      }
+
+      return allChallenges;
     } catch (e) {
       print("Error loading challenges from assets: $e");
       return [];
@@ -20,13 +38,7 @@ class ChallengeService {
   }
 
   Future<List<UserProfile>> getLeaderboard() async {
-    final response = await _supabase
-        .from('profiles')
-        .select()
-        .order('xp', ascending: false)
-        .limit(50);
-
-    return (response as List).map((p) => UserProfile.fromJson(p)).toList();
+    return [];
   }
 
   Future<void> submitAttempt({
@@ -35,45 +47,50 @@ class ChallengeService {
     required bool success,
     int? timeTakenMs,
   }) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) throw Exception("User not authenticated");
+    if (!success) return;
 
-    final status = success ? 'success' : 'failed';
+    final prefs = await SharedPreferences.getInstance();
+    final completedIds = prefs.getStringList(_completedKey) ?? [];
 
-    await _supabase.from('challenge_attempts').insert({
-      'user_id': user.id,
-      'challenge_id': challengeId,
-      'code': code,
-      'status': status,
-      'time_taken_ms': timeTakenMs,
-    });
+    if (!completedIds.contains(challengeId)) {
+      completedIds.add(challengeId);
+      await prefs.setStringList(_completedKey, completedIds);
 
-    if (success) {
-      // Logic for adding XP would ideally be in a Supabase Function/Trigger,
-      // but we can increment it here if RLS allows.
-      // For now, let's assume a trigger on the database increments the XP.
+      // Add points based on challenge reward (requires finding the challenge)
+      // For simplicity, we'll reload challenges or pass reward in this method.
+      // But let's keep it simple: the Provider will call submitResult which calls this.
     }
   }
 
+  Future<List<String>> getCompletedChallengeIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(_completedKey) ?? [];
+  }
+
   Stream<List<UserProfile>> getLeaderboardStream() {
-    return _supabase
-        .from('profiles')
-        .stream(primaryKey: ['id'])
-        .order('xp', ascending: false)
-        .limit(50)
-        .map((data) => data.map((p) => UserProfile.fromJson(p)).toList());
+    return Stream.value([]);
   }
 
   Future<UserProfile?> getMyProfile() async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) return null;
+    final prefs = await SharedPreferences.getInstance();
+    final completedIds = prefs.getStringList(_completedKey) ?? [];
 
-    final response = await _supabase
-        .from('profiles')
-        .select()
-        .eq('id', user.id)
-        .single();
+    // Load challenges to sum XP
+    final allChallenges = await getChallenges();
+    int totalXp = 0;
 
-    return UserProfile.fromJson(response);
+    for (var id in completedIds) {
+      final challenge = allChallenges.where((c) => c.id == id).firstOrNull;
+      if (challenge != null) {
+        totalXp += challenge.xpReward;
+      }
+    }
+
+    return UserProfile(
+      id: 'local_user',
+      username: 'Utilisateur',
+      xp: totalXp,
+      level: (totalXp / 500).floor() + 1,
+    );
   }
 }

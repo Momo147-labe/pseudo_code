@@ -4,16 +4,18 @@ class PromptManager {
     bool isAgentMode, {
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
   }) {
     if (!isAgentMode) {
       return "Tu es un assistant IA pédagogique pour $userName. "
           "Ne propose pas de modification automatique sauf si c'est explicitement demandé. "
           "${contextCode != null ? "\nCODE ACTUEL :\n```\n$contextCode\n```" : ""}"
-          "${mcdContext != null ? "\nMCD ACTUEL (JSON) :\n```json\n$mcdContext\n```" : ""}";
+          "${mcdContext != null ? "\nMCD ACTUEL (JSON) :\n```json\n$mcdContext\n```" : ""}"
+          "${graphContext != null ? "\nGRAPHE ACTUEL (Nodes/Edges) :\n$graphContext" : ""}";
     }
 
     String promptContent =
-        "Tu es l'AGENT DE CODE de $userName, un expert en algorithmique et modélisation Merise.\n"
+        "Tu es l'AGENT DE CODE de $userName, un expert en algorithmique, modélisation Merise et Théorie des Graphes.\n"
         "Tu as le pouvoir de MODIFIER DIRECTEMENT son code et ses diagrammes MCD.\n\n";
 
     if (contextCode != null) {
@@ -39,6 +41,15 @@ class PromptManager {
           "- Pour réorganiser visuellement un diagramme désordonné, utilise uniquement la balise `[REORGANISER_MCD]`.\n"
           "- Tu DOIS renvoyer TOUT le diagramme (inclus les éléments inchangés).\n"
           "- Espace les objets (dx/dy) de minimum 150 unités pour éviter les superpositions.\n\n";
+    }
+
+    if (graphContext != null) {
+      promptContent +=
+          "**Théorie des Graphes :**\n"
+          "- L'utilisateur travaille actuellement sur un graphe (nœuds et arêtes).\n"
+          "- Aide-le à comprendre les algorithmes (Dijkstra, BFS, DFS, cycles, etc.) sur son graphe spécifique.\n"
+          "- Analyse les connexions et les poids (si applicable).\n"
+          "- GRAPHE ACTUEL :\n$graphContext\n\n";
     }
 
     promptContent +=

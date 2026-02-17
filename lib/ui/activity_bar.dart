@@ -4,7 +4,7 @@ import '../providers/app_provider.dart';
 import '../providers/theme_provider.dart';
 import '../theme.dart';
 import 'profile_modal.dart';
-import 'documentation_modal.dart';
+import 'documentation_page.dart';
 import 'auth/auth_choice_modal.dart';
 import 'auth/user_profile_modal.dart';
 import '../providers/challenge_provider.dart';
@@ -56,12 +56,6 @@ class ActivityBar extends StatelessWidget {
             onTap: () => appProvider.setActiveSidebarTab('challenges'),
             tooltip: "Compétitions & Défis",
           ),
-          _ActivityIcon(
-            icon: Icons.memory,
-            isActive: appProvider.activeSidebarTab == 'os',
-            onTap: () => appProvider.setActiveSidebarTab('os'),
-            tooltip: "Système d'Exploitation",
-          ),
 
           _ActivityIcon(
             icon: Icons.terminal_outlined,
@@ -90,9 +84,11 @@ class ActivityBar extends StatelessWidget {
           ),
           _ActivityIcon(
             icon: Icons.help_outline,
-            onTap: () => showDialog(
-              context: context,
-              builder: (context) => const DocumentationModal(),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const DocumentationPage(),
+              ),
             ),
             tooltip: "Documentation Plateforme",
           ),

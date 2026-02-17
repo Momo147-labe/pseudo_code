@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:pseudo_code/ui/barre_haut.dart';
@@ -25,26 +24,23 @@ import 'package:pseudo_code/repositories/example_repository.dart';
 import 'package:pseudo_code/outils/file_open_service.dart';
 import 'package:pseudo_code/l10n/app_localizations.dart';
 import 'package:pseudo_code/providers/challenge_provider.dart';
-import 'package:pseudo_code/providers/os_provider.dart';
 import 'package:pseudo_code/ui/challenges/challenges_main_view.dart';
-import 'package:pseudo_code/ui/os/os_studio.dart';
-// OS provider import remains below
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Chargement des variables d'environnement
-  await dotenv.load(fileName: ".env");
-
-  // Initialisation Supabase
-  await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL'] ?? '',
-    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
-  );
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint(
+      "Avertissement : Fichier .env non trouvé ou invalide. Utilisation des variables par défaut.",
+    );
+  }
 
   // Initialisation du thème avant de lancer l'app pour éviter le scintillement
   final themeProvider = ThemeProvider();
-  await themeProvider.loadTheme();
+  await themeProvider.loadSettings();
 
   // Récupération des fichiers passés en argument (Windows %1)
   final List<String> initialFiles = FileOpenService.getFilesFromArgs(args);
@@ -65,7 +61,6 @@ void main(List<String> args) async {
         ChangeNotifierProvider(create: (_) => GraphProvider()),
         ChangeNotifierProvider(create: (_) => AiProvider()),
         ChangeNotifierProvider(create: (_) => ChallengeProvider()),
-        ChangeNotifierProvider(create: (_) => OSProvider()),
       ],
       child: const MyApp(),
     ),
@@ -380,10 +375,6 @@ class _MainEditorArea extends StatelessWidget {
 
     if (activeMainView == ActiveMainView.challenges) {
       return const ChallengesMainView();
-    }
-
-    if (activeMainView == ActiveMainView.os) {
-      return const OSStudio();
     }
 
     return const EditeurWidget();

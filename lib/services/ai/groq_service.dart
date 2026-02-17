@@ -17,6 +17,7 @@ class GroqService implements ILlmService {
     List<Map<String, String>> messages,
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
     bool isAgentMode,
     String userName,
   ) {
@@ -25,6 +26,7 @@ class GroqService implements ILlmService {
       isAgentMode,
       contextCode: contextCode,
       mcdContext: mcdContext,
+      graphContext: graphContext,
     );
 
     return [
@@ -38,6 +40,7 @@ class GroqService implements ILlmService {
     List<Map<String, String>> messages, {
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
     bool isAgentMode = true,
     String userName = "Momo",
   }) async {
@@ -46,6 +49,7 @@ class GroqService implements ILlmService {
         messages,
         contextCode,
         mcdContext,
+        graphContext,
         isAgentMode,
         userName,
       );
@@ -82,6 +86,7 @@ class GroqService implements ILlmService {
     List<Map<String, String>> messages, {
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
     bool isAgentMode = true,
     String userName = "Momo",
   }) async* {
@@ -89,6 +94,7 @@ class GroqService implements ILlmService {
       messages,
       contextCode,
       mcdContext,
+      graphContext,
       isAgentMode,
       userName,
     );

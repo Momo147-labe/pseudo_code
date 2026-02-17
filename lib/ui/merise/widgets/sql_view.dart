@@ -144,12 +144,135 @@ class _SqlViewState extends State<SqlView> {
   }
 
   Widget _buildMldView(Mld mld, double scale) {
-    return ListView.builder(
-      itemCount: mld.tables.length,
-      itemBuilder: (context, index) {
-        final table = mld.tables[index];
-        return _TableCard(table: table, theme: widget.theme, scale: scale);
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Bouton pour afficher les règles
+        _buildRulesButton(scale),
+        const SizedBox(height: 16),
+        // Liste des tables
+        Expanded(
+          child: ListView.builder(
+            itemCount: mld.tables.length,
+            itemBuilder: (context, index) {
+              final table = mld.tables[index];
+              return _TableCard(
+                table: table,
+                theme: widget.theme,
+                scale: scale,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRulesButton(double scale) {
+    return OutlinedButton.icon(
+      onPressed: () => _showRulesModal(context, scale),
+      icon: const Icon(Icons.rule, size: 18),
+      label: const Text("Règles de transformation MCD → MLD"),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: const Color(0xFF1E88E5),
+        side: const BorderSide(color: Color(0xFF1E88E5)),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+    );
+  }
+
+  void _showRulesModal(BuildContext context, double scale) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: ThemeColors.sidebarBg(widget.theme),
+        title: Row(
+          children: [
+            const Icon(Icons.rule, color: Color(0xFF1E88E5)),
+            const SizedBox(width: 12),
+            const Expanded(child: Text("Règles de transformation MCD → MLD")),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildRuleItem(
+                "1",
+                "Toute entité devient une relation (table) avec ses attributs et clé primaire",
+                scale,
+              ),
+              const SizedBox(height: 8),
+              _buildRuleItem(
+                "2",
+                "Association binaire (1,1) → Clé étrangère dans la table concernée",
+                scale,
+              ),
+              const SizedBox(height: 8),
+              _buildRuleItem(
+                "3",
+                "Association n-aire ou N:N → Table d'association avec clés composées",
+                scale,
+              ),
+              const SizedBox(height: 8),
+              _buildRuleItem(
+                "4",
+                "Association réflexive → Relation (table)",
+                scale,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Fermer"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRuleItem(String number, String text, double scale) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E88E5).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Text(
+                number,
+                style: TextStyle(
+                  fontSize: 12 * scale,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1E88E5),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 13 * scale,
+                color: ThemeColors.textMain(
+                  widget.theme,
+                ).withValues(alpha: 0.8),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

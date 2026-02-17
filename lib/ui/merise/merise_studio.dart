@@ -15,7 +15,6 @@ import 'widgets/sql_view.dart';
 import 'widgets/query_view.dart';
 import 'widgets/simulation_view.dart';
 import 'widgets/regles_view.dart';
-import 'widgets/gdf_view.dart';
 import 'widgets/action_fab.dart';
 
 class MeriseStudio extends StatefulWidget {
@@ -356,8 +355,6 @@ class _MeriseStudioState extends State<MeriseStudio> {
         return QueryView(theme: theme, isMobile: isMobile);
       case 'simulation':
         return SimulationView(theme: theme, isMobile: isMobile);
-      case 'gdf':
-        return GdfView(theme: theme);
       default:
         return Center(
           child: Text(

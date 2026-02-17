@@ -8,6 +8,7 @@ abstract class ILlmService {
     List<Map<String, String>> messages, {
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
     bool isAgentMode = true,
     String userName = "Momo",
   });
@@ -17,6 +18,7 @@ abstract class ILlmService {
     List<Map<String, String>> messages, {
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
     bool isAgentMode = true,
     String userName = "Momo",
   });

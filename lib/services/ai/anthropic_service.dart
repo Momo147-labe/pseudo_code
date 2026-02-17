@@ -28,8 +28,9 @@ class AnthropicService implements ILlmService {
     bool isAgentMode,
     String userName,
   ) {
-    // Anthropic utilise un format légèrement différent
-    return messages.map((m) {
+    // Anthropic utilise un format légèrement différent et ne supporte pas le rôle 'system' dans les messages
+    // (le prompt système est passé via le paramètre 'system' séparément).
+    return messages.where((m) => m['role'] != 'system').map((m) {
       return {
         "role": m['role'] == 'assistant' ? 'assistant' : 'user',
         "content": m['content'],
@@ -42,6 +43,7 @@ class AnthropicService implements ILlmService {
     List<Map<String, String>> messages, {
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
     bool isAgentMode = true,
     String userName = "Momo",
   }) async {
@@ -55,6 +57,7 @@ class AnthropicService implements ILlmService {
         isAgentMode,
         contextCode: contextCode,
         mcdContext: mcdContext,
+        graphContext: graphContext,
       );
 
       final finalMessages = _prepareMessages(
@@ -100,6 +103,7 @@ class AnthropicService implements ILlmService {
     List<Map<String, String>> messages, {
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
     bool isAgentMode = true,
     String userName = "Momo",
   }) async* {
@@ -112,6 +116,7 @@ class AnthropicService implements ILlmService {
       isAgentMode,
       contextCode: contextCode,
       mcdContext: mcdContext,
+      graphContext: graphContext,
     );
 
     final finalMessages = _prepareMessages(

@@ -11,6 +11,9 @@ class ChallengeProvider with ChangeNotifier {
   List<Challenge> _challenges = [];
   List<Challenge> get challenges => _challenges;
 
+  List<String> _completedChallengeIds = [];
+  List<String> get completedChallengeIds => _completedChallengeIds;
+
   List<UserProfile> _leaderboard = [];
   List<UserProfile> get leaderboard => _leaderboard;
 
@@ -24,7 +27,12 @@ class ChallengeProvider with ChangeNotifier {
   Challenge? get activeChallenge => _activeChallenge;
 
   ChallengeProvider() {
-    loadMyProfile();
+    _init();
+  }
+
+  Future<void> _init() async {
+    await loadChallenges();
+    await loadMyProfile();
   }
 
   Future<void> loadChallenges() async {
@@ -32,12 +40,31 @@ class ChallengeProvider with ChangeNotifier {
     notifyListeners();
     try {
       _challenges = await _service.getChallenges();
+      _completedChallengeIds = await _service.getCompletedChallengeIds();
     } catch (e) {
       debugPrint("Error loading challenges: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  bool isChallengeUnlocked(String challengeId) {
+    if (_challenges.isEmpty) return false;
+
+    final index = _challenges.indexWhere((c) => c.id == challengeId);
+    if (index == -1) return false;
+
+    // First challenge is always unlocked
+    if (index == 0) return true;
+
+    // Subsequent challenges are unlocked if the previous one is completed
+    final previousChallengeId = _challenges[index - 1].id;
+    return _completedChallengeIds.contains(previousChallengeId);
+  }
+
+  bool isChallengeCompleted(String challengeId) {
+    return _completedChallengeIds.contains(challengeId);
   }
 
   Future<void> loadLeaderboard() async {
@@ -128,8 +155,12 @@ class ChallengeProvider with ChangeNotifier {
         success: success,
         timeTakenMs: timeTakenMs,
       );
-      // Reload profile to get updated XP
-      await loadMyProfile();
+
+      // Refresh completion list and profile
+      _completedChallengeIds = await _service.getCompletedChallengeIds();
+      await loadMyProfile(); // This updates XP and Level
+
+      notifyListeners();
     } catch (e) {
       debugPrint("Error submitting attempt: $e");
     }

@@ -7,6 +7,7 @@
 
 [Setup]
 ; ✅ INFORMATIONS OBLIGATOIRES (éviter "Éditeur inconnu")
+ChangesAssociations=yes
 AppId={{{#AppId}}}
 AppName={#AppName}
 AppVersion={#AppVersion}
@@ -14,12 +15,13 @@ AppPublisher={#AppPublisher}
 AppPublisherURL={#AppURL}
 AppSupportURL={#AppURL}/issues
 AppUpdatesURL={#AppURL}/releases
-AppCopyright=Copyright © 2024 {#AppPublisher}
+AppCopyright=Copyright © 2026 {#AppPublisher}
 VersionInfoVersion={#AppVersion}
 VersionInfoCompany={#AppPublisher}
 VersionInfoDescription={#AppName}
 VersionInfoProductName={#AppName}
 VersionInfoProductVersion={#AppVersion}
+
 
 ; ✅ CONFIGURATION INSTALLATION
 DefaultDirName={autopf}\{#AppName}

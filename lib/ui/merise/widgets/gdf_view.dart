@@ -320,21 +320,31 @@ class _GdfGraph extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Simple layout: attributes on a circle
+        // Calculer les niveaux hiérarchiques
+        final levels = _calculateHierarchicalLevels();
         final Map<String, Offset> positions = {};
-        final center = Offset(
-          constraints.maxWidth / 2,
-          constraints.maxHeight / 2,
-        );
-        final radius =
-            math.min(constraints.maxWidth, constraints.maxHeight) * 0.35;
 
-        for (int i = 0; i < attributes.length; i++) {
-          final angle = (i * 2 * math.pi) / attributes.length;
-          positions[attributes[i]] = Offset(
-            center.dx + radius * math.cos(angle),
-            center.dy + radius * math.sin(angle),
-          );
+        if (levels.isEmpty) {
+          // Pas de dépendances, afficher tous les attributs au même niveau
+          final y = constraints.maxHeight / 2;
+          final spacing = constraints.maxWidth / (attributes.length + 1);
+          for (int i = 0; i < attributes.length; i++) {
+            positions[attributes[i]] = Offset(spacing * (i + 1), y);
+          }
+        } else {
+          // Positionner les nœuds par niveau
+          final verticalSpacing = constraints.maxHeight / (levels.length + 1);
+
+          for (int levelIndex = 0; levelIndex < levels.length; levelIndex++) {
+            final levelAttrs = levels[levelIndex];
+            final y = verticalSpacing * (levelIndex + 1);
+            final horizontalSpacing =
+                constraints.maxWidth / (levelAttrs.length + 1);
+
+            for (int i = 0; i < levelAttrs.length; i++) {
+              positions[levelAttrs[i]] = Offset(horizontalSpacing * (i + 1), y);
+            }
+          }
         }
 
         return Stack(
@@ -347,8 +357,9 @@ class _GdfGraph extends StatelessWidget {
                 theme: theme,
               ),
             ),
-            ...attributes.map((attr) {
-              final pos = positions[attr]!;
+            ...positions.entries.map((entry) {
+              final attr = entry.key;
+              final pos = entry.value;
               return Positioned(
                 left: pos.dx - 40 * scale,
                 top: pos.dy - 15 * scale,
@@ -385,6 +396,74 @@ class _GdfGraph extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// Calcule les niveaux hiérarchiques des attributs
+  List<List<String>> _calculateHierarchicalLevels() {
+    if (dependencies.isEmpty) return [];
+
+    // Construire le graphe de dépendances
+    final Map<String, Set<String>> dependsOn = {}; // attr -> ses sources
+    final Map<String, Set<String>> dependents = {}; // attr -> ses cibles
+
+    for (final attr in attributes) {
+      dependsOn[attr] = {};
+      dependents[attr] = {};
+    }
+
+    for (final df in dependencies) {
+      for (final target in df.targetAttributes) {
+        for (final source in df.sourceAttributes) {
+          if (attributes.contains(source) && attributes.contains(target)) {
+            dependsOn[target]!.add(source);
+            dependents[source]!.add(target);
+          }
+        }
+      }
+    }
+
+    // Calculer les niveaux
+    final List<List<String>> levels = [];
+    final Set<String> placed = {};
+
+    // Niveau 0 : attributs sources (qui ne dépendent de rien)
+    final level0 = attributes
+        .where((attr) => dependsOn[attr]!.isEmpty)
+        .toList();
+    if (level0.isNotEmpty) {
+      levels.add(level0);
+      placed.addAll(level0);
+    }
+
+    // Niveaux suivants
+    while (placed.length < attributes.length) {
+      final nextLevel = <String>[];
+
+      for (final attr in attributes) {
+        if (placed.contains(attr)) continue;
+
+        // Vérifier si toutes les dépendances sont déjà placées
+        final deps = dependsOn[attr]!;
+        if (deps.isEmpty || deps.every((d) => placed.contains(d))) {
+          nextLevel.add(attr);
+        }
+      }
+
+      if (nextLevel.isEmpty) {
+        // Cycle détecté ou attributs isolés, les placer au dernier niveau
+        final remaining = attributes.where((a) => !placed.contains(a)).toList();
+        if (remaining.isNotEmpty) {
+          levels.add(remaining);
+          placed.addAll(remaining);
+        }
+        break;
+      }
+
+      levels.add(nextLevel);
+      placed.addAll(nextLevel);
+    }
+
+    return levels;
   }
 }
 

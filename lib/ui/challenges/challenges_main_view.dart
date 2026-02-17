@@ -4,7 +4,7 @@ import '../../providers/challenge_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../theme.dart';
 import 'challenge_list_view.dart';
-import 'leaderboard_view.dart';
+import 'completed_challenges_view.dart';
 import 'challenge_detail_view.dart';
 
 class ChallengesMainView extends StatefulWidget {
@@ -61,14 +61,14 @@ class _ChallengesMainViewState extends State<ChallengesMainView>
             ),
             tabs: const [
               Tab(text: "DÉFIS DISPONIBLES"),
-              Tab(text: "CLASSEMENT AMIS"),
+              Tab(text: "DÉFIS RÉALISÉS"),
             ],
           ),
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [ChallengeListView(), LeaderboardView()],
+        children: const [ChallengeListView(), CompletedChallengesView()],
       ),
     );
   }

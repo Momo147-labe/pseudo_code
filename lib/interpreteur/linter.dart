@@ -69,23 +69,49 @@ class Linter {
       );
     }
 
-    // 1. Extract all declared variables
+    // 1. Extract all declared identifiers (Variables, Constantes, Types, Fonctions)
     final Map<String, int> declarations = {}; // name -> line index
     bool dansVariables = false;
 
     for (int i = 0; i < lines.length; i++) {
-      final line = lines[i].trim().toLowerCase();
+      String lineFull = lines[i];
+      // Ignorer les commentaires pour l'analyse des identifiants
+      String line = lineFull.split('//')[0].trim();
+      String lineLower = line.toLowerCase();
 
-      // 1.1 Detection of constants
-      if (line.startsWith('const ')) {
-        final matches = RegExp(r'const\s+([a-zA-Z_]\w*)').allMatches(line);
-        for (final m in matches) {
-          declarations[m.group(1)!] = i + 1;
+      if (line.isEmpty) continue;
+
+      // 1.1 Détection des constantes (Gestion du multi-constantes sur une ligne)
+      if (lineLower.startsWith('const ')) {
+        final content = line.substring(6);
+        final parts = content.split(',');
+        for (final p in parts) {
+          final m = RegExp(r'([a-zA-Z_]\w*)').firstMatch(p);
+          if (m != null) {
+            declarations[m.group(1)!.toLowerCase()] = i + 1;
+          }
         }
       }
 
-      // 1.2 Detection of procedure/function parameters
-      if (line.startsWith('procedure ') || line.startsWith('fonction ')) {
+      // 1.2 Détection des types et structures
+      if (lineLower.startsWith('type ')) {
+        final m = RegExp(
+          r'type\s+([a-zA-Z_]\w*)',
+          caseSensitive: false,
+        ).firstMatch(line);
+        if (m != null) {
+          declarations[m.group(1)!.toLowerCase()] = i + 1;
+        }
+        // Un début de type/structure ferme le bloc Variables s'il était ouvert
+        dansVariables = false;
+      }
+
+      // 1.3 Détection des sous-programmes
+      if (lineLower.startsWith('procedure ') ||
+          lineLower.startsWith('fonction ')) {
+        // Un début de SP ferme le bloc Variables s'il était ouvert
+        dansVariables = false;
+
         final paramsMatch = RegExp(r'\((.*?)\)').firstMatch(line);
         if (paramsMatch != null) {
           final params = paramsMatch.group(1)!.split(',');
@@ -93,22 +119,25 @@ class Linter {
             final parts = p.trim().split(':');
             if (parts.isNotEmpty) {
               final name = parts[0].trim();
-              if (name.isNotEmpty) declarations[name] = i + 1;
+              if (name.isNotEmpty) declarations[name.toLowerCase()] = i + 1;
             }
           }
         }
-        // Also register the procedure/function name itself
+        // Enregistrer le nom de la procédure/fonction elle-même
         final nameMatch = RegExp(
           r'(?:procedure|fonction)\s+([a-zA-Z_]\w*)',
+          caseSensitive: false,
         ).firstMatch(line);
-        if (nameMatch != null) declarations[nameMatch.group(1)!] = i + 1;
+        if (nameMatch != null) {
+          declarations[nameMatch.group(1)!.toLowerCase()] = i + 1;
+        }
       }
 
-      if (line == 'variables') {
+      if (lineLower == 'variables') {
         dansVariables = true;
         continue;
       }
-      if (line == 'début' || line == 'debut') {
+      if (lineLower == 'début' || lineLower == 'debut') {
         dansVariables = false;
         continue;
       }
@@ -118,59 +147,74 @@ class Linter {
         final names = parts[0].split(',').map((e) => e.trim());
         for (final name in names) {
           if (name.isNotEmpty) {
-            declarations[name.toLowerCase()] = i + 1;
+            final lowerName = name.toLowerCase();
+            if (declarations.containsKey(lowerName)) {
+              issues.add(
+                LintIssue(
+                  line: i + 1,
+                  message: "La variable '$name' est déjà déclarée.",
+                  type: LintType.error,
+                  ruleId: 'duplicate_declaration',
+                  documentation:
+                      "Une variable ne peut être déclarée qu'une seule fois dans le même bloc de variables.",
+                ),
+              );
+            } else {
+              declarations[lowerName] = i + 1;
+            }
           }
         }
       }
     }
 
-    // 2. Search for usages
+    // 2. Recherche des utilisations
     final Set<String> usages = {};
     bool dansDebut = false;
 
+    // Regex supportant les accents (Français courant)
+    final wordRegex = RegExp(r'[a-zA-Z_à-ÿÀ-ß][a-zA-Z0-9_à-ÿÀ-ß]*');
+
     for (int i = 0; i < lines.length; i++) {
-      final line = lines[i].trim().toLowerCase();
-      if (line == 'début' || line == 'debut') {
+      String line = lines[i].split('//')[0].trim();
+      String lineLower = line.toLowerCase();
+
+      if (lineLower == 'début' || lineLower == 'debut') {
         dansDebut = true;
         continue;
       }
-      if (line == 'fin') {
+      if (lineLower == 'fin') {
         dansDebut = false;
         continue;
       }
 
-      if (dansDebut) {
-        // remove strings first
-        String cleanedLine = lines[i].replaceAll(RegExp(r'".*?"'), ' ');
-        // We avoid flagging fields (object.field) by ignoring words preceded by a dot
-        // Simple heuristic: we replace ".something" with whitespace
-        cleanedLine = cleanedLine.replaceAll(RegExp(r'\.\w+'), ' ');
+      // On traque aussi les usages dans les signatures et le corps des variables (types personnalisés)
+      String cleanedLine = line.replaceAll(RegExp(r'".*?"'), ' ');
+      cleanedLine = cleanedLine.replaceAll(RegExp(r'\.\w+'), ' ');
 
-        final words = RegExp(r'\b[a-zA-Z_]\w*\b').allMatches(cleanedLine);
-        for (final match in words) {
-          final word = match.group(0)!.toLowerCase();
-          if (declarations.containsKey(word)) {
-            usages.add(word);
-          }
+      final matches = wordRegex.allMatches(cleanedLine);
+      for (final match in matches) {
+        final word = match.group(0)!.toLowerCase();
+        if (declarations.containsKey(word)) {
+          usages.add(word);
         }
       }
     }
 
-    // 3. Find anomalies
+    // 3. Trouver les anomalies (Inutilisées)
     declarations.forEach((name, line) {
       if (!usages.contains(name)) {
         issues.add(
           LintIssue(
             line: line,
-            message: "Variable '$name' déclarée mais jamais utilisée.",
+            message:
+                "Variable ou identifiant '$name' déclaré mais jamais utilisé.",
             type: LintType.warning,
           ),
         );
       }
     });
 
-    // 4. Find undeclared variables (used but not in declarations)
-    // We filter out common keywords that might be caught by the regex
+    // 4. Trouver les variables non déclarées
     final commonKeywords = {
       'lire',
       'écrire',
@@ -192,6 +236,7 @@ class Linter {
       'de',
       'à',
       'a',
+      'pas',
       'finpour',
       'fpour',
       'repeter',
@@ -232,53 +277,64 @@ class Linter {
       'non',
     };
 
-    bool inDebut = false;
+    dansDebut = false;
+    dansVariables = false;
+    bool dansStructure = false;
+
     for (int i = 0; i < lines.length; i++) {
-      final line = lines[i].trim().toLowerCase();
-      if (line == 'variables') {
+      String lineFull = lines[i];
+      String line = lineFull.split('//')[0].trim();
+      String lineLower = line.toLowerCase();
+
+      if (lineLower == 'variables') {
         dansVariables = true;
         continue;
       }
-      if (line == 'début' || line == 'debut') {
-        inDebut = true;
+      if (lineLower == 'début' || lineLower == 'debut') {
+        dansDebut = true;
         dansVariables = false;
         continue;
       }
-      if (line == 'fin') {
-        inDebut = false;
+      if (lineLower == 'fin') {
+        dansDebut = false;
+        continue;
+      }
+      if (lineLower.contains('structure') && lineLower.startsWith('type')) {
+        dansStructure = true;
+      }
+      if (lineLower == 'finstructure') {
+        dansStructure = false;
         continue;
       }
 
-      if (inDebut) {
-        // Ignore words inside strings
-        String cleanedLine = lines[i].replaceAll(RegExp(r'".*?"'), ' ');
-        // Ignore words following a dot to avoid flagging fields as undeclared variables
+      // Fermeture auto du bloc variables sur structure/SP
+      if (lineLower.startsWith('type ') ||
+          lineLower.startsWith('fonction ') ||
+          lineLower.startsWith('procedure ')) {
+        dansVariables = false;
+      }
+
+      // On ne flag pas les identifiants déclarés ou les mots-clés
+      // On ignore aussi l'intérieur des structures (ce sont des déclarations de champs)
+      if ((dansDebut || dansVariables || lineLower.contains(':')) &&
+          !dansStructure) {
+        String cleanedLine = line.replaceAll(RegExp(r'".*?"'), ' ');
         cleanedLine = cleanedLine.replaceAll(RegExp(r'\.\w+'), ' ');
 
-        final words = RegExp(r'\b[a-zA-Z_]\w*\b').allMatches(cleanedLine);
-        for (final match in words) {
+        final matches = wordRegex.allMatches(cleanedLine);
+        for (final match in matches) {
           final word = match.group(0)!.toLowerCase();
           if (!declarations.containsKey(word) &&
               !commonKeywords.contains(word)) {
-            // Check if it's already an issue to avoid duplicates on same line
             if (!issues.any(
               (iss) => iss.line == i + 1 && iss.message.contains("'$word'"),
             )) {
               issues.add(
                 LintIssue(
                   line: i + 1,
-                  message: "Variable '$word' utilisée mais non déclarée.",
+                  message: "Identifiant '$word' utilisé mais non déclaré.",
                   type: LintType.error,
                   ruleId: 'undeclared_variable',
-                  documentation:
-                      "Toutes les variables doivent être déclarées dans la section 'Variables' avant d'être utilisées dans le corps du programme ('Début'...'Fin').",
-                  fixes: [
-                    LintFix(
-                      title: "Déclarer '$word : entier'",
-                      replacement:
-                          "// Ajouter dans Variables -> $word : entier",
-                    ),
-                  ],
                 ),
               );
             }
@@ -286,17 +342,13 @@ class Linter {
         }
       }
 
-      // 5. Syntax validation for declarations
+      // 5. Validation syntaxique des noms dans les déclarations
       if (dansVariables && line.contains(':')) {
-        final parts = lines[i].split(':');
-        final namesStr = parts[0];
-        final names = namesStr.split(',').map((e) => e.trim());
-
+        final parts = line.split(':');
+        final names = parts[0].split(',').map((e) => e.trim());
         for (final name in names) {
           if (name.isNotEmpty) {
-            // A. Check for invalid characters (like @, $, etc.)
             if (RegExp(r'[^a-zA-Z0-9_]').hasMatch(name)) {
-              final suggestion = name.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '');
               issues.add(
                 LintIssue(
                   line: i + 1,
@@ -304,59 +356,16 @@ class Linter {
                       "Le nom de variable '$name' contient des caractères invalides.",
                   type: LintType.error,
                   ruleId: 'invalid_identifier_chars',
-                  documentation:
-                      "Les noms de variables ne peuvent contenir que des lettres, des chiffres et le caractère souligné (_). Les caractères spéciaux comme @, #, \$, % sont interdits.",
-                  fixes: suggestion.isNotEmpty
-                      ? [
-                          LintFix(
-                            title: "Nettoyer en '$suggestion'",
-                            replacement: lines[i].replaceFirst(
-                              name,
-                              suggestion,
-                            ),
-                          ),
-                        ]
-                      : null,
                 ),
               );
-              continue; // Skip other checks if chars are invalid
-            }
-
-            // B. Check if name starts with a digit
-            if (RegExp(r'^\d').hasMatch(name)) {
-              final suggestion = name.replaceFirst(RegExp(r'^\d+'), '');
+            } else if (RegExp(r'^\d').hasMatch(name)) {
               issues.add(
                 LintIssue(
                   line: i + 1,
                   message:
-                      "Le nom de variable '$name' est invalide. Un identifiant ne peut pas commencer par un chiffre.",
+                      "Le nom de variable '$name' ne peut pas commencer par un chiffre.",
                   type: LintType.error,
                   ruleId: 'invalid_identifier_start',
-                  documentation:
-                      "Les identifiants (noms de variables, fonctions, etc.) doivent commencer par une lettre ou un souligné (_). Ils ne peuvent pas commencer par un chiffre.",
-                  fixes: suggestion.isNotEmpty
-                      ? [
-                          LintFix(
-                            title: "Renommer en '$suggestion'",
-                            replacement: lines[i].replaceFirst(
-                              name,
-                              suggestion,
-                            ),
-                          ),
-                          LintFix(
-                            title: "Ajouter un préfixe 'var_$name'",
-                            replacement: lines[i].replaceFirst(
-                              name,
-                              'var_$name',
-                            ),
-                          ),
-                        ]
-                      : [
-                          LintFix(
-                            title: "Ajouter un préfixe 'v$name'",
-                            replacement: lines[i].replaceFirst(name, 'v$name'),
-                          ),
-                        ],
                 ),
               );
             }

@@ -45,8 +45,12 @@ class Environnement {
   }
 
   void declarer(String nom, dynamic valeur, String type) {
-    variables[nom.toLowerCase()] = valeur;
-    types[nom.toLowerCase()] = type;
+    final lower = nom.toLowerCase();
+    if (variables.containsKey(lower) || constantes.containsKey(lower)) {
+      throw Exception("La variable '$nom' est déjà déclarée.");
+    }
+    variables[lower] = valeur;
+    types[lower] = type;
   }
 
   void declarerConstante(String nom, dynamic valeur) {

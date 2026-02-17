@@ -86,8 +86,10 @@ class AiProvider with ChangeNotifier {
     String text,
     String? contextCode, {
     String? mcdContext,
+    String? graphContext,
     List<String>? currentLints,
     bool? isAgentMode,
+
     Function(String)? onCodeUpdate,
     Function(String)? onCodeInsert,
     Function(String)? onMeriseUpdate,
@@ -133,6 +135,7 @@ class AiProvider with ChangeNotifier {
         historyToSend,
         contextCode,
         mcdContext,
+        graphContext,
         agentMode,
       );
 
@@ -156,7 +159,9 @@ class AiProvider with ChangeNotifier {
                 historyToSend,
                 contextCode: contextCode,
                 mcdContext: mcdContext,
+                graphContext: graphContext,
                 isAgentMode: agentMode,
+
                 userName: currentLints != null && currentLints.isNotEmpty
                     ? "Momo (Lints actifs: ${currentLints.join(', ')})"
                     : "Momo",
@@ -179,6 +184,7 @@ class AiProvider with ChangeNotifier {
           historyToSend,
           contextCode,
           mcdContext,
+          graphContext,
           agentMode,
           fullResponse,
         );

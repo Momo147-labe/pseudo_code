@@ -22,12 +22,14 @@ class AiCacheService {
     List<Map<String, String>> messages,
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
     bool isAgentMode,
   ) {
     final content = jsonEncode({
       'messages': messages,
       'contextCode': contextCode,
       'mcdContext': mcdContext,
+      'graphContext': graphContext,
       'isAgentMode': isAgentMode,
     });
 
@@ -41,9 +43,16 @@ class AiCacheService {
     List<Map<String, String>> messages,
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
     bool isAgentMode,
   ) async {
-    final key = _generateKey(messages, contextCode, mcdContext, isAgentMode);
+    final key = _generateKey(
+      messages,
+      contextCode,
+      mcdContext,
+      graphContext,
+      isAgentMode,
+    );
 
     // Vérifier le cache mémoire d'abord
     if (_memoryCache.containsKey(key)) {
@@ -91,11 +100,19 @@ class AiCacheService {
     List<Map<String, String>> messages,
     String? contextCode,
     String? mcdContext,
+    String? graphContext,
     bool isAgentMode,
     String response, {
     Duration? expiration,
   }) async {
-    final key = _generateKey(messages, contextCode, mcdContext, isAgentMode);
+    final key = _generateKey(
+      messages,
+      contextCode,
+      mcdContext,
+      graphContext,
+      isAgentMode,
+    );
+
     final exp = expiration ?? _defaultExpiration;
     final expirationDate = DateTime.now().add(exp);
 

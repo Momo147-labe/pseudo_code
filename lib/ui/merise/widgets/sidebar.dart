@@ -60,14 +60,6 @@ class MeriseSidebar extends StatelessWidget {
                   scale: scale,
                   onTap: () => provider.setActiveView('dictionnaire'),
                 ),
-                _NavItem(
-                  icon: Icons.alt_route,
-                  label: "GDF (Dépendances)",
-                  isActive: provider.activeView == 'gdf',
-                  theme: theme,
-                  scale: scale,
-                  onTap: () => provider.setActiveView('gdf'),
-                ),
                 if (!isMobile) ...[
                   const SizedBox(height: 24),
                   _buildSectionLabel("Palette MCD", scale),

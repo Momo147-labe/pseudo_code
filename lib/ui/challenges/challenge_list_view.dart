@@ -123,93 +123,127 @@ class _ChallengeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final challengeProvider = context.watch<ChallengeProvider>();
     final isDark = theme != AppTheme.light && theme != AppTheme.papier;
+    final isUnlocked = challengeProvider.isChallengeUnlocked(challenge.id);
+    final isCompleted = challengeProvider.isChallengeCompleted(challenge.id);
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          context.read<ChallengeProvider>().setActiveChallenge(challenge);
-          // Navigation logic will be handled in a DetailView
-        },
+        onTap: isUnlocked
+            ? () {
+                context.read<ChallengeProvider>().setActiveChallenge(challenge);
+              }
+            : null,
         borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF252526) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: isDark ? 0.05 : 0.1),
+        child: Opacity(
+          opacity: isUnlocked ? 1.0 : 0.5,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF252526) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isCompleted
+                    ? Colors.greenAccent.withValues(alpha: 0.3)
+                    : Colors.white.withValues(alpha: isDark ? 0.05 : 0.1),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _DifficultyTag(difficulty: challenge.difficulty),
-                  Text(
-                    "${challenge.xpReward} XP",
-                    style: const TextStyle(
-                      color: Colors.amber,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+            child: Stack(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _DifficultyTag(difficulty: challenge.difficulty),
+                        Row(
+                          children: [
+                            if (isCompleted)
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.greenAccent,
+                                size: 16,
+                              ),
+                            if (isCompleted) const SizedBox(width: 8),
+                            Text(
+                              "${challenge.xpReward} XP",
+                              style: TextStyle(
+                                color: isCompleted
+                                    ? Colors.greenAccent
+                                    : Colors.amber,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                challenge.title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: Text(
-                  challenge.description,
-                  style: TextStyle(
-                    color: ThemeColors.textMain(theme).withValues(alpha: 0.6),
-                    fontSize: 13,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    "COMMENCER",
-                    style: TextStyle(
-                      color: ThemeColors.vscodeBlue,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                    const SizedBox(height: 12),
+                    Text(
+                      challenge.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.arrow_forward,
-                    size: 14,
-                    color: ThemeColors.vscodeBlue,
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: Text(
+                        challenge.description,
+                        style: TextStyle(
+                          color: ThemeColors.textMain(
+                            theme,
+                          ).withValues(alpha: 0.6),
+                          fontSize: 13,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          isUnlocked
+                              ? (isCompleted ? "RÉESSAYER" : "COMMENCER")
+                              : "VERROUILLÉ",
+                          style: TextStyle(
+                            color: isUnlocked
+                                ? ThemeColors.vscodeBlue
+                                : Colors.grey,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          isUnlocked ? Icons.arrow_forward : Icons.lock_outline,
+                          size: 14,
+                          color: isUnlocked
+                              ? ThemeColors.vscodeBlue
+                              : Colors.grey,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

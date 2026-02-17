@@ -1,0 +1,14 @@
+[
+    {
+        "regle1": "Toute entité devient une relation dans laquelle les attributs traduisent les propriétés de l'entité et la clé primaire traduit l'identifiant de l'entité"
+    },
+    {
+        "regle2": "Une association de dimension 2 avec cardinalité (1,1) n'est pas traduite par une relation mais occasionne l'apparition de l'indentifiant de l'autre entité dans la relation traduisant l'entité implique avec la cardinalité(1,1)"
+    },
+    {
+        "regle3": "Une association de dimension supérieur ou égal à 2 avec cardinalité maximale égale à n sur chaque pate est traduite par une realtion et la clé primaire de la realtion résultante est composée des identifiants des entités impliqueées dans la collection"
+    },
+    {
+        "regle4": "une association réflexive est traduite par une relation quelque soit la cardinalité"
+    }
+]

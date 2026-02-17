@@ -259,22 +259,8 @@ class McdAnalyzer {
 
     for (final entity in mcd.entities) {
       for (final attr in entity.attributes) {
-        // Vérifier si le type est générique
-        final rawType = attr.type;
-        final canon = SqlUtils.canonicalType(rawType);
-        if (canon == 'string') {
-          issues.add(
-            NormalizationIssue(
-              title: 'Type d\'attribut générique',
-              description:
-                  'L\'attribut "${attr.name}" de "${entity.name}" utilise un type générique (chaine/string).',
-              severity: IssueSeverity.info,
-              affectedEntityId: entity.id,
-              suggestion:
-                  'Spécifiez un type plus précis selon la nature de la donnée : Entier, Date, Booleen, Texte, etc.',
-            ),
-          );
-        }
+        // Note: La vérification du type générique (string/chaine) a été retirée
+        // car elle générait trop d'avertissements non pertinents
 
         // Vérifier les noms d'attributs vides
         if (attr.name.trim().isEmpty) {

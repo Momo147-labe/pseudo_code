@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:pseudo_code/services/ai/illm_service.dart';
 import 'package:pseudo_code/services/ai/groq_service.dart';
-import 'package:pseudo_code/services/ai/openai_service.dart';
 import 'package:pseudo_code/services/ai/anthropic_service.dart';
 import 'package:pseudo_code/services/ai/ollama_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,8 +12,6 @@ class ModelSelectorService {
 
   // Types de modèles disponibles
   static const String modelGroq = 'groq';
-  static const String modelOpenAiGpt4 = 'openai_gpt4';
-  static const String modelOpenAiGpt35 = 'openai_gpt35';
   static const String modelClaudeOpus = 'claude_opus';
   static const String modelClaudeSonnet = 'claude_sonnet';
   static const String modelClaudeHaiku = 'claude_haiku';
@@ -42,10 +39,6 @@ class ModelSelectorService {
   /// Retourne le service AI approprié selon la sélection
   ILlmService getService() {
     switch (_selectedModel) {
-      case modelOpenAiGpt4:
-        return OpenAiService(model: OpenAiService.modelGpt4);
-      case modelOpenAiGpt35:
-        return OpenAiService(model: OpenAiService.modelGpt35Turbo);
       case modelClaudeOpus:
         return AnthropicService(model: AnthropicService.modelClaude3Opus);
       case modelClaudeSonnet:
@@ -66,10 +59,7 @@ class ModelSelectorService {
   }
 
   /// Sélection intelligente basée sur la complexité de la tâche
-  ///
-  /// [complexity] : 0-10, où 0 = très simple, 10 = très complexe
   ILlmService getServiceForTask(int complexity) {
-    // Si préférence pour local et Ollama disponible, l'utiliser pour tâches simples
     if (_preferLocal &&
         _ollamaService != null &&
         _ollamaService!.isAvailable &&
@@ -77,8 +67,6 @@ class ModelSelectorService {
       debugPrint('Utilisation Ollama (local) pour tâche simple');
       return _ollamaService!;
     }
-
-    // Pour tâches complexes, utiliser le modèle sélectionné
     return getService();
   }
 
@@ -106,29 +94,13 @@ class ModelSelectorService {
 
   /// Retourne la liste des modèles disponibles
   Future<List<Map<String, dynamic>>> getAvailableModels() async {
-    final models = [
+    final List<Map<String, dynamic>> models = [
       {
         'id': modelGroq,
         'name': 'Llama 3.1 8B (Groq)',
         'provider': 'Groq',
         'cost': 'Très bas',
         'speed': 'Très rapide',
-        'available': true,
-      },
-      {
-        'id': modelOpenAiGpt35,
-        'name': 'GPT-3.5 Turbo',
-        'provider': 'OpenAI',
-        'cost': 'Bas',
-        'speed': 'Rapide',
-        'available': true,
-      },
-      {
-        'id': modelOpenAiGpt4,
-        'name': 'GPT-4',
-        'provider': 'OpenAI',
-        'cost': 'Élevé',
-        'speed': 'Moyen',
         'available': true,
       },
       {
@@ -157,7 +129,6 @@ class ModelSelectorService {
       },
     ];
 
-    // Ajouter Ollama si disponible
     if (_ollamaService != null) {
       final available = await _ollamaService!.checkAvailability();
       models.add({

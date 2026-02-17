@@ -43,6 +43,86 @@ class CodeEditorController extends TextEditingController {
     }
   }
 
+  // --- Bracket Matching Logic ---
+  int? _matchStart;
+  int? _matchEnd;
+
+  void _findMatchingBrackets() {
+    _matchStart = null;
+    _matchEnd = null;
+
+    final selection = this.selection;
+    if (!selection.isValid || !selection.isCollapsed) return;
+
+    final offset = selection.baseOffset;
+    if (offset >= text.length) return;
+
+    final char = text[offset];
+    final brackets = {
+      '(': ')',
+      '[': ']',
+      '{': '}',
+      ')': '(',
+      ']': '[',
+      '}': '{',
+    };
+
+    if (!brackets.containsKey(char)) {
+      // Try character just before cursor
+      if (offset > 0) {
+        final prevChar = text[offset - 1];
+        if (brackets.containsKey(prevChar)) {
+          _findMatch(offset - 1, prevChar, brackets);
+        }
+      }
+      return;
+    }
+
+    _findMatch(offset, char, brackets);
+  }
+
+  void _findMatch(int startIndex, String char, Map<String, String> pairs) {
+    final target = pairs[char]!;
+    final isForward = '([{'.contains(char);
+    int depth = 0;
+
+    if (isForward) {
+      for (int i = startIndex; i < text.length; i++) {
+        final c = text[i];
+        if (c == char)
+          depth++;
+        else if (c == target) {
+          depth--;
+          if (depth == 0) {
+            _matchStart = startIndex;
+            _matchEnd = i;
+            return;
+          }
+        }
+      }
+    } else {
+      for (int i = startIndex; i >= 0; i--) {
+        final c = text[i];
+        if (c == char)
+          depth++;
+        else if (c == target) {
+          depth--;
+          if (depth == 0) {
+            _matchStart = i;
+            _matchEnd = startIndex;
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  @override
+  set selection(TextSelection newSelection) {
+    super.selection = newSelection;
+    _findMatchingBrackets();
+  }
+
   List<String> _extraireNomsSousProgrammes() {
     final List<String> noms = [];
     final reg = RegExp(
@@ -58,21 +138,108 @@ class CodeEditorController extends TextEditingController {
 
   List<String> _extraireVariables() {
     final List<String> noms = [];
-    // Recherche grossière dans le bloc Variables
-    final reg = RegExp(
-      r'^(\s*)([a-zA-Z_]\w*\s*(?:,\s*[a-zA-Z_]\w*\s*)*):',
-      multiLine: true,
-    );
-    for (final m in reg.allMatches(text)) {
-      final line = m.group(0)!;
-      if (line.toLowerCase().contains('algorithme') ||
-          line.toLowerCase().contains('type'))
-        continue;
-      final vars = m.group(2)!.split(',').map((e) => e.trim());
-      for (final v in vars) {
-        if (v.isNotEmpty && !noms.contains(v)) noms.add(v);
+    final selection = this.selection;
+    if (!selection.isValid) return noms;
+
+    final String code = text;
+    final int cursorOffset = selection.baseOffset;
+
+    // Identify current scope
+    final lines = code.split('\n');
+    int currentLineIdx = 0;
+    int currentOffset = 0;
+    for (int i = 0; i < lines.length; i++) {
+      if (currentOffset <= cursorOffset &&
+          cursorOffset <= currentOffset + lines[i].length) {
+        currentLineIdx = i;
+        break;
+      }
+      currentOffset += lines[i].length + 1;
+    }
+
+    // Find start of current sub-program if any
+    int scopeStart = -1;
+    for (int i = currentLineIdx; i >= 0; i--) {
+      if (RegExp(
+        r'^\s*(fonction|procedure|algorithme)\b',
+        caseSensitive: false,
+      ).hasMatch(lines[i])) {
+        scopeStart = i;
+        break;
       }
     }
+
+    // Extract variables only in relevant sections:
+    // - Global Variables block
+    // - Local Variables of current sub-program
+    // - Function parameters
+
+    final varReg = RegExp(
+      r'([a-zA-Z_]\w*)\s*(?:,\s*[a-zA-Z_]\w*\s*)*:',
+      caseSensitive: false,
+    );
+
+    // Scan global variables (before any function/procedure)
+    for (int i = 0; i < lines.length; i++) {
+      if (RegExp(
+        r'^\s*(fonction|procedure)\b',
+        caseSensitive: false,
+      ).hasMatch(lines[i]))
+        break;
+      final m = varReg.firstMatch(lines[i]);
+      if (m != null) {
+        final vars = m.group(0)!.split(':')[0].split(',').map((e) => e.trim());
+        for (final v in vars)
+          if (v.isNotEmpty && !noms.contains(v)) noms.add(v);
+      }
+    }
+
+    // Scan local variables if inside a scope
+    if (scopeStart != -1) {
+      // Add parameters
+      final paramMatch = RegExp(
+        r'\((.*?)\)',
+        caseSensitive: false,
+      ).firstMatch(lines[scopeStart]);
+      if (paramMatch != null) {
+        final params = paramMatch
+            .group(1)!
+            .split(RegExp(r'[,;]'))
+            .map((e) => e.trim().split(':')[0].trim());
+        for (final p in params)
+          if (p.isNotEmpty && !noms.contains(p)) noms.add(p);
+      }
+
+      // Add local variables (look for 'Variables' block after sub-program declaration)
+      bool inVarBlock = false;
+      for (int i = scopeStart + 1; i < lines.length; i++) {
+        if (RegExp(
+          r'^\s*(fonction|procedure|début)\b',
+          caseSensitive: false,
+        ).hasMatch(lines[i]))
+          break;
+        if (RegExp(
+          r'^\s*variables\b',
+          caseSensitive: false,
+        ).hasMatch(lines[i])) {
+          inVarBlock = true;
+          continue;
+        }
+        if (inVarBlock) {
+          final m = varReg.firstMatch(lines[i]);
+          if (m != null) {
+            final vars = m
+                .group(0)!
+                .split(':')[0]
+                .split(',')
+                .map((e) => e.trim());
+            for (final v in vars)
+              if (v.isNotEmpty && !noms.contains(v)) noms.add(v);
+          }
+        }
+      }
+    }
+
     return noms;
   }
 
@@ -274,6 +441,25 @@ class CodeEditorController extends TextEditingController {
           fontWeight: fontWeight,
         );
         tokenStyle = getFoldedStyle(tokenStyle, lineIdx)!;
+
+        // Bracket Matching Highlight
+        if (_matchStart != null && _matchEnd != null) {
+          if (currentTokenOffset >= _matchStart! &&
+              currentTokenOffset + lineSegment.length <= _matchStart! + 1) {
+            tokenStyle = tokenStyle.copyWith(
+              backgroundColor: Colors.blue.withValues(alpha: 0.4),
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            );
+          } else if (currentTokenOffset >= _matchEnd! &&
+              currentTokenOffset + lineSegment.length <= _matchEnd! + 1) {
+            tokenStyle = tokenStyle.copyWith(
+              backgroundColor: Colors.blue.withValues(alpha: 0.4),
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            );
+          }
+        }
 
         // Erreur exécution
         if (errorStart != -1 &&

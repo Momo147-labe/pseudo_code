@@ -535,11 +535,13 @@ class _SidebarHeader extends StatelessWidget {
             children: [
               _HeaderAction(
                 icon: Icons.note_add_outlined,
-                onPressed: () => _showNameDialog(context, "Nouveau Fichier", (
-                  name,
-                ) {
-                  fileProvider.createFile(fileProvider.currentDirectory, name);
-                }),
+                onPressed: () => _showFileTypeDialog(
+                  context,
+                  fileProvider.currentDirectory,
+                  p.basename(fileProvider.currentDirectory),
+                  fileProvider,
+                  theme,
+                ),
               ),
               _HeaderAction(
                 icon: Icons.create_new_folder_outlined,
@@ -589,12 +591,22 @@ class _SidebarHeader extends StatelessWidget {
           autofocus: true,
           style: TextStyle(color: ThemeColors.textBright(theme)),
           decoration: InputDecoration(
+            hintText: 'Nom...',
+            hintStyle: TextStyle(
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.4),
+            ),
             enabledBorder: UnderlineInputBorder(
               borderSide: BorderSide(
                 color: ThemeColors.textMain(theme).withValues(alpha: 0.2),
               ),
             ),
           ),
+          onSubmitted: (value) {
+            if (value.isNotEmpty) {
+              onConfirm(value);
+              Navigator.pop(context);
+            }
+          },
         ),
         actions: [
           TextButton(
@@ -692,6 +704,14 @@ class _FolderItem extends StatelessWidget {
               ),
               padding: EdgeInsets.zero,
               itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'newFile',
+                  child: Text('Nouveau fichier'),
+                ),
+                const PopupMenuItem(
+                  value: 'newFolder',
+                  child: Text('Nouveau dossier'),
+                ),
                 const PopupMenuItem(value: 'rename', child: Text('Renommer')),
                 const PopupMenuItem(
                   value: 'delete',
@@ -699,7 +719,18 @@ class _FolderItem extends StatelessWidget {
                 ),
               ],
               onSelected: (value) {
-                if (value == 'rename') {
+                if (value == 'newFile') {
+                  _showFileTypeDialog(context, path, name, fileProvider, theme);
+                } else if (value == 'newFolder') {
+                  _showNameDialog(context, "Nouveau Dossier dans $name", (
+                    folderName,
+                  ) {
+                    fileProvider.createDirectory(path, folderName);
+                    if (!fileProvider.expandedFolders.contains(path)) {
+                      fileProvider.toggleFolder(path);
+                    }
+                  }, theme);
+                } else if (value == 'rename') {
                   _showRenameDialog(context, name, (newName) {
                     fileProvider.renameDirectory(path, newName);
                   }, theme);
@@ -948,6 +979,147 @@ void _showRenameDialog(
   );
 }
 
+void _showFileTypeDialog(
+  BuildContext context,
+  String path,
+  String folderName,
+  FileProvider fileProvider,
+  AppTheme theme,
+) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: ThemeColors.sidebarBg(theme),
+      title: Text(
+        "Type de fichier",
+        style: TextStyle(color: ThemeColors.textBright(theme), fontSize: 16),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "Choisissez le type de fichier à créer :",
+            style: TextStyle(color: ThemeColors.textMain(theme)),
+          ),
+          const SizedBox(height: 16),
+          _FileTypeButton(
+            label: "Algo (.alg)",
+            icon: Icons.code,
+            onPressed: () {
+              Navigator.pop(context);
+              _showNameDialog(context, "Nouveau fichier Algo", (fileName) {
+                final fileNameWithExt = fileName.endsWith('.alg')
+                    ? fileName
+                    : '$fileName.alg';
+                final newFilePath = p.join(path, fileNameWithExt);
+                fileProvider.createFile(path, fileNameWithExt);
+                fileProvider.openFile(newFilePath);
+              }, theme);
+            },
+            theme: theme,
+          ),
+          const SizedBox(height: 8),
+          _FileTypeButton(
+            label: "Graphe (.grp)",
+            icon: Icons.auto_graph,
+            onPressed: () {
+              Navigator.pop(context);
+              _showNameDialog(context, "Nouveau fichier Graphe", (fileName) {
+                final fileNameWithExt = fileName.endsWith('.grp')
+                    ? fileName
+                    : '$fileName.grp';
+                final newFilePath = p.join(path, fileNameWithExt);
+                fileProvider.createFile(path, fileNameWithExt);
+                fileProvider.openFile(newFilePath);
+              }, theme);
+            },
+            theme: theme,
+          ),
+          const SizedBox(height: 8),
+          _FileTypeButton(
+            label: "Merise (.csi)",
+            icon: Icons.schema,
+            onPressed: () {
+              Navigator.pop(context);
+              _showNameDialog(context, "Nouveau fichier Merise", (fileName) {
+                final fileNameWithExt = fileName.endsWith('.csi')
+                    ? fileName
+                    : '$fileName.csi';
+                final newFilePath = p.join(path, fileNameWithExt);
+                fileProvider.createFile(path, fileNameWithExt);
+                fileProvider.openFile(newFilePath);
+              }, theme);
+            },
+            theme: theme,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Annuler"),
+        ),
+      ],
+    ),
+  );
+}
+
+void _showNameDialog(
+  BuildContext context,
+  String title,
+  Function(String) onConfirm,
+  AppTheme theme,
+) {
+  final controller = TextEditingController();
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: ThemeColors.sidebarBg(theme),
+      title: Text(
+        title,
+        style: TextStyle(color: ThemeColors.textBright(theme), fontSize: 16),
+      ),
+      content: TextField(
+        controller: controller,
+        autofocus: true,
+        style: TextStyle(color: ThemeColors.textBright(theme)),
+        decoration: InputDecoration(
+          hintText: 'Nom...',
+          hintStyle: TextStyle(
+            color: ThemeColors.textMain(theme).withValues(alpha: 0.4),
+          ),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.2),
+            ),
+          ),
+        ),
+        onSubmitted: (value) {
+          if (value.isNotEmpty) {
+            onConfirm(value);
+            Navigator.pop(context);
+          }
+        },
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Annuler"),
+        ),
+        TextButton(
+          onPressed: () {
+            if (controller.text.isNotEmpty) {
+              onConfirm(controller.text);
+              Navigator.pop(context);
+            }
+          },
+          child: const Text("Créer"),
+        ),
+      ],
+    ),
+  );
+}
+
 void _showDeleteConfirmDialog(
   BuildContext context,
   String name,
@@ -981,4 +1153,36 @@ void _showDeleteConfirmDialog(
       ],
     ),
   );
+}
+
+class _FileTypeButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+  final AppTheme theme;
+
+  const _FileTypeButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        icon: Icon(icon, size: 20),
+        label: Text(label),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: ThemeColors.editorBg(theme),
+          foregroundColor: ThemeColors.textBright(theme),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          alignment: Alignment.centerLeft,
+        ),
+        onPressed: onPressed,
+      ),
+    );
+  }
 }

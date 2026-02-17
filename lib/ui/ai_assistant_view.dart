@@ -5,6 +5,7 @@ import '../providers/app_provider.dart';
 import '../providers/merise_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/ai_provider.dart';
+import '../providers/graph_provider.dart';
 import '../providers/file_provider.dart';
 import '../theme.dart';
 import '../../services/ai/voice_service.dart';
@@ -36,6 +37,7 @@ class _AiAssistantViewState extends State<AiAssistantView> {
     AiProvider aiProvider,
     FileProvider fileProvider,
     MeriseProvider meriseProvider,
+    GraphProvider graphProvider,
     AppProvider appProvider,
   ) {
     if (_controller.text.trim().isEmpty) return;
@@ -45,16 +47,23 @@ class _AiAssistantViewState extends State<AiAssistantView> {
 
     // On filtre le contexte selon la vue principale active
     final bool isMerise = appProvider.activeMainView == ActiveMainView.merise;
+    final bool isGraph = appProvider.activeMainView == ActiveMainView.graph;
 
-    final contextCode = !isMerise ? fileProvider.activeFile?.content : null;
+    final contextCode = !isMerise && !isGraph
+        ? fileProvider.activeFile?.content
+        : null;
     final mcdContext = isMerise ? meriseProvider.serialize() : null;
+    final graphContext = isGraph ? graphProvider.exportContent() : null;
 
     aiProvider.sendMessage(
       message,
       contextCode,
       currentLints: fileProvider.anomalies.map((a) => a.message).toList(),
+
       mcdContext: mcdContext,
+      graphContext: graphContext,
       isAgentMode: aiProvider.isAgentMode,
+
       onCodeUpdate: (newCode) => fileProvider.proposeCodeChange(newCode),
       onCodeInsert: (snippet) => fileProvider.insertText(snippet),
       onMeriseUpdate: (mcdJson) =>
@@ -117,7 +126,9 @@ class _AiAssistantViewState extends State<AiAssistantView> {
     final aiProvider = context.watch<AiProvider>();
     final fileProvider = context.read<FileProvider>();
     final meriseProvider = context.read<MeriseProvider>();
+    final graphProvider = context.read<GraphProvider>();
     final appProvider = context.watch<AppProvider>();
+
     final isDark = theme != AppTheme.light && theme != AppTheme.papier;
 
     // Scroll automatique quand un nouveau message arrive
@@ -148,13 +159,72 @@ class _AiAssistantViewState extends State<AiAssistantView> {
                 ),
               ),
               const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.settings_outlined, size: 18),
-                onPressed: () {
-                  // TODO: Ouvrir les settings AI
+              FutureBuilder<List<Map<String, dynamic>>>(
+                future: aiProvider.modelSelector.getAvailableModels(),
+                builder: (context, snapshot) {
+                  final models = snapshot.data ?? [];
+                  return PopupMenuButton<String>(
+                    icon: const Icon(Icons.settings_outlined, size: 18),
+                    tooltip: "Paramètres IA",
+                    onSelected: (modelId) => aiProvider.setModel(modelId),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        enabled: false,
+                        child: Text(
+                          "CHOISIR LE MODÈLE",
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueAccent,
+                          ),
+                        ),
+                      ),
+                      ...models.map(
+                        (m) => PopupMenuItem<String>(
+                          value: m['id'],
+                          child: Row(
+                            children: [
+                              Icon(
+                                m['id'] ==
+                                        aiProvider.modelSelector.selectedModel
+                                    ? Icons.radio_button_checked
+                                    : Icons.radio_button_off,
+                                size: 14,
+                                color:
+                                    m['id'] ==
+                                        aiProvider.modelSelector.selectedModel
+                                    ? Colors.blueAccent
+                                    : Colors.grey,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      m['name'],
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                    Text(
+                                      "${m['provider']} • ${m['speed']}",
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
                 },
-                tooltip: "Paramètres IA",
               ),
+
               IconButton(
                 icon: const Icon(Icons.delete_outline, size: 18),
                 onPressed: () => aiProvider.clearHistory(),
@@ -320,8 +390,10 @@ class _AiAssistantViewState extends State<AiAssistantView> {
           aiProvider,
           fileProvider,
           meriseProvider,
+          graphProvider,
           appProvider,
         ),
+
         // Afficher le rate limit si proche de la limite
         if (aiProvider.rateLimiter.getRemainingRequests() <= 2)
           Padding(
@@ -433,6 +505,7 @@ class _AiAssistantViewState extends State<AiAssistantView> {
                             aiProvider,
                             fileProvider,
                             meriseProvider,
+                            graphProvider,
                             appProvider,
                           ),
                   ),
@@ -450,6 +523,7 @@ class _AiAssistantViewState extends State<AiAssistantView> {
     AiProvider aiProvider,
     FileProvider fileProvider,
     MeriseProvider meriseProvider,
+    GraphProvider graphProvider,
     AppProvider appProvider,
   ) {
     if (aiProvider.isLoading) return const SizedBox();
@@ -471,14 +545,20 @@ class _AiAssistantViewState extends State<AiAssistantView> {
               onPressed: () {
                 final bool isMerise =
                     appProvider.activeMainView == ActiveMainView.merise;
+                final bool isGraph =
+                    appProvider.activeMainView == ActiveMainView.graph;
                 aiProvider.sendMessage(
                   s,
-                  !isMerise ? fileProvider.activeFile?.content : null,
-                  currentLints: !isMerise
+                  !isMerise && !isGraph
+                      ? fileProvider.activeFile?.content
+                      : null,
+                  currentLints: !isMerise && !isGraph
                       ? fileProvider.anomalies.map((a) => a.message).toList()
                       : null,
                   mcdContext: isMerise ? meriseProvider.serialize() : null,
+                  graphContext: isGraph ? graphProvider.exportContent() : null,
                   isAgentMode: aiProvider.isAgentMode,
+
                   onCodeUpdate: (newCode) =>
                       fileProvider.proposeCodeChange(newCode),
                   onCodeInsert: (snippet) => fileProvider.insertText(snippet),

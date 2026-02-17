@@ -37,39 +37,48 @@ class StatusBar extends StatelessWidget {
                   theme: theme,
                   onTap: () => provider.toggleConsole(),
                 ),
-                if (!isMobile) ...[
-                  const SizedBox(width: 16),
-                  Text(
-                    'Police: ',
-                    style: TextStyle(
-                      color: ThemeColors.textMain(theme),
-                      fontSize: 11,
-                    ),
+
+                const SizedBox(width: 16),
+                Text(
+                  'Police: ',
+                  style: TextStyle(
+                    color: ThemeColors.textMain(theme),
+                    fontSize: 11,
                   ),
-                  _FontSizeControl(
-                    label: '-',
-                    theme: theme,
-                    onPressed: () =>
-                        provider.setFontSize(provider.fontSize - 1),
+                ),
+                _FontSizeControl(
+                  label: '-',
+                  theme: theme,
+                  onPressed: () => provider.setFontSize(provider.fontSize - 1),
+                ),
+                Text(
+                  '${provider.fontSize.toInt()}',
+                  style: TextStyle(
+                    color: ThemeColors.textMain(theme),
+                    fontSize: 11,
                   ),
-                  Text(
-                    '${provider.fontSize.toInt()}',
-                    style: TextStyle(
-                      color: ThemeColors.textMain(theme),
-                      fontSize: 11,
-                    ),
-                  ),
-                  _FontSizeControl(
-                    label: '+',
-                    theme: theme,
-                    onPressed: () =>
-                        provider.setFontSize(provider.fontSize + 1),
-                  ),
-                ],
+                ),
+                _FontSizeControl(
+                  label: '+',
+                  theme: theme,
+                  onPressed: () => provider.setFontSize(provider.fontSize + 1),
+                ),
+
+                const SizedBox(width: 16),
+                _FontFamilySelector(theme: theme),
+
                 const Spacer(),
                 if (!isMobile)
                   Text(
                     'Fode Momo soumah',
+                    style: TextStyle(
+                      color: ThemeColors.textMain(theme),
+                      fontSize: 11,
+                    ),
+                  ),
+                if (isMobile)
+                  Text(
+                    'Momo 💻',
                     style: TextStyle(
                       color: ThemeColors.textMain(theme),
                       fontSize: 11,
@@ -236,5 +245,67 @@ class _StatusItem extends StatelessWidget {
       );
     }
     return content;
+  }
+}
+
+class _FontFamilySelector extends StatelessWidget {
+  final AppTheme theme;
+
+  const _FontFamilySelector({required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return PopupMenuButton<String>(
+      tooltip: "Changer la police",
+      onSelected: (font) => themeProvider.setFontFamily(font),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.font_download_outlined,
+              size: 12,
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.8),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              themeProvider.fontFamily,
+              style: TextStyle(
+                color: ThemeColors.textMain(theme).withValues(alpha: 0.8),
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Icon(
+              Icons.arrow_drop_down,
+              size: 14,
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.6),
+            ),
+          ],
+        ),
+      ),
+      itemBuilder: (context) => [
+        _buildFontItem('JetBrainsMono', 'JetBrains Mono'),
+        _buildFontItem('FiraCode', 'Fira Code'),
+        _buildFontItem('RobotoMono', 'Roboto Mono'),
+        _buildFontItem('SourceCodePro', 'Source Code Pro'),
+        _buildFontItem('UbuntuMono', 'Ubuntu Mono'),
+        _buildFontItem('monospace', 'System Monospace'),
+      ],
+    );
+  }
+
+  PopupMenuItem<String> _buildFontItem(String value, String label) {
+    return PopupMenuItem(
+      value: value,
+      child: Text(label, style: TextStyle(fontFamily: value, fontSize: 13)),
+    );
   }
 }

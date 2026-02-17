@@ -18,6 +18,8 @@ class MpdGenerator {
     }
 
     for (final table in mld.tables) {
+      // Ajouter un commentaire avant chaque table
+      buffer.writeln('-- La création de la table ${table.name.toLowerCase()}');
       buffer.writeln(_generateCreateTable(table, dialect));
       buffer.writeln();
     }
@@ -29,7 +31,12 @@ class MpdGenerator {
     final buffer = StringBuffer();
     final tableName = SqlUtils.quote(table.name, dialect);
 
-    buffer.writeln('CREATE TABLE $tableName (');
+    // Utiliser CREATE TABLE IF NOT EXISTS pour MySQL et PostgreSQL
+    if (dialect == SqlDialect.mysql || dialect == SqlDialect.postgresql) {
+      buffer.writeln('CREATE TABLE IF NOT EXISTS $tableName (');
+    } else {
+      buffer.writeln('CREATE TABLE $tableName (');
+    }
 
     final columnDefs = <String>[];
 
@@ -62,7 +69,14 @@ class MpdGenerator {
     }
 
     buffer.write(columnDefs.join(',\n'));
-    buffer.writeln('\n);');
+    buffer.write('\n)');
+
+    // Ajouter les options spécifiques à MySQL
+    if (dialect == SqlDialect.mysql) {
+      buffer.write('\nENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_general_ci');
+    }
+
+    buffer.writeln(';');
 
     return buffer.toString();
   }
@@ -98,7 +112,7 @@ class MpdGenerator {
       case SqlDialect.mysql:
         switch (canon) {
           case 'int':
-            return 'INT';
+            return 'INT UNSIGNED';
           case 'date':
             return 'DATE';
           case 'bool':
@@ -109,7 +123,7 @@ class MpdGenerator {
             return 'TEXT';
           case 'string':
           default:
-            return 'VARCHAR(255)';
+            return 'VARCHAR(25)';
         }
 
       case SqlDialect.postgresql:
