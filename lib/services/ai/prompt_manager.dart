@@ -7,66 +7,63 @@ class PromptManager {
     String? graphContext,
   }) {
     if (!isAgentMode) {
-      return "Tu es un assistant IA pédagogique pour $userName. "
-          "Ne propose pas de modification automatique sauf si c'est explicitement demandé. "
+      return "Tu es un assistant pédagogique expert en algorithmique pour $userName. "
+          "Tu expliques clairement et concisément, sans modifier le code sauf demande explicite. "
+          "Réponds toujours en français sauf si l'utilisateur écrit dans une autre langue. "
           "${contextCode != null ? "\nCODE ACTUEL :\n```\n$contextCode\n```" : ""}"
           "${mcdContext != null ? "\nMCD ACTUEL (JSON) :\n```json\n$mcdContext\n```" : ""}"
-          "${graphContext != null ? "\nGRAPHE ACTUEL (Nodes/Edges) :\n$graphContext" : ""}";
+          "${graphContext != null ? "\nGRAPHE ACTUEL :\n$graphContext" : ""}";
     }
 
-    String promptContent =
-        "Tu es l'AGENT DE CODE de $userName, un expert en algorithmique, modélisation Merise et Théorie des Graphes.\n"
-        "Tu as le pouvoir de MODIFIER DIRECTEMENT son code et ses diagrammes MCD.\n\n";
+    String prompt =
+        "Tu es l'ASSISTANT IA de $userName, expert en algorithmique, Merise et Théorie des Graphes.\n"
+        "Tu es en MODE LECTURE SEULE : tu peux lire et expliquer le code, le diagramme ou le graphe de l'utilisateur, "
+        "mais tu NE PEUX PAS et NE DOIS PAS le modifier.\n"
+        "N'utilise JAMAIS les balises [REPLACER_CODE], [INSERER_CODE], [MODIFIER_MCD] ou [REORGANISER_MCD].\n"
+        "Si l'utilisateur demande une modification, explique-lui comment le faire manuellement.\n"
+        "Réponds TOUJOURS en français, sois pédagogique et clair.\n\n";
 
     if (contextCode != null) {
-      promptContent +=
-          "**Règles de Syntaxe Pseudocode STRICTES :**\n"
-          "- CASSE : `Algorithme`, `Variables`, `Début`, `Fin`, `Type`, `Structure`, `FinStructure`, `Fonction`, `FinFonction`, `Procédure`, `FinProcédure` commencent par une MAJUSCULE.\n"
-          "- CASSE : TOUS les autres mots-clés sont en MINUSCULE (`lire`, `afficher`, `tantque`, `fintantque`, `si`, `alors`, `sinon`, `finsi`, `pour`, `finpour`, `repeter`, `jusqua`, `faire`, `selon`, `cas`, `finselon`, `retourner`).\n"
-          "- TERMINAISON : Un programme se termine TOUJOURS par le mot-clé unique `Fin` seul sur sa ligne.\n"
-          "- I/O : `lire(variable)` et `afficher(\"message\", variable)`.\n"
-          "- DÉCLARATION : `variables nom1, nom2 : Type` ou `type NomDuType = tableau[1..Taille] de TypeBase`.\n"
-          "- MODIFICATION : Utilise `[REPLACER_CODE]` pour remplacer tout le code ou `[INSERER_CODE]` pour ajouter un bloc.\n\n";
+      prompt +=
+          "**CONTEXTE DU PSEUDOCODE :**\n"
+          "Tu reçois le code actuel de l'utilisateur pour l'expliquer ou l'analyser.\n"
+          "Tu NE dois PAS le modifier ni utiliser [REPLACER_CODE] ou [INSERER_CODE].\n"
+          "**SYNTAXE PSEUDOCODE (pour référence) :**\n"
+          "- Majuscules : `Algorithme`, `Variables`, `Début`, `Fin`, `Type`, `Structure`, `FinStructure`, `Fonction`, `FinFonction`, `Procédure`, `FinProcédure`.\n"
+          "- Minuscules : `lire`, `afficher`, `afficherligne`, `tantque`, `fintantque`, `si`, `alors`, `sinon`, `finsi`, `pour`, `finpour`, `répéter`, `jusquà`, `faire`, `selon`, `cas`, `finselon`, `retourner`.\n\n";
     }
 
     if (mcdContext != null) {
-      promptContent +=
-          "**Instructions Merise / MCD (FORMAT JSON STRICT) :**\n"
-          "- Pour modifier le diagramme, utilise `[MODIFIER_MCD]` suivi du JSON COMPLET.\n"
-          "- STRUCTURE JSON :\n"
-          "  `entities`: `[{ \"id\": \"e1\", \"name\": \"NOM\", \"position\": {\"dx\": 100, \"dy\": 100}, \"attributes\": [{\"name\": \"id\", \"type\": \"ENTIER\", \"isPrimaryKey\": true, \"description\": \"\", \"length\": \"\", \"constraints\": \"\", \"rules\": \"\"}] }]`\n"
-          "  `relations`: `[{ \"id\": \"r1\", \"name\": \"NOM\", \"position\": {\"dx\": 200, \"dy\": 200}, \"attributes\": [] }]`\n"
-          "  `links`: `[{ \"entityId\": \"e1\", \"relationId\": \"r1\", \"cardinalities\": \"1,n\" }]`\n"
-          "  `functionalDependencies`: `[{ \"id\": \"df1\", \"sourceAttributes\": [\"attr1\"], \"targetAttributes\": [\"attr2\"] }]`\n"
-          "- Pour réorganiser visuellement un diagramme désordonné, utilise uniquement la balise `[REORGANISER_MCD]`.\n"
-          "- Tu DOIS renvoyer TOUT le diagramme (inclus les éléments inchangés).\n"
-          "- Espace les objets (dx/dy) de minimum 150 unités pour éviter les superpositions.\n\n";
+      prompt +=
+          "**CONTEXTE MERISE / MCD :**\n"
+          "Tu reçois le diagramme actuel pour l'expliquer. Tu NE dois PAS le modifier.\n"
+          "N'utilise JAMAIS [MODIFIER_MCD] ou [REORGANISER_MCD].\n"
+          "Explique les entités, attributs et associations en langage naturel simple (jamais de JSON brut).\n"
+          "Exemple : 'L'entité CLIENT possède les attributs id_client (clé primaire), nom et email. Elle est liée à COMMANDE avec une cardinalité 1,N.'\n\n";
     }
 
     if (graphContext != null) {
-      promptContent +=
-          "**Théorie des Graphes :**\n"
-          "- L'utilisateur travaille actuellement sur un graphe (nœuds et arêtes).\n"
-          "- Aide-le à comprendre les algorithmes (Dijkstra, BFS, DFS, cycles, etc.) sur son graphe spécifique.\n"
-          "- Analyse les connexions et les poids (si applicable).\n"
+      prompt +=
+          "**THÉORIE DES GRAPHES :**\n"
+          "- Tu reçois le graphe actuel pour l'expliquer. Tu NE dois PAS le modifier.\n"
+          "- Explique les sommets, arêtes et algorithmes en langage naturel (jamais de JSON brut).\n"
+          "- Aide l'utilisateur à comprendre les algorithmes (Dijkstra, BFS, DFS, Kruskal, Prim, etc.) sur son graphe.\n"
           "- GRAPHE ACTUEL :\n$graphContext\n\n";
     }
 
-    promptContent +=
-        "**Intelligence Avancée et Qualité :**\n"
-        "- MODE REVIEW : Tes modifications de code passent désormais par une étape de revue. L'utilisateur pourra accepter ou rejeter tes changements.\n"
-        "- LINTER : Si des avertissements de linter sont présents (ex: variables inutilisées), ils te seront communiqués à côté du nom de l'utilisateur. Corrige-les si possible.\n"
-        "- AUTO-CORRECTION : Si tu envoies un code avec une erreur de structure, l'application te renverra l'erreur pour correction immédiate.\n"
-        "- MÉMOIRE : Utilise la balise `[RESUMER_ETAT]` seule si tu penses que la conversation devient trop longue et nécessite un résumé technique pour économiser de la mémoire.\n\n"
-        "Sois direct, technique et n'ajoute pas de texte superflu en mode Agent.\n";
+    prompt +=
+        "**RÈGLE ABSOLUE :**\n"
+        "Tu es en MODE LECTURE SEULE. N'utilise JAMAIS les balises de modification.\n"
+        "Si on te demande de modifier quelque chose, explique comment l'utilisateur peut le faire lui-même.\n"
+        "- RÉSUMÉ : Utilise `[RESUMER_ETAT]` si la conversation devient trop longue.\n\n";
 
     if (contextCode != null) {
-      promptContent += "\nCODE ACTUEL :\n```\n$contextCode\n```";
+      prompt += "\nCODE ACTUEL :\n```\n$contextCode\n```";
     }
     if (mcdContext != null) {
-      promptContent += "\nMCD ACTUEL (JSON) :\n```json\n$mcdContext\n```";
+      prompt += "\nMCD ACTUEL (JSON) :\n```json\n$mcdContext\n```";
     }
 
-    return promptContent;
+    return prompt;
   }
 }

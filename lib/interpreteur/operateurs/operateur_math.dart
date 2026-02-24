@@ -6,6 +6,12 @@ class OperateurMath {
 
   /// Addition de deux nombres
   static dynamic addition(dynamic a, dynamic b) {
+    if ((a is int || a is BigInt) && (b is int || b is BigInt)) {
+      final valA = a is int ? BigInt.from(a) : a as BigInt;
+      final valB = b is int ? BigInt.from(b) : b as BigInt;
+      final res = valA + valB;
+      return res.isValidInt ? res.toInt() : res;
+    }
     if (a is num && b is num) {
       return a + b;
     }
@@ -18,6 +24,12 @@ class OperateurMath {
 
   /// Soustraction de deux nombres
   static dynamic soustraction(dynamic a, dynamic b) {
+    if ((a is int || a is BigInt) && (b is int || b is BigInt)) {
+      final valA = a is int ? BigInt.from(a) : a as BigInt;
+      final valB = b is int ? BigInt.from(b) : b as BigInt;
+      final res = valA - valB;
+      return res.isValidInt ? res.toInt() : res;
+    }
     if (a is num && b is num) {
       return a - b;
     }
@@ -26,6 +38,12 @@ class OperateurMath {
 
   /// Multiplication de deux nombres
   static dynamic multiplication(dynamic a, dynamic b) {
+    if ((a is int || a is BigInt) && (b is int || b is BigInt)) {
+      final valA = a is int ? BigInt.from(a) : a as BigInt;
+      final valB = b is int ? BigInt.from(b) : b as BigInt;
+      final res = valA * valB;
+      return res.isValidInt ? res.toInt() : res;
+    }
     if (a is num && b is num) {
       return a * b;
     }

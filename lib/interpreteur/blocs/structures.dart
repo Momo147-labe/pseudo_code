@@ -1,3 +1,5 @@
+import 'package:pseudo_code/interpreteur/blocs/tableaux.dart';
+
 class ChampStructure {
   final String nom;
   final String type;
@@ -63,5 +65,20 @@ class PseudoStructureInstance {
   @override
   String toString() {
     return "{ ${valeurs.entries.map((e) => "${e.key}: ${e.value}").join(", ")} }";
+  }
+
+  PseudoStructureInstance clone() {
+    final instance = PseudoStructureInstance(definition: definition);
+    for (final entry in valeurs.entries) {
+      if (entry.value is PseudoTableau) {
+        instance.valeurs[entry.key] = (entry.value as PseudoTableau).clone();
+      } else if (entry.value is PseudoStructureInstance) {
+        instance.valeurs[entry.key] = (entry.value as PseudoStructureInstance)
+            .clone();
+      } else {
+        instance.valeurs[entry.key] = entry.value;
+      }
+    }
+    return instance;
   }
 }

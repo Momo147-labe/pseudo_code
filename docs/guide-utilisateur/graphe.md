@@ -1,256 +1,71 @@
-# 📊 Graphes - Guide utilisateur
+# 📊 Graphes - Guide de Théorie et Visualisation
 
-## Introduction aux graphes
-
-Un **graphe** est une structure composée de **sommets** (ou nœuds) reliés par des **arêtes** (ou arcs). Les graphes permettent de modéliser de nombreux problèmes réels.
-
-![Exemple de graphe](../images/screenshots/graph-example.png)
-
-## 🎯 Créer un graphe
-
-### Ouvrir l'éditeur de graphes
-
-1. Ouvrez la palette de commandes (`Ctrl+Shift+P`)
-2. Tapez `Pseudo Code: Nouveau Graphe`
-3. Choisissez le type de graphe :
-   - **Non orienté** : Les arêtes n'ont pas de direction
-   - **Orienté** : Les arcs ont une direction
-   - **Pondéré** : Les arêtes/arcs ont un poids
-
-![Nouveau graphe](../images/screenshots/new-graph.png)
-
-## 🔵 Ajouter des sommets
-
-### Créer un sommet
-
-1. Cliquez sur l'outil **Sommet** dans la barre d'outils
-2. Cliquez sur le canvas pour placer le sommet
-3. Nommez le sommet (A, B, C, ou des noms personnalisés)
-
-![Création de sommet](../images/screenshots/create-vertex.png)
-
-> [!TIP]
-> Double-cliquez sur un sommet pour modifier son nom ou ses propriétés.
-
-### Propriétés des sommets
-
-Chaque sommet peut avoir :
-- **Nom/Label** : Identifiant du sommet
-- **Couleur** : Pour la visualisation
-- **Données** : Informations supplémentaires
-
-## ➡️ Ajouter des arêtes
-
-### Créer une arête/arc
-
-1. Cliquez sur l'outil **Arête**
-2. Cliquez sur le sommet de départ
-3. Cliquez sur le sommet d'arrivée
-4. Pour un graphe pondéré, entrez le poids
-
-![Création d'arête](../images/screenshots/create-edge.png)
-
-### Graphe orienté vs non orienté
-
-**Graphe non orienté :**
-```
-    A ───── B
-     \     /
-      \   /
-       \ /
-        C
-```
-
-**Graphe orienté :**
-```
-    A ────> B
-     ↓     ↗
-     ↓   ↗
-     ↓ ↗
-      C
-```
-
-![Orienté vs non orienté](../images/screenshots/directed-vs-undirected.png)
-
-## 🎨 Algorithmes sur les graphes
-
-### Parcours en profondeur (DFS)
-
-> [!NOTE]
-> DFS explore le graphe en allant le plus loin possible avant de revenir en arrière.
-
-1. Sélectionnez votre graphe
-2. Cliquez sur **Algorithmes** → **DFS**
-3. Choisissez le sommet de départ
-4. Visualisez le parcours animé
-
-![DFS Animation](../images/screenshots/dfs-animation.png)
-
-**Ordre de visite :** A → B → D → E → C
-
-### Parcours en largeur (BFS)
-
-Le BFS explore le graphe niveau par niveau.
-
-1. Cliquez sur **Algorithmes** → **BFS**
-2. Choisissez le sommet de départ
-3. Observez l'exploration par niveaux
-
-![BFS Animation](../images/screenshots/bfs-animation.png)
-
-**Ordre de visite :** A → B → C → D → E
-
-### Plus court chemin (Dijkstra)
-
-> [!IMPORTANT]
-> L'algorithme de Dijkstra trouve le plus court chemin dans un graphe pondéré.
-
-1. Créez un graphe pondéré
-2. Cliquez sur **Algorithmes** → **Dijkstra**
-3. Sélectionnez le sommet de départ
-4. Sélectionnez le sommet d'arrivée
-5. L'algorithme affiche le chemin optimal
-
-![Dijkstra](../images/screenshots/dijkstra.png)
-
-**Exemple :**
-```
-    A ─5─ B
-    │     │
-    2     3
-    │     │
-    C ─1─ D
-
-Chemin le plus court A → D : A → C → D (poids: 3)
-```
-
-### Arbre couvrant minimal (Kruskal/Prim)
-
-Pour trouver l'arbre couvrant de poids minimal :
-
-1. **Algorithmes** → **Kruskal** ou **Prim**
-2. L'algorithme sélectionne les arêtes de poids minimal
-3. Le résultat est affiché en surbrillance
-
-![MST](../images/screenshots/mst.png)
-
-### Détection de cycles
-
-Détectez automatiquement les cycles dans votre graphe :
-
-1. **Algorithmes** → **Détecter les cycles**
-2. Les cycles sont mis en évidence
-
-![Cycles](../images/screenshots/cycles.png)
-
-## 📊 Types de graphes spéciaux
-
-### Arbre binaire
-
-Pour créer un arbre binaire :
-
-1. Cliquez sur **Templates** → **Arbre binaire**
-2. Définissez la racine
-3. Ajoutez les nœuds gauche et droit
-
-![Arbre binaire](../images/screenshots/binary-tree.png)
-
-### Graphe complet
-
-Un graphe où chaque sommet est relié à tous les autres :
-
-![Graphe complet](../images/screenshots/complete-graph.png)
-
-### Graphe biparti
-
-Graphe dont les sommets peuvent être divisés en deux ensembles :
-
-![Graphe biparti](../images/screenshots/bipartite-graph.png)
-
-## 🎨 Visualisation et personnalisation
-
-### Disposition automatique
-
-> [!TIP]
-> Utilisez les algorithmes de disposition pour organiser votre graphe.
-
-- **Circulaire** : Sommets en cercle
-- **Hiérarchique** : Pour les arbres
-- **Force-directed** : Disposition naturelle
-- **Grille** : Alignement régulier
-
-![Layouts](../images/screenshots/layouts.png)
-
-### Styles et couleurs
-
-Personnalisez l'apparence :
-- Couleur des sommets
-- Épaisseur des arêtes
-- Style des flèches
-- Thème global (clair/sombre)
-
-![Styles](../images/screenshots/graph-styles.png)
-
-## 💾 Export et matrice d'adjacence
-
-### Matrice d'adjacence
-
-Affichez la représentation matricielle :
-
-```
-    A  B  C  D
-A [ 0  1  1  0 ]
-B [ 1  0  1  1 ]
-C [ 1  1  0  1 ]
-D [ 0  1  1  0 ]
-```
-
-![Matrice](../images/screenshots/adjacency-matrix.png)
-
-### Liste d'adjacence
-
-```
-A: [B, C]
-B: [A, C, D]
-C: [A, B, D]
-D: [B, C]
-```
-
-### Export
-
-Exportez votre graphe en :
-- **PNG/SVG** : Image
-- **JSON** : Format de données
-- **GraphML** : Format standard
-- **DOT** : Pour Graphviz
-
-## 🎥 Tutoriel vidéo
-
-![Tutoriel graphes](../videos/tutorials/graph-tutorial.mp4)
-*Durée : 10 minutes - Créer un graphe et appliquer Dijkstra*
-
-## 💡 Exemples fournis
-
-- 🗺️ **Réseau routier** : Plus court chemin entre villes
-- 🌐 **Réseau social** : Connexions entre utilisateurs
-- 🔄 **Ordonnancement** : Graphe de dépendances de tâches
-- 🌳 **Arbre généalogique** : Relations familiales
-
-## 🆘 Problèmes courants
-
-### L'arête ne se crée pas
-
-> [!WARNING]
-> Vérifiez que vous avez bien cliqué sur deux sommets distincts.
-
-### L'animation ne démarre pas
-
-Assurez-vous d'avoir sélectionné un sommet de départ.
-
-### Le graphe est trop dense
-
-Utilisez la disposition **Force-directed** pour éclaircir la visualisation.
+Le module **Graphes** vous permet d'explorer la théorie des graphes de manière interactive. Dessinez vos structures et lancez des algorithmes célèbres pour voir comment ils fonctionnent étape par étape.
 
 ---
 
-[⬅️ Retour : Merise](./merise.md) | [Suivant : Guide général ➡️](./general.md)
+## 🔵 Concepts Fondamentaux
+
+- **Sommet (Node)** : Représente un point ou un objet (ex: une ville, un routeur).
+- **Arête / Arc (Edge)** : Représente le lien entre deux sommets. On parle d'**Arc** si le lien est orienté (une seule direction).
+- **Poids (Weight)** : Une valeur numérique associée à un lien, représentant souvent une distance, un coût ou une durée.
+
+---
+
+## 🎯 Manipuler l'Éditeur
+
+### Création Rapide
+- **Ajouter un sommet** : Double-cliquez n'importe où sur le canevas.
+- **Relier deux sommets** : Cliquez sur un sommet, maintenez le bouton et faites glisser le lien vers le sommet de destination.
+- **Supprimer** : Sélectionnez un élément et appuyez sur la touche `Suppr` (ou icône corbeille sur mobile).
+
+### Paramètres du Graphe
+Via le panneau de propriétés, vous pouvez passer le graphe en mode :
+- **Orienté** (Flèches)
+- **Non-orienté** (Traits simples)
+- **Pondéré** (Saisie des poids activée)
+
+---
+
+## 🎨 Algorithmes Incontournables
+
+L'application permet d'animer les algorithmes suivants pour mieux comprendre leur logique :
+
+### 1. Parcours en Largeur (BFS - Breadth First Search)
+- **Principe** : Explore les voisins immédiats avant de passer au niveau suivant.
+- **Utilité** : Trouver le chemin le plus court dans un graphe non pondéré (nombre minimal de sauts).
+- **Visualisation** : Les sommets s'allument "couche par couche" autour du sommet de départ.
+
+### 2. Parcours en Profondeur (DFS - Depth First Search)
+- **Principe** : Explore une branche le plus loin possible avant de rebrousser chemin.
+- **Utilité** : Détecter des cycles, tester la connexité ou résoudre des labyrinthes.
+- **Visualisation** : L'animation suit un long chemin continu jusqu'à un cul-de-sac.
+
+### 3. Plus Court Chemin (Dijkstra)
+- **Principe** : Calcule le chemin de poids minimal entre un départ et une destination.
+- **Utilité** : GPS (Google Maps), routage réseau (OSPF).
+- **Attention** : Ne fonctionne que si tous les poids sont positifs !
+
+---
+
+## 🔬 Représentations Informatiques
+
+L'application peut générer automatiquement deux types de représentations pour vos algorithmes :
+
+### Matrice d'Adjacence
+Un tableau carré où `A[i][j] = 1` si un lien existe entre `i` et `j`. Idéal pour les graphes denses.
+
+### Liste d'Adjacence
+Pour chaque sommet, on liste ses voisins. Plus efficace en mémoire pour les graphes clairsemés (peu de liens).
+
+---
+
+## 🚀 Cas de Usage Pratiques
+
+- **Réseau Social** : Les profils sont les sommets, les amitiés sont les arêtes. Utile pour suggérer des amis ("les amis de mes amis").
+- **Logistique** : Optimiser les tournées de livraison en minimisant la distance totale.
+- **Web** : Le moteur de recherche Google utilise des variantes d'algorithmes de graphes (PageRank) pour classer les pages.
+
+---
+
+[⬅️ Retour : Merise](./merise.md) | [Suivant : Guide Général 🏠](./general.md)

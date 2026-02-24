@@ -367,15 +367,15 @@ class CodeEditorController extends TextEditingController {
 
           // Apply error and highlight styles if needed
           TextStyle? segmentStyle = s;
-          if (errorStart != -1 &&
-              currentPartOffset >= errorStart &&
-              currentPartOffset + lineSegment.length <= errorEnd) {
-            segmentStyle = _applyErrorStyle(segmentStyle);
-          }
           if (highlightStart != -1 &&
               currentPartOffset >= highlightStart &&
               currentPartOffset + lineSegment.length <= highlightEnd) {
             segmentStyle = _applyHighlightStyle(segmentStyle, theme);
+          }
+          if (errorStart != -1 &&
+              currentPartOffset >= errorStart &&
+              currentPartOffset + lineSegment.length <= errorEnd) {
+            segmentStyle = _applyErrorStyle(segmentStyle);
           }
 
           spans.add(TextSpan(text: lineSegment, style: segmentStyle));
@@ -461,18 +461,18 @@ class CodeEditorController extends TextEditingController {
           }
         }
 
-        // Erreur exécution
-        if (errorStart != -1 &&
-            currentTokenOffset >= errorStart &&
-            currentTokenOffset + lineSegment.length <= errorEnd) {
-          tokenStyle = _applyErrorStyle(tokenStyle);
-        }
-
         // Highlight exécution
         if (highlightStart != -1 &&
             currentTokenOffset >= highlightStart &&
             currentTokenOffset + lineSegment.length <= highlightEnd) {
           tokenStyle = _applyHighlightStyle(tokenStyle, theme);
+        }
+
+        // Erreur exécution
+        if (errorStart != -1 &&
+            currentTokenOffset >= errorStart &&
+            currentTokenOffset + lineSegment.length <= errorEnd) {
+          tokenStyle = _applyErrorStyle(tokenStyle);
         }
 
         // Linter (Warnings)
@@ -533,6 +533,7 @@ class CodeEditorController extends TextEditingController {
       decoration: TextDecoration.underline,
       decorationStyle: TextDecorationStyle.wavy,
       decorationColor: Colors.red,
+      backgroundColor: Colors.red.withValues(alpha: 0.2),
     );
   }
 

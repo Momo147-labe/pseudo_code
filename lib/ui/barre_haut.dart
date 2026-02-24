@@ -5,6 +5,7 @@ import '../providers/theme_provider.dart';
 import '../providers/file_provider.dart';
 import '../theme.dart';
 import 'educational_panel.dart';
+import 'documentation_page.dart';
 import '../outils/traducteur.dart';
 import '../outils/exportateur.dart';
 import 'package:flutter/services.dart';
@@ -257,12 +258,35 @@ class BarreHaut extends StatelessWidget {
           ),
           PopupMenuItem(
             child: Text(
+              "Changer la police",
+              style: TextStyle(color: ThemeColors.textMain(theme)),
+            ),
+            onTap: () =>
+                Future.delayed(Duration.zero, () => _showFontMenu(context)),
+          ),
+          PopupMenuItem(
+            child: Text(
               "Aide & Exercices",
               style: TextStyle(color: ThemeColors.textMain(theme)),
             ),
             onTap: () => Future.delayed(
               Duration.zero,
               () => _showEducationalPanel(context, 'guide'),
+            ),
+          ),
+          PopupMenuItem(
+            child: Text(
+              "Documentation Complète",
+              style: TextStyle(color: ThemeColors.textMain(theme)),
+            ),
+            onTap: () => Future.delayed(
+              Duration.zero,
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DocumentationPage(),
+                ),
+              ),
             ),
           ),
         ],
@@ -333,6 +357,39 @@ class BarreHaut extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  void _showFontMenu(BuildContext context) {
+    final themeProvider = context.read<ThemeProvider>();
+    final theme = themeProvider.currentTheme;
+
+    showMenu<String>(
+      context: context,
+      position: const RelativeRect.fromLTRB(100, 36, 0, 0),
+      color: ThemeColors.sidebarBg(theme),
+      items: [
+        _buildFontItem('JetBrainsMono', 'JetBrains Mono'),
+        _buildFontItem('FiraCode', 'Fira Code'),
+        _buildFontItem('RobotoMono', 'Roboto Mono'),
+        _buildFontItem('SourceCodePro', 'Source Code Pro'),
+        _buildFontItem('UbuntuMono', 'Ubuntu Mono'),
+        _buildFontItem('monospace', 'System Monospace'),
+      ],
+    ).then((font) {
+      if (font != null) {
+        themeProvider.setFontFamily(font);
+      }
+    });
+  }
+
+  PopupMenuItem<String> _buildFontItem(String value, String label) {
+    return PopupMenuItem(
+      value: value,
+      child: Text(
+        label,
+        style: TextStyle(fontFamily: value, fontSize: 13, color: Colors.white),
+      ),
     );
   }
 

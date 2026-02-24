@@ -43,9 +43,12 @@ class MotsCles {
     'afficher',
     'ecrire',
     'afficher_table',
+    'ecrire_table',
     'afficher2D',
+    'ecrire2D',
     'Afficher2D',
     'afficherTabStructure',
+    'ecrireTabStructure',
     'AfficherTabStructure',
     'effacer',
   ];
@@ -61,6 +64,23 @@ class MotsCles {
     'chaine',
     'booleen',
     'tableau',
+  ];
+
+  static const List<String> natives = [
+    'long',
+    'maj',
+    'minus',
+    'car',
+    'racine',
+    'abs',
+    'hasard',
+    'arrondi',
+    'tronque',
+    'en_entier',
+    'en_reel',
+    'en_chaine',
+    'typevar',
+    'est_numerique',
   ];
 
   static const List<String> constantes = ['Vrai', 'vrai', 'Faux', 'faux'];
@@ -88,6 +108,7 @@ class MotsCles {
     ...logiques,
     ...maths,
     ...types,
+    ...natives,
     ...constantes,
   ];
 

@@ -1,84 +1,53 @@
 # 📥 Installation
 
-## Prérequis
+L'application **Pseudo Code** est un logiciel autonome qui ne nécessite aucun éditeur tiers comme Visual Studio Code pour fonctionner.
 
-> [!IMPORTANT]
-> Assurez-vous d'avoir les éléments suivants installés sur votre système :
+## 🖥️ Installation sur PC (Windows / Linux)
 
-- **Visual Studio Code** (version 1.60 ou supérieure)
-- **Connexion Internet** (pour l'installation initiale)
+### Windows
+1. Téléchargez l'archive `.zip` de la dernière version.
+2. Extrayez le contenu dans le dossier de votre choix.
+3. Lancez le fichier `pseudo_code.exe`.
 
-## Installation depuis VSCode Marketplace
+### Linux
+1. Téléchargez l'archive `.tar.gz` ou l'exécutable binaire.
+2. Donnez les droits d'exécution au fichier :
+   ```bash
+   chmod +x pseudo_code
+   ```
+3. Lancez l'application en double-cliquant dessus ou via le terminal : `./pseudo_code`.
 
-### Méthode 1 : Depuis l'interface VSCode
+---
 
-1. Ouvrez **Visual Studio Code**
-2. Cliquez sur l'icône **Extensions** dans la barre latérale (ou `Ctrl+Shift+X`)
+## 📱 Installation sur Mobile (Android)
 
-   ![Extensions Icon](./images/screenshots/extensions-icon.png)
+1. Téléchargez le fichier `.apk` depuis notre site officiel ou le dépôt GitHub.
+2. Autorisez l'installation d'applications de sources inconnues dans les paramètres de votre téléphone.
+3. Installez le fichier et lancez **Pseudo Code** depuis votre lanceur d'applications.
 
-3. Recherchez "**Pseudo Code**" dans la barre de recherche
-4. Cliquez sur le bouton **Install**
+---
 
-   ![Installation](./images/screenshots/install-button.png)
+## ⚙️ Configuration de l'Assistant IA (Optionnel)
 
-5. Attendez la fin de l'installation
-6. Rechargez VSCode si nécessaire
+L'application peut fonctionner sans IA, mais pour activer l'assistant intelligent :
 
-### Méthode 2 : Ligne de commande
+### Option 1 : Ollama (Local & Privé)
+- Installez [Ollama](https://ollama.com/) sur votre ordinateur.
+- Lancez un modèle en terminal : `ollama run llama3`.
+- L'application se connectera automatiquement au port `11434`.
 
-```bash
-code --install-extension pseudo-code
-```
+### Option 2 : Groq (Cloud & Rapide)
+- Obtenez une clé API sur le site de Groq.
+- Renseignez-la dans les paramètres de l'application (section IA).
 
-## Vérification de l'installation
+---
 
-> [!TIP]
-> Pour vérifier que l'extension est bien installée :
+## 🚀 Première Utilisation
 
-1. Ouvrez la palette de commandes (`Ctrl+Shift+P`)
-2. Tapez "Pseudo Code"
-3. Vous devriez voir les commandes de l'extension apparaître
-
-![Commandes disponibles](./images/screenshots/commands.png)
-
-## Configuration initiale
-
-Après l'installation, quelques paramètres sont à configurer :
-
-### Thème de l'éditeur (optionnel)
-
-```json
-{
-  "pseudoCode.theme": "dark",
-  "pseudoCode.fontSize": 14
-}
-```
-
-### Langue de l'interface
-
-```json
-{
-  "pseudoCode.language": "fr"
-}
-```
-
-## Mise à jour
-
-L'extension se met à jour automatiquement. Pour forcer une mise à jour :
-
-1. Allez dans **Extensions**
-2. Trouvez **Pseudo Code**
-3. Cliquez sur l'icône **⚙️**
-4. Sélectionnez **Update**
-
-## Désinstallation
-
-Si vous souhaitez désinstaller l'extension :
-
-1. Allez dans **Extensions**
-2. Trouvez **Pseudo Code**
-3. Cliquez sur **Uninstall**
+Au premier lancement, l'application vous proposera un petit tour d'horizon de l'interface. Vous pourrez alors :
+- Créer votre premier fichier `.alg`.
+- Explorer les exemples intégrés.
+- Relever votre premier défi !
 
 ---
 

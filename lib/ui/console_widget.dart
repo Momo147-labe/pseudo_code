@@ -77,6 +77,10 @@ class ConsoleWidgetState extends State<ConsoleWidget> {
     });
 
     final debugProvider = context.read<DebugProvider>();
+    debugProvider.setErrorLine(null);
+    debugProvider.setHighlightLine(null);
+    debugProvider.updateDebugVariables({});
+
     _receivePort = ReceivePort();
 
     try {
@@ -160,6 +164,10 @@ class ConsoleWidgetState extends State<ConsoleWidget> {
   }
 
   void _stopInterpreter() {
+    if (mounted) {
+      final debugProvider = context.read<DebugProvider>();
+      debugProvider.setHighlightLine(null);
+    }
     _controlSub?.cancel();
     _controlSub = null;
     _interpreterIsolate?.kill(priority: Isolate.immediate);

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:pseudo_code/services/ai/illm_service.dart';
@@ -7,7 +6,6 @@ import 'package:pseudo_code/services/ai/ai_cache_service.dart';
 import 'package:pseudo_code/services/ai/retry_service.dart';
 import 'package:pseudo_code/services/ai/rate_limiter_service.dart';
 import 'package:pseudo_code/services/ai/analytics_service.dart';
-import '../interpreteur/validateur.dart';
 
 class AiProvider with ChangeNotifier {
   // Services
@@ -198,174 +196,49 @@ class AiProvider with ChangeNotifier {
       final modelInfo = _aiService!.getModelInfo();
       _lastCost = _analytics.estimateCost(modelInfo['model'], _lastTokensUsed);
 
-      // Détection et application du code UNIQUEMENT en mode agent
-      if (agentMode) {
-        if (response.contains('[REPLACER_CODE]')) {
-          final patterns = [
-            RegExp(
-              r"\[REPLACER_CODE\][\s\S]*?```[a-z]*\s*([\s\S]*?)```",
-              caseSensitive: false,
-            ),
-            RegExp(
-              r"```[a-z]*\s*\[REPLACER_CODE\]\s*([\s\S]*?)```",
-              caseSensitive: false,
-            ),
-            RegExp(
-              r"\[REPLACER_CODE\]\s*([\s\S]+?)(?:\s*\[(?:INSERER|MODIFIER|REORGANISER)|$)",
-              caseSensitive: false,
-            ),
-          ];
-
-          String? newCode;
-          for (final p in patterns) {
-            final m = p.firstMatch(response);
-            if (m != null) {
-              newCode = m.group(1)?.trim();
-              if (newCode != null && newCode.isNotEmpty) break;
+      // --- FILTRE JSON (Merise / Graphe) ---
+      // Si on est dans un contexte Merise ou Graphe ET que la réponse ne
+      // contient pas de commande de modification réelle, on supprime les
+      // blocs ```json ... ``` pour ne pas exposer le JSON brut à l'utilisateur.
+      if ((mcdContext != null || graphContext != null) &&
+          !response.contains('[MODIFIER_MCD]') &&
+          !response.contains('[REORGANISER_MCD]')) {
+        // Supprimer les blocs ```json ... ``` et ``` ... ```
+        String cleaned = response;
+        cleaned = cleaned.replaceAllMapped(
+          RegExp(r'```(?:json)?\s*[\s\S]*?```', caseSensitive: false),
+          (m) {
+            final content = m.group(0) ?? '';
+            // Garder les blocs qui ne ressemblent pas à du JSON
+            if (content.contains('"entities"') ||
+                content.contains('"relations"') ||
+                content.contains('"nodes"') ||
+                content.contains('"edges"') ||
+                content.contains('"links"')) {
+              return ''; // Supprimer ce bloc JSON
             }
-          }
-
-          if (newCode != null && newCode.isNotEmpty) {
-            // Validation structurelle
-            final validationErrors = ValidateurStructure.valider(
-              newCode.split('\n'),
-            );
-            if (validationErrors.isEmpty) {
-              // Utiliser le mode REVIEW si disponible, sinon update direct
-              if (onReviewRequest != null) {
-                onReviewRequest(newCode);
-              } else if (onCodeUpdate != null) {
-                onCodeUpdate(newCode);
-              }
-            } else {
-              // Auto-correction
-              debugPrint("Échec de validation, tentative d'auto-correction...");
-              final errorMsg = validationErrors
-                  .map((e) => "- ${e.message} (Ligne ${e.line})")
-                  .join('\n');
-
-              final correctionResponse = await _aiService!.getChatCompletion(
-                [
-                  ...historyToSend,
-                  {"role": "assistant", "content": response},
-                  {
-                    "role": "user",
-                    "content":
-                        "ERREUR DE SYNTAXE :\n$errorMsg\nCorrige le code et renvoie-le UNIQUEMENT via [REPLACER_CODE].",
-                  },
-                ],
-                contextCode: contextCode,
-                isAgentMode: true,
-              );
-
-              finalResponseText = correctionResponse;
-
-              for (final p in patterns) {
-                final m = p.firstMatch(correctionResponse);
-                if (m != null) {
-                  final finalCode = m.group(1)?.trim();
-                  if (finalCode != null) {
-                    if (onReviewRequest != null) {
-                      onReviewRequest(finalCode);
-                    } else if (onCodeUpdate != null) {
-                      onCodeUpdate(finalCode);
-                    }
-                    break;
-                  }
-                }
-              }
-            }
-          }
+            return content; // Garder les autres blocs (ex: pseudocode)
+          },
+        );
+        // Nettoyer les lignes vides consécutives
+        cleaned = cleaned.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
+        if (cleaned != response) {
+          _messages.last['content'] = cleaned;
+          finalResponseText = cleaned;
+          notifyListeners();
         }
+      }
+      // --- FIN FILTRE JSON ---
 
-        if (response.contains('[INSERER_CODE]')) {
-          final patterns = [
-            RegExp(
-              r"\[INSERER_CODE\][\s\S]*?```[a-z]*\s*([\s\S]*?)```",
-              caseSensitive: false,
-            ),
-            RegExp(
-              r"```[a-z]*\s*\[INSERER_CODE\]\s*([\s\S]*?)```",
-              caseSensitive: false,
-            ),
-            RegExp(
-              r"\[INSERER_CODE\]\s*([\s\S]+?)(?:\s*\[(?:REPLACER|MODIFIER|REORGANISER)|$)",
-              caseSensitive: false,
-            ),
-          ];
+      // L'agent IA est désormais en lecture seule.
+      // Il peut recevoir le contexte (code, MCD, graphe) et l'expliquer,
+      // mais il n'a plus le droit de modifier quoi que ce soit.
+      // Les balises [REPLACER_CODE], [INSERER_CODE], [MODIFIER_MCD],
+      // [REORGANISER_MCD] sont désormais ignorées.
 
-          String? snippet;
-          for (final p in patterns) {
-            final m = p.firstMatch(response);
-            if (m != null) {
-              snippet = m.group(1)?.trim();
-              if (snippet != null && snippet.isNotEmpty) break;
-            }
-          }
-
-          if (snippet != null && snippet.isNotEmpty && onCodeInsert != null) {
-            onCodeInsert(snippet);
-          }
-        }
-
-        // Détection et application du MCD si présent [MODIFIER_MCD]
-        if (response.contains('[MODIFIER_MCD]')) {
-          final patterns = [
-            RegExp(
-              r"\[MODIFIER_MCD\][\s\S]*?```(?:json)?\s*([\s\S]*?)```",
-              caseSensitive: false,
-            ),
-            RegExp(
-              r"```(?:json)?\s*\[MODIFIER_MCD\]\s*([\s\S]*?)```",
-              caseSensitive: false,
-            ),
-            RegExp(
-              r"\[MODIFIER_MCD\]\s*(\{[\s\S]+\})",
-              multiLine: true,
-              caseSensitive: false,
-            ),
-          ];
-
-          String? mcdJson;
-          for (final p in patterns) {
-            final m = p.firstMatch(response);
-            if (m != null) {
-              mcdJson = m.group(1)?.trim();
-              if (mcdJson != null && mcdJson.isNotEmpty) break;
-            }
-          }
-
-          // Fallback : chercher le premier { et dernier } après la balise
-          if (mcdJson == null) {
-            final tagIndex = response.toUpperCase().indexOf('[MODIFIER_MCD]');
-            final firstBrace = response.indexOf('{', tagIndex);
-            final lastBrace = response.lastIndexOf('}');
-            if (firstBrace != -1 && lastBrace > firstBrace) {
-              mcdJson = response.substring(firstBrace, lastBrace + 1);
-            }
-          }
-
-          if (mcdJson != null && mcdJson.isNotEmpty && onMeriseUpdate != null) {
-            try {
-              // Validation JSON basique
-              jsonDecode(mcdJson);
-              onMeriseUpdate(mcdJson);
-            } catch (e) {
-              debugPrint("Erreur de parsing MCD JSON: $e");
-            }
-          }
-        }
-
-        // Détection de la demande de réorganisation [REORGANISER_MCD]
-        if (finalResponseText.contains('[REORGANISER_MCD]') &&
-            onMeriseLayout != null) {
-          onMeriseLayout();
-        }
-
-        // Détection de demande de résumé d'état [RESUMER_ETAT]
-        if (finalResponseText.contains('[RESUMER_ETAT]')) {
-          _summarizeHistory();
-        }
+      // Seul le résumé de l'historique est conservé
+      if (finalResponseText.contains('[RESUMER_ETAT]')) {
+        _summarizeHistory();
       }
 
       // Enregistrer les analytics

@@ -6,6 +6,8 @@ import 'package:pseudo_code/interpreteur/operateurs/operateur_logique.dart';
 import 'package:pseudo_code/interpreteur/utils.dart';
 
 class EvaluateurExpression {
+  static final RegExp _regFuncMatch = RegExp(r'^([a-zA-Z_]\w*)\s*\((.*)\)$');
+
   final Environnement env;
   final Future<dynamic> Function(String, List<String>)? onAppelFonction;
 
@@ -172,8 +174,14 @@ class EvaluateurExpression {
     final numVal = num.tryParse(expr);
     if (numVal != null) return numVal;
 
+    // Si c'est un entier brut qui dépasse 64-bit
+    if (RegExp(r'^\d+$').hasMatch(expr)) {
+      final bigVal = BigInt.tryParse(expr);
+      if (bigVal != null) return bigVal;
+    }
+
     // Appel de fonction (ex: addition(1, 2))
-    final funcMatch = RegExp(r'^([a-zA-Z_]\w*)\s*\((.*)\)$').firstMatch(expr);
+    final funcMatch = _regFuncMatch.firstMatch(expr);
     if (funcMatch != null && onAppelFonction != null) {
       final nom = funcMatch.group(1)!;
       final argsStr = funcMatch.group(2)!;
@@ -299,7 +307,7 @@ class EvaluateurExpression {
             // Cas spécial pour le moins unaire :
             // Si l'opérateur est '-' et qu'il est au tout début ou précédé
             // d'un autre opérateur (+, -, *, /, ^, etc.), on l'ignore ici.
-            if (o == '-' || o == ' - ') {
+            if (o.trim() == '-') {
               String avant = s.substring(0, i).trim();
               if (avant.isEmpty ||
                   avant.endsWith('+') ||
@@ -308,8 +316,17 @@ class EvaluateurExpression {
                   avant.endsWith('/') ||
                   avant.endsWith('^') ||
                   avant.endsWith('(') ||
-                  avant.toLowerCase().endsWith(' mod ') ||
-                  avant.toLowerCase().endsWith(' div ')) {
+                  avant.endsWith(',') ||
+                  avant.endsWith('=') ||
+                  avant.endsWith('<') ||
+                  avant.endsWith('>') ||
+                  avant.endsWith('≠') ||
+                  avant.endsWith('≤') ||
+                  avant.endsWith('≥') ||
+                  avant.toLowerCase().endsWith(' mod') ||
+                  avant.toLowerCase().endsWith(' div') ||
+                  avant.toLowerCase().endsWith(' et') ||
+                  avant.toLowerCase().endsWith(' ou')) {
                 continue;
               }
             }

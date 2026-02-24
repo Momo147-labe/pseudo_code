@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart'; // Pour rootBundle
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../providers/theme_provider.dart';
@@ -45,6 +45,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
   OverlayEntry? _overlay;
   OverlayEntry? _quickFixOverlay;
   List<String> _suggestions = [];
+  bool _isAideMode = false;
   int _selectedIndex = 0;
   bool _isInsertingSuggestion = false;
   final LayerLink _layerLink = LayerLink();
@@ -505,17 +506,36 @@ class _EditeurWidgetState extends State<EditeurWidget> {
     Overlay.of(context).insert(_overlay!);
   }
 
-  void _insertSuggestion(String s) {
+  Future<void> _insertSuggestion(String s) async {
     _isInsertingSuggestion = true;
     final text = _controller.text;
     final selection = _controller.selection;
     final start = _getWordStart(text, selection.baseOffset);
 
-    final newText = text.replaceRange(start, selection.baseOffset, s);
+    String insertionText = s;
+    if (_isAideMode) {
+      try {
+        // Chargement via le bundle d'assets de Flutter
+        final assetPath = "lib/interpreteur/blocs/donnerTableau/$s.md";
+        insertionText = await rootBundle.loadString(assetPath);
+      } catch (e) {
+        debugPrint("Erreur lors de la lecture de l'asset algorithme: $e");
+      }
+    }
+
+    if (!mounted) return;
+    final newText = text.replaceRange(
+      start,
+      selection.baseOffset,
+      insertionText,
+    );
     _controller.text = newText;
-    _controller.selection = TextSelection.collapsed(offset: start + s.length);
+    _controller.selection = TextSelection.collapsed(
+      offset: start + insertionText.length,
+    );
 
     _hideOverlay();
+    _isAideMode = false; // Reset explicitly après insertion
     _onChanged(newText, context.read<FileProvider>());
     _isInsertingSuggestion = false;
   }
@@ -558,15 +578,47 @@ class _EditeurWidgetState extends State<EditeurWidget> {
           _getWordStart(text, selection.baseOffset),
           selection.baseOffset,
         );
-        _suggestions = _controller.motsCles
-            .where((m) => m.toLowerCase().startsWith(word.toLowerCase()))
-            .toList();
 
-        if (_suggestions.isNotEmpty) {
-          _selectedIndex = 0;
-          _showOverlay();
+        if (word.toLowerCase() == "aide") {
+          _isAideMode = true;
+          // Utilisation de AssetManifest pour lister les fichiers dynamiquement
+          AssetManifest.loadFromAssetBundle(rootBundle)
+              .then((manifest) {
+                final algoAssets = manifest.listAssets().where(
+                  (path) =>
+                      path.startsWith(
+                        'lib/interpreteur/blocs/donnerTableau/',
+                      ) &&
+                      path.endsWith('.md'),
+                );
+
+                _suggestions = algoAssets
+                    .map((path) => path.split('/').last.replaceAll('.md', ''))
+                    .toList();
+
+                if (_suggestions.isNotEmpty) {
+                  _selectedIndex = 0;
+                  _showOverlay();
+                } else {
+                  _hideOverlay();
+                }
+              })
+              .catchError((e) {
+                debugPrint("Erreur manifest: $e");
+                _hideOverlay();
+              });
         } else {
-          _hideOverlay();
+          _isAideMode = false;
+          _suggestions = _controller.motsCles
+              .where((m) => m.toLowerCase().startsWith(word.toLowerCase()))
+              .toList();
+
+          if (_suggestions.isNotEmpty) {
+            _selectedIndex = 0;
+            _showOverlay();
+          } else {
+            _hideOverlay();
+          }
         }
       } else {
         _hideOverlay();

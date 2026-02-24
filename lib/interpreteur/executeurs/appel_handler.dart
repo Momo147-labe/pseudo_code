@@ -1,14 +1,20 @@
 import 'package:pseudo_code/interpreteur/environnement.dart';
 import 'package:pseudo_code/interpreteur/blocs/fonctions.dart';
 import 'package:pseudo_code/interpreteur/utils.dart';
+import 'package:pseudo_code/interpreteur/fonctions_natives.dart';
 
 /// Gestionnaire des appels de fonctions et procédures
 class AppelHandler {
   final Environnement env;
   final Future<dynamic> Function(SousProgramme, List<String>)
   executerSousProgramme;
+  final Future<void> Function(String, List<String>)? onAppelNative;
 
-  AppelHandler({required this.env, required this.executerSousProgramme});
+  AppelHandler({
+    required this.env,
+    required this.executerSousProgramme,
+    this.onAppelNative,
+  });
 
   /// Gère l'appel d'une procédure ou fonction
   Future<void> executerAppel(String ligne) async {
@@ -18,6 +24,12 @@ class AppelHandler {
     final nom = appelMatch.group(1)!;
     final argsStr = appelMatch.group(2)!;
     final args = InterpreteurUtils.splitArguments(argsStr);
+
+    // 1. Vérifier si c'est une fonction native (appelée comme une procédure)
+    if (FonctionsNatives.estNative(nom) && onAppelNative != null) {
+      await onAppelNative!(nom, args);
+      return;
+    }
 
     // Chercher d'abord une procédure
     final proc = env.chercherProcedure(nom);

@@ -36,29 +36,26 @@ class SqlEngine {
 
   /// Initialiser la base de données avec le schéma MLD
   Future<void> initialize(Mld mld) async {
-    // Fermer la connexion existante si elle existe
     await close();
 
-    // Initialiser sqflite selon la plateforme
+    // Initialisation conditionnelle selon la plateforme :
+    // - Desktop (Windows / Linux / macOS) : SQLite via FFI
+    // - Mobile (Android / iOS)            : SQLite natif (plugin sqflite)
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }
 
-    // Créer une base de données en mémoire
     _db = await openDatabase(
       inMemoryDatabasePath,
       version: 1,
       onCreate: (db, version) async {
-        // Activer les contraintes de clés étrangères
         await db.execute('PRAGMA foreign_keys = ON;');
       },
     );
 
     _currentMld = mld;
-
-    // Créer les tables
     await _createTables(mld);
   }
 

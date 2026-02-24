@@ -28,10 +28,7 @@ class PseudoTableau {
   dynamic lire(List<int> indices) {
     _validerIndices(indices);
     final key = indices.join(',');
-    if (!_elements.containsKey(key)) {
-      _elements[key] = _valeurParDefaut();
-    }
-    return _elements[key];
+    return _elements[key] ?? _valeurParDefaut();
   }
 
   void _validerIndices(List<int> indices) {
@@ -260,6 +257,26 @@ class PseudoTableau {
     }
     sb.write("└────────┴─────────────┘");
     return sb.toString();
+  }
+
+  PseudoTableau clone() {
+    final t = PseudoTableau(
+      mins: List.from(mins),
+      maxs: List.from(maxs),
+      typeElement: typeElement,
+      structureDef: structureDef,
+    );
+    for (final entry in _elements.entries) {
+      if (entry.value is PseudoTableau) {
+        t._elements[entry.key] = (entry.value as PseudoTableau).clone();
+      } else if (entry.value is PseudoStructureInstance) {
+        t._elements[entry.key] = (entry.value as PseudoStructureInstance)
+            .clone();
+      } else {
+        t._elements[entry.key] = entry.value;
+      }
+    }
+    return t;
   }
 }
 

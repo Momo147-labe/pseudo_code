@@ -63,6 +63,11 @@ Name: "quicklaunchicon"; Description: "Créer un raccourci dans la barre de lanc
 ; ✅ APPLICATION FLUTTER
 Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
+; ✅ ICÔNES DE TYPES DE FICHIERS
+Source: "windows\runner\resources\IconFichier\alg.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "windows\runner\resources\IconFichier\csiIcon.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "windows\runner\resources\IconFichier\grp.ico"; DestDir: "{app}"; Flags: ignoreversion
+
 ; ✅ RUNTIME VISUAL C++ (éviter erreurs DLL)
 Source: "C:\Windows\System32\vcruntime140.dll"; DestDir: "{app}"; Flags: external skipifsourcedoesntexist
 Source: "C:\Windows\System32\msvcp140.dll"; DestDir: "{app}"; Flags: external skipifsourcedoesntexist
@@ -77,31 +82,38 @@ Root: HKCU; Subkey: "Software\{#AppPublisher}\{#AppName}"; ValueType: dword; Val
 ; ============================
 ; ASSOCIATION FICHIERS .alg
 ; ============================
-
-; extension .alg
+; extension
 Root: HKCU; Subkey: "Software\Classes\.alg"; ValueType: string; ValueData: "AlgFile"; Flags: uninsdeletevalue
 ; type de fichier
 Root: HKCU; Subkey: "Software\Classes\AlgFile"; ValueType: string; ValueData: "Fichier Algorithme Univ Labé"; Flags: uninsdeletekey
-; icône du fichier
-Root: HKCU; Subkey: "Software\Classes\AlgFile\DefaultIcon"; ValueType: string; ValueData: "{app}\{#AppExeName},0"
+; icône dédiée
+Root: HKCU; Subkey: "Software\Classes\AlgFile\DefaultIcon"; ValueType: string; ValueData: "{app}\alg.ico"
 ; action ouvrir
 Root: HKCU; Subkey: "Software\Classes\AlgFile\Shell\Open\Command"; ValueType: string; ValueData: """{app}\{#AppExeName}"" ""%1"""
-
 
 ; ============================
 ; ASSOCIATION FICHIERS .csi
 ; ============================
-
-; extension .csi
+; extension
 Root: HKCU; Subkey: "Software\Classes\.csi"; ValueType: string; ValueData: "CsiFile"; Flags: uninsdeletevalue
 ; type de fichier
 Root: HKCU; Subkey: "Software\Classes\CsiFile"; ValueType: string; ValueData: "Fichier Merise(csi) Univ Labé"; Flags: uninsdeletekey
-; icône du fichier
-Root: HKCU; Subkey: "Software\Classes\CsiFile\DefaultIcon"; ValueType: string; ValueData: "{app}\{#AppExeName},0"
+; icône dédiée
+Root: HKCU; Subkey: "Software\Classes\CsiFile\DefaultIcon"; ValueType: string; ValueData: "{app}\csiIcon.ico"
 ; action ouvrir
 Root: HKCU; Subkey: "Software\Classes\CsiFile\Shell\Open\Command"; ValueType: string; ValueData: """{app}\{#AppExeName}"" ""%1"""
 
-
+; ============================
+; ASSOCIATION FICHIERS .grp
+; ============================
+; extension
+Root: HKCU; Subkey: "Software\Classes\.grp"; ValueType: string; ValueData: "GrpFile"; Flags: uninsdeletevalue
+; type de fichier
+Root: HKCU; Subkey: "Software\Classes\GrpFile"; ValueType: string; ValueData: "Fichier Graphe Univ Labé"; Flags: uninsdeletekey
+; icône dédiée
+Root: HKCU; Subkey: "Software\Classes\GrpFile\DefaultIcon"; ValueType: string; ValueData: "{app}\grp.ico"
+; action ouvrir
+Root: HKCU; Subkey: "Software\Classes\GrpFile\Shell\Open\Command"; ValueType: string; ValueData: """{app}\{#AppExeName}"" ""%1"""
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"
@@ -141,12 +153,26 @@ begin
 end;
 
 // ✅ CONFIGURATION POST-INSTALLATION
+// Force Windows à rafraîchir les icônes et associations de fichiers
+
+// Déclaration de l'API Windows pour forcer le rafraîchissement
+procedure SHChangeNotify(wEventId: Integer; uFlags: Cardinal; dwItem1, dwItem2: Integer);
+  external 'SHChangeNotify@shell32.dll stdcall';
+
+const
+  SHCNE_ASSOCCHANGED = $08000000;
+  SHCNF_IDLIST       = $0000;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then begin
     // Créer dossiers AppData si nécessaire
     CreateDir(ExpandConstant('{localappdata}\{#AppPublisher}'));
     CreateDir(ExpandConstant('{localappdata}\{#AppPublisher}\{#AppName}'));
+
+    // ✅ Forcer Windows à recharger les associations de fichiers et icônes
+    // Sans ceci, les icônes .alg / .csi / .grp n'apparaissent qu'après redémarrage
+    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, 0, 0);
   end;
 end;
 

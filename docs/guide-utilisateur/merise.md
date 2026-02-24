@@ -1,220 +1,72 @@
-# 🗂️ Merise - Guide utilisateur
+# 🗂️ Merise - Guide Complet de Modélisation
 
-## Introduction à la méthode Merise
+La méthode **Merise** est l'approche de référence pour la conception de bases de données relationnelles. L'application **Pseudo Code** vous permet de modéliser visuellement vos données et de générer automatiquement le code SQL nécessaire.
 
-La méthode **Merise** est une méthode d'analyse et de conception des systèmes d'information. Elle permet de modéliser les données et les traitements d'une organisation.
+---
 
-![Exemple MCD](../images/screenshots/merise-example.png)
+## 🎯 Modèle Conceptuel de Données (MCD)
 
-## 🎯 Créer un diagramme Merise
+Le MCD est la première étape du design. Il représente les objets du monde réel (Entités) et les liens qui les unissent (Associations).
 
-### Ouvrir l'éditeur Merise
+### 1. Les Entités
+Une entité regroupe des informations sur un sujet précis (ex: Client, Commande).
+- **Identifiant** : Chaque entité doit avoir un attribut unique (souligné) qui permet de distinguer chaque occurrence (ex: `id_client`).
+- **Attributs** : Les propriétés de l'entité (nom, date, prix).
 
-1. Ouvrez la palette de commandes (`Ctrl+Shift+P`)
-2. Tapez `Pseudo Code: Nouveau diagramme Merise`
-3. Choisissez le type de modèle :
-   - **MCD** (Modèle Conceptuel de Données)
-   - **MLD** (Modèle Logique de Données)
-   - **MPD** (Modèle Physique de Données)
-
-![Nouveau MCD](../images/screenshots/new-mcd.png)
-
-## 📐 Modèle Conceptuel de Données (MCD)
-
-### Créer une entité
+### 2. Les Associations
+Elles expriment une action ou un lien entre des entités (ex: "Passer", "Contenir").
+- **Cardinalités** : Elles définissent combien de fois une entité peut participer à une association.
+    - `0,1` : Au plus une fois.
+    - `1,1` : Exactement une fois.
+    - `0,N` : Zéro ou plusieurs fois.
+    - `1,N` : Au moins une fois.
 
 > [!TIP]
-> Une entité représente un objet du monde réel (Client, Produit, Commande, etc.)
+> **Bonne pratique** : Évitez les redondances ! Si une information peut être calculée, ne l'ajoutez pas comme attribut.
 
-1. Cliquez sur l'outil **Entité** dans la barre d'outils
-2. Cliquez sur le canvas pour placer l'entité
-3. Nommez l'entité
-4. Ajoutez des attributs
+---
 
-![Création d'entité](../images/screenshots/create-entity.png)
+## 🔄 Transformation MCD → MLD
 
-**Exemple :**
-```
-┌─────────────────┐
-│    CLIENT       │
-├─────────────────┤
-│ #numeroClient   │
-│  nom            │
-│  prenom         │
-│  email          │
-│  telephone      │
-└─────────────────┘
-```
+Le **Modèle Logique de Données (MLD)** est une représentation tabulaire prête pour le stockage. L'application automatise cette étape complexe selon ces règles :
 
-### Créer une association
+1. **Entité simple** : Devient une table. L'identifiant devient la **Clé Primaire**.
+2. **Association 1,N (Père-Fils)** : La clé primaire du côté "1" est ajoutée comme **Clé Étrangère** dans la table du côté "N".
+3. **Association N,N** : L'association devient une **Table Intermédiaire** dont la clé primaire est composée des clés primaires des deux entités liées.
+4. **Attributs d'association** : Sont ajoutés à la table de l'association (pour le N,N) ou à la table recevant la clé étrangère (pour le 1,N).
 
-Les associations relient les entités entre elles.
+---
 
-1. Cliquez sur l'outil **Association**
-2. Cliquez sur la première entité
-3. Cliquez sur la deuxième entité
-4. Définissez les cardinalités (0,1 - 1,1 - 0,N - 1,N)
+## 💾 Passage au Physique (MPD & SQL)
 
-![Création d'association](../images/screenshots/create-association.png)
+Une fois le MLD validé, l'application génère le **MPD** (Modèle Physique) spécifique à votre base de données.
 
-**Cardinalités :**
-- **0,1** : Zéro ou une fois
-- **1,1** : Exactement une fois
-- **0,N** : Zéro ou plusieurs fois
-- **1,N** : Au moins une fois
-
-### Exemple complet de MCD
-
-```
-        1,N                    0,N
-CLIENT ──────── PASSER ──────── COMMANDE
-                   │
-                   │ dateCommande
-                   
-         1,1                    1,N
-COMMANDE ──────── CONTENIR ──────── PRODUIT
-                      │
-                      │ quantite
-                      │ prixUnitaire
-```
-
-![MCD complet](../images/screenshots/mcd-complete.png)
-
-## 🔄 Modèle Logique de Données (MLD)
-
-### Transformation MCD → MLD
+### SGBD Supportés
+L'application génère du SQL optimisé pour :
+- **MySQL / MariaDB**
+- **PostgreSQL**
+- **SQLite**
+- **SQL Server**
 
 > [!IMPORTANT]
-> Le MLD est généré automatiquement à partir du MCD.
+> L'export SQL inclut les contraintes d'intégrité (`PRIMARY KEY`, `FOREIGN KEY`) et les types de données correspondants (VARCHAR, INT, DATE, etc.).
 
-1. Créez votre MCD complet
-2. Cliquez sur **Générer MLD**
-3. L'extension transforme automatiquement votre MCD
+---
 
-![Transformation MLD](../images/screenshots/mcd-to-mld.png)
+## 🏆 Conseils de Modélisation (Normalisation)
 
-**Règles de transformation :**
-- Chaque entité devient une table
-- Les associations 1,N deviennent des clés étrangères
-- Les associations N,N deviennent des tables intermédiaires
+Pour un schéma performant, suivez ces principes :
+- **1ère Forme Normale** : Tous les attributs sont atomiques (pas de liste dans une case).
+- **2ème Forme Normale** : Tout attribut dépend de la clé primaire entière.
+- **3ème Forme Normale** : Pas de dépendance transitive entre attributs non-clés.
 
-**Exemple de MLD :**
-```
-CLIENT (#numeroClient, nom, prenom, email, telephone)
-COMMANDE (#numeroCommande, dateCommande, #numeroClient)
-PRODUIT (#numeroProduit, libelle, prix)
-CONTENIR (#numeroCommande, #numeroProduit, quantite, prixUnitaire)
-```
+---
 
-## 💾 Modèle Physique de Données (MPD)
+## 🆘 Troubleshooting Merise
 
-### Génération du MPD
-
-Le MPD définit la structure physique de la base de données.
-
-1. À partir du MLD, cliquez sur **Générer MPD**
-2. Choisissez le SGBD cible :
-   - MySQL
-   - PostgreSQL
-   - SQLite
-   - Oracle
-   - SQL Server
-
-![Génération MPD](../images/screenshots/generate-mpd.png)
-
-### Script SQL généré
-
-```sql
-CREATE TABLE CLIENT (
-    numeroClient INT PRIMARY KEY AUTO_INCREMENT,
-    nom VARCHAR(50) NOT NULL,
-    prenom VARCHAR(50) NOT NULL,
-    email VARCHAR(100) UNIQUE,
-    telephone VARCHAR(20)
-);
-
-CREATE TABLE COMMANDE (
-    numeroCommande INT PRIMARY KEY AUTO_INCREMENT,
-    dateCommande DATE NOT NULL,
-    numeroClient INT NOT NULL,
-    FOREIGN KEY (numeroClient) REFERENCES CLIENT(numeroClient)
-);
-
-CREATE TABLE PRODUIT (
-    numeroProduit INT PRIMARY KEY AUTO_INCREMENT,
-    libelle VARCHAR(100) NOT NULL,
-    prix DECIMAL(10, 2) NOT NULL
-);
-
-CREATE TABLE CONTENIR (
-    numeroCommande INT,
-    numeroProduit INT,
-    quantite INT NOT NULL,
-    prixUnitaire DECIMAL(10, 2) NOT NULL,
-    PRIMARY KEY (numeroCommande, numeroProduit),
-    FOREIGN KEY (numeroCommande) REFERENCES COMMANDE(numeroCommande),
-    FOREIGN KEY (numeroProduit) REFERENCES PRODUIT(numeroProduit)
-);
-```
-
-## 🎨 Fonctionnalités avancées
-
-### Validation du modèle
-
-> [!NOTE]
-> L'extension vérifie automatiquement la cohérence de votre modèle.
-
-Erreurs détectées :
-- ✅ Entités sans identifiant
-- ✅ Associations sans cardinalités
-- ✅ Cardinalités incorrectes
-- ✅ Noms d'attributs en double
-
-![Validation](../images/screenshots/validation.png)
-
-### Export du diagramme
-
-Exportez votre MCD/MLD/MPD en :
-- **PNG** : Image haute résolution
-- **SVG** : Format vectoriel
-- **PDF** : Document imprimable
-- **SQL** : Script de création de base de données
-
-### Thèmes visuels
-
-Personnalisez l'apparence de vos diagrammes :
-
-![Thèmes](../images/screenshots/merise-themes.png)
-
-### Mode collaboratif
-
-> [!TIP]
-> Partagez vos diagrammes en temps réel avec Live Share.
-
-## 🎥 Tutoriel vidéo
-
-![Tutoriel Merise](../videos/tutorials/merise-tutorial.mp4)
-*Durée : 8 minutes - Créer un MCD complet et générer le SQL*
-
-## 💡 Exemples fournis
-
-L'extension inclut des exemples complets :
-
-- 📚 **Bibliothèque** : Gestion de livres et emprunts
-- 🏪 **E-commerce** : Boutique en ligne avec panier
-- 🏥 **Hôpital** : Gestion des patients et rendez-vous
-- 🎓 **École** : Étudiants, cours et inscriptions
-
-## 🆘 Problèmes courants
-
-### Le diagramme ne s'affiche pas
-
-Rechargez la fenêtre : `Ctrl+Shift+P` → `Reload Window`
-
-### Impossible de créer une association
-
-> [!WARNING]
-> Vérifiez que les deux entités existent et ont des identifiants.
+- **Le texte de l'association est coupé** : Vous pouvez cliquer sur le nom de l'association pour le déplacer ou le renommer.
+- **Erreur de génération MLD** : Vérifiez que toutes vos associations ont des cardinalités des deux côtés.
+- **Identifiant manquant** : Une entité sans identifiant (clé primaire) ne peut pas être transformée en table.
 
 ---
 

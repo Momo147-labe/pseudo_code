@@ -248,7 +248,7 @@
         "exemple": {
             "probleme": "Compter jusqu'à 10",
             "etapes": [
-                "Pour i allant de 1 à 10 Faire",
+                "Pour i de 1 à 10 Faire",
                 "  Afficher i",
                 "FinPour"
             ]
@@ -351,6 +351,101 @@
             "etapes": [
                 "Q ← 10 DIV 3  // Donne 3",
                 "R ← 10 MOD 3  // Donne 1"
+            ]
+        }
+    },
+    {
+        "commande": "Fonctions Natives",
+        "contenu": "Bibliothèque de fonctions intégrées pour manipuler les données (Chaînes, Mathématiques, Conversions).",
+        "caracteristique": [
+            "Chaînes : long(), maj(), minus(), car()",
+            "Maths : racine(), abs(), hasard(min, max), arrondi(), tronque()",
+            "Conversion : en_entier(), en_reel(), en_chaine()",
+            "Analyse : typevar(), est_numerique()"
+        ],
+        "exemple": {
+            "probleme": "Exemple d'utilisation",
+            "etapes": [
+                "L ← long('Bonjour')",
+                "R ← racine(16)",
+                "T ← typevar(123)"
+            ]
+        }
+    },
+    {
+        "commande": "Algorithme : Tri par Sélection",
+        "contenu": "Algorithme de tri simple qui consiste à chercher le plus petit élément et à le placer au début.",
+        "caracteristique": [
+            "Complexité O(n²)",
+            "Peu d'échanges",
+            "Simple à implémenter"
+        ],
+        "exemple": {
+            "probleme": "Trier un tableau T de taille n",
+            "etapes": [
+                "Pour i de 1 à n-1 Faire",
+                "  min ← i",
+                "  Pour j de i+1 à n Faire",
+                "    Si T[j] < T[min] Alors min ← j",
+                "  FinPour",
+                "  Permuter(T[i], T[min])",
+                "FinPour"
+            ]
+        }
+    },
+    {
+        "commande": "Algorithme : Recherche Dichotomique",
+        "contenu": "Méthode de recherche efficace dans un tableau trié en divisant l'intervalle par deux à chaque étape.",
+        "caracteristique": [
+            "Tableau doit être trié",
+            "Complexité O(log n)",
+            "Efficace sur de grands volumes"
+        ],
+        "exemple": {
+            "probleme": "Trouver val dans T[bas..haut]",
+            "etapes": [
+                "Tantque bas <= haut Faire",
+                "  milieu ← (bas + haut) DIV 2",
+                "  Si T[milieu] = val Alors Retourner milieu",
+                "  Sinon Si T[milieu] < val Alors bas ← milieu + 1",
+                "  Sinon haut ← milieu - 1",
+                "FinTantque"
+            ]
+        }
+    },
+    {
+        "commande": "Algorithme : Factorielle",
+        "contenu": "Calcule le produit des entiers de 1 à n.",
+        "caracteristique": [
+            "Cas de base : 0! = 1",
+            "Récursivité ou itération"
+        ],
+        "exemple": {
+            "probleme": "Factorielle de n",
+            "etapes": [
+                "Fonction Factorielle(n : Entier) : Entier",
+                "  Si n = 0 Alors Retourner 1",
+                "  Sinon Retourner n * Factorielle(n - 1)",
+                "FinFonction"
+            ]
+        }
+    },
+    {
+        "commande": "Algorithme : PGCD",
+        "contenu": "Trouve le Plus Grand Commun Diviseur de deux nombres par l'algorithme d'Euclide.",
+        "caracteristique": [
+            "Utilise le reste de la division (MOD)",
+            "Rapide et efficace"
+        ],
+        "exemple": {
+            "probleme": "PGCD de a et b",
+            "etapes": [
+                "Tantque b <> 0 Faire",
+                "  reste ← a MOD b",
+                "  a ← b",
+                "  b ← reste",
+                "FinTantque",
+                "Afficher a"
             ]
         }
     }

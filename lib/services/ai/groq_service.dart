@@ -8,10 +8,16 @@ import 'package:pseudo_code/services/ai/prompt_manager.dart';
 class GroqService implements ILlmService {
   static const String _baseUrl =
       'https://api.groq.com/openai/v1/chat/completions';
-  static const String _model = 'llama-3.1-8b-instant';
 
-  // Clé API (idéalement injectée, mais ici récupérée comme avant)
+  // Modèles Groq disponibles
+  static const String modelFast = 'llama-3.1-8b-instant';
+  static const String modelSmart = 'llama-3.3-70b-versatile';
+  static const String modelDefault = modelFast;
+
+  final String _model;
   final String _apiKey = dotenv.env['GROQ_API_KEY'] ?? '';
+
+  GroqService({String? model}) : _model = model ?? modelDefault;
 
   List<Map<String, String>> _prepareMessages(
     List<Map<String, String>> messages,
@@ -64,6 +70,7 @@ class GroqService implements ILlmService {
           "model": _model,
           "messages": finalMessages,
           "temperature": isAgentMode ? 0.1 : 0.7,
+          "max_tokens": 4096,
           "stream": false,
         }),
       );
@@ -72,12 +79,12 @@ class GroqService implements ILlmService {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         return data['choices'][0]['message']['content'];
       } else {
-        throw Exception(
-          "Erreur Groq (${response.statusCode}): ${response.body}",
-        );
+        final error = jsonDecode(utf8.decode(response.bodyBytes));
+        final msg = error['error']?['message'] ?? response.body;
+        throw Exception("Erreur Groq (${response.statusCode}): $msg");
       }
     } catch (e) {
-      throw Exception("Erreur connection IA: $e");
+      throw Exception("Erreur connexion IA Groq: $e");
     }
   }
 
@@ -108,6 +115,7 @@ class GroqService implements ILlmService {
       "model": _model,
       "messages": finalMessages,
       "temperature": isAgentMode ? 0.1 : 0.7,
+      "max_tokens": 4096,
       "stream": true,
     });
 
@@ -116,7 +124,8 @@ class GroqService implements ILlmService {
       final response = await client.send(request);
 
       if (response.statusCode != 200) {
-        throw Exception("Erreur Stream Groq (${response.statusCode})");
+        final body = await response.stream.bytesToString();
+        throw Exception("Erreur Stream Groq (${response.statusCode}): $body");
       }
 
       final stream = response.stream
@@ -137,23 +146,33 @@ class GroqService implements ILlmService {
               }
             }
           } catch (e) {
-            // Ignore parsing errors for partial chunks
+            // Ignore errors for partial chunks
           }
         }
       }
       client.close();
     } catch (e) {
-      throw Exception("Erreur Stream IA: $e");
+      throw Exception("Erreur Stream IA Groq: $e");
     }
   }
 
   @override
   Map<String, dynamic> getModelInfo() {
+    if (_model == modelSmart) {
+      return {
+        'name': 'Llama 3.3 70B (Expert)',
+        'provider': 'Groq',
+        'model': _model,
+        'costPer1MTokens': 0.59,
+        'maxTokens': 32768,
+        'supportsStreaming': true,
+      };
+    }
     return {
-      'name': 'Llama 3.1 8B',
+      'name': 'Llama 3.1 8B (Rapide)',
       'provider': 'Groq',
       'model': _model,
-      'costPer1MTokens': 0.05, // USD
+      'costPer1MTokens': 0.05,
       'maxTokens': 8192,
       'supportsStreaming': true,
     };
@@ -161,7 +180,7 @@ class GroqService implements ILlmService {
 
   @override
   int estimateTokens(String text) {
-    // Estimation approximative : ~4 caractères par token
-    return (text.length / 4).ceil();
+    // Approx: 1 token ≈ 4 chars in English, ~3 in French
+    return (text.length / 3.5).ceil();
   }
 }

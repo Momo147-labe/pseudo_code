@@ -8,6 +8,7 @@ import 'package:pseudo_code/providers/debug_provider.dart';
 import 'package:pseudo_code/interpreteur/executeurs/io_handler.dart';
 import 'package:pseudo_code/interpreteur/executeurs/affectation_handler.dart';
 import 'package:pseudo_code/interpreteur/executeurs/appel_handler.dart';
+import 'package:pseudo_code/interpreteur/fonctions_natives.dart';
 
 class Executeur {
   final Environnement env;
@@ -30,10 +31,20 @@ class Executeur {
   }) {
     _evaluateur = EvaluateurExpression(
       env,
-      onAppelFonction: (nom, args) async {
+      onAppelFonction: (nom, argsRaw) async {
+        // 1. Vérifier si c'est une fonction native
+        if (FonctionsNatives.estNative(nom)) {
+          final argsEvaluated = <dynamic>[];
+          for (final arg in argsRaw) {
+            argsEvaluated.add(await _evaluateur.evaluer(arg));
+          }
+          return FonctionsNatives.executer(nom, argsEvaluated);
+        }
+
+        // 2. Sinon chercher une fonction utilisateur
         final fonction = env.chercherFonction(nom);
         if (fonction != null) {
-          return await executerSousProgramme(fonction, args);
+          return await executerSousProgramme(fonction, argsRaw);
         }
         throw Exception("Fonction '$nom' non définie.");
       },
@@ -45,6 +56,13 @@ class Executeur {
     _appelHandler = AppelHandler(
       env: env,
       executerSousProgramme: executerSousProgramme,
+      onAppelNative: (nom, argsRaw) async {
+        final argsEvaluated = <dynamic>[];
+        for (final arg in argsRaw) {
+          argsEvaluated.add(await _evaluateur.evaluer(arg));
+        }
+        await FonctionsNatives.executer(nom, argsEvaluated);
+      },
     );
   }
 
@@ -65,8 +83,9 @@ class Executeur {
     if (ligne.isEmpty) return "";
 
     // Retourner (gestion du retour de fonction)
-    if (ligne.toLowerCase().startsWith('retourner ')) {
-      final exp = ligne.substring(10).trim();
+    if (ligne.toLowerCase().startsWith('retourner ') ||
+        ligne.toLowerCase() == 'retourner') {
+      final exp = ligne.length > 10 ? ligne.substring(10).trim() : "";
       _resultatRetour = await _evaluateur.evaluer(exp);
       return "__RETURN__";
     }
@@ -74,29 +93,37 @@ class Executeur {
     // Délégation aux handlers spécialisés
 
     // 1. Lecture (Lire)
-    if (ligne.toLowerCase().startsWith('lire')) {
+    if (RegExp(r'^lire\b', caseSensitive: false).hasMatch(ligne)) {
       await _ioHandler.executerLire(ligne);
       return "";
     }
 
-    // 2. Affichage de tableau (Afficher_Table)
-    if (ligne.toLowerCase().startsWith('afficher_table')) {
+    // 2. Affichage de tableau (Afficher_Table/Ecrire_Table)
+    if (RegExp(
+      r'^(afficher|ecrire)_table\b',
+      caseSensitive: false,
+    ).hasMatch(ligne)) {
       return await _ioHandler.executerAfficherTable(ligne);
     }
 
-    // 3. Affichage 2D (Afficher2D)
-    if (ligne.toLowerCase().startsWith('afficher2d')) {
+    // 3. Affichage 2D (Afficher2D/Ecrire2D)
+    if (RegExp(
+      r'^(afficher|ecrire)2d\b',
+      caseSensitive: false,
+    ).hasMatch(ligne)) {
       return await _ioHandler.executerAfficher2D(ligne);
     }
 
-    // 4. Affichage Structure (AfficherTabStructure)
-    if (ligne.toLowerCase().startsWith('affichertabstructure')) {
+    // 4. Affichage Structure (AfficherTabStructure/EcrireTabStructure)
+    if (RegExp(
+      r'^(afficher|ecrire)tabstructure\b',
+      caseSensitive: false,
+    ).hasMatch(ligne)) {
       return await _ioHandler.executerAfficherTabStructure(ligne);
     }
 
     // 5. Affichage (Afficher/Ecrire)
-    if (ligne.toLowerCase().startsWith('afficher') ||
-        ligne.toLowerCase().startsWith('ecrire')) {
+    if (RegExp(r'^(afficher|ecrire)\b', caseSensitive: false).hasMatch(ligne)) {
       return await _ioHandler.executerAfficher(ligne);
     }
 
@@ -123,7 +150,7 @@ class Executeur {
       return "";
     }
 
-    return "";
+    throw Exception("Instruction inconnue ou syntaxe invalide : '$ligne'");
   }
 
   Future<dynamic> executerSousProgramme(
@@ -131,11 +158,25 @@ class Executeur {
     List<String> argumentsExps,
   ) async {
     final valeurs = <dynamic>[];
+    final nomsVariablesGlobales =
+        <String?>[]; // Pour la copie de retour (Pass-By-Value-Result)
+
     for (final exp in argumentsExps) {
       valeurs.add(await _evaluateur.evaluer(exp));
+      final expTrimmed = exp.trim();
+      if (RegExp(r'^[a-zA-Z_]\w*$').hasMatch(expTrimmed)) {
+        nomsVariablesGlobales.add(expTrimmed);
+      } else {
+        nomsVariablesGlobales.add(null);
+      }
     }
 
-    final envLocal = Environnement(parent: env);
+    Environnement envGlobal = env;
+    while (envGlobal.parent != null) {
+      envGlobal = envGlobal.parent!;
+    }
+    final envLocal = Environnement(parent: envGlobal);
+
     if (valeurs.length != sp.parametres.length) {
       throw Exception("Arguments invalides pour '${sp.nom}'.");
     }
@@ -182,7 +223,27 @@ class Executeur {
       baseOffset: sp.offset,
       dansVariables: false, // Will be set by 'variables' keyword
       dansDebut: false, // Will be set by 'début' keyword
+      nomContexte: sp.nom,
     );
+
+    if (result == "__ERROR__") {
+      throw Exception("Erreur d'exécution dans le sous-programme '${sp.nom}'.");
+    }
+
+    // Copie de retour (Pass-By-Value-Result) pour simuler le passage par référence
+    for (int i = 0; i < sp.parametres.length; i++) {
+      final nomGlobal = nomsVariablesGlobales[i];
+      if (nomGlobal != null) {
+        try {
+          // On s'assure que c'est bien une variable assignable et non une constante
+          env.lire(nomGlobal);
+          final valeurFinale = envLocal.lire(sp.parametres[i].nom);
+          env.assigner(nomGlobal, valeurFinale);
+        } catch (_) {
+          // Ignorer si ce n'est pas une variable globale modifiable (ex: constante)
+        }
+      }
+    }
 
     if (result == "__RETURN__") return execLocal._resultatRetour;
 

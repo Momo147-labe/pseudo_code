@@ -39,13 +39,14 @@ class StatusBar extends StatelessWidget {
                 ),
 
                 const SizedBox(width: 16),
-                Text(
-                  'Police: ',
-                  style: TextStyle(
-                    color: ThemeColors.textMain(theme),
-                    fontSize: 11,
+                if (!isMobile)
+                  Text(
+                    'Police: ',
+                    style: TextStyle(
+                      color: ThemeColors.textMain(theme),
+                      fontSize: 11,
+                    ),
                   ),
-                ),
                 _FontSizeControl(
                   label: '-',
                   theme: theme,
@@ -64,8 +65,10 @@ class StatusBar extends StatelessWidget {
                   onPressed: () => provider.setFontSize(provider.fontSize + 1),
                 ),
 
-                const SizedBox(width: 16),
-                _FontFamilySelector(theme: theme),
+                if (!isMobile) ...[
+                  const SizedBox(width: 16),
+                  _FontFamilySelector(theme: theme),
+                ],
 
                 const Spacer(),
                 if (!isMobile)

@@ -16,11 +16,25 @@ class Environnement {
 
   Map<String, dynamic> snapshot() {
     final Map<String, dynamic> allVars = {};
-    if (parent != null) {
-      allVars.addAll(parent!.snapshot());
+
+    Environnement? currentParent = parent;
+    while (currentParent != null) {
+      for (final entry in currentParent.constantes.entries) {
+        allVars['📦 ${entry.key} (const)'] = entry.value;
+      }
+      for (final entry in currentParent.variables.entries) {
+        allVars['📦 ${entry.key}'] = entry.value;
+      }
+      currentParent = currentParent.parent;
     }
-    allVars.addAll(constantes);
-    allVars.addAll(variables);
+
+    final prefix = parent != null ? '📍 ' : '📦 ';
+    for (final entry in constantes.entries) {
+      allVars['$prefix${entry.key} (const)'] = entry.value;
+    }
+    for (final entry in variables.entries) {
+      allVars['$prefix${entry.key}'] = entry.value;
+    }
     return allVars;
   }
 
@@ -116,7 +130,7 @@ class Environnement {
     if (typeAttendu == null) return;
 
     if (typeAttendu == 'entier') {
-      if (valeur is! int)
+      if (valeur is! int && valeur is! BigInt)
         throw Exception("Erreur de type: La variable '$nom' attend un entier.");
     } else if (typeAttendu == 'réel' || typeAttendu == 'reel') {
       if (valeur is! double && valeur is! int) {

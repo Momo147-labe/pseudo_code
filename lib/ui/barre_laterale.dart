@@ -10,7 +10,7 @@ import 'variable_view.dart';
 import 'merise/widgets/sidebar.dart';
 import 'educational_panel.dart';
 import 'profile_modal.dart';
-import 'documentation_modal.dart';
+import 'documentation_page.dart';
 import 'ai_assistant_view.dart';
 import '../providers/graph_provider.dart';
 
@@ -138,9 +138,11 @@ class _BarreLateraleState extends State<BarreLaterale> {
                       _NavIcon(
                         icon: Icons.help_outline,
                         isActive: false,
-                        onTap: () => showDialog(
-                          context: context,
-                          builder: (context) => const DocumentationModal(),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DocumentationPage(),
+                          ),
                         ),
                         theme: theme,
                       ),

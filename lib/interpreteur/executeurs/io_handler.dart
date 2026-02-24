@@ -23,27 +23,50 @@ class IOHandler {
 
   /// Gère la commande Afficher()
   Future<String> executerAfficher(String ligne) async {
-    final match = RegExp(
-      r'(?:afficher|ecrire)\s*\((.*)\)',
+    // 1. Tenter le format avec parenthèses : Afficher(...)
+    var match = RegExp(
+      r'^(?:afficher|ecrire)\s*\((.*)\)$',
       caseSensitive: false,
     ).firstMatch(ligne);
 
+    String argsBruts = "";
     if (match != null) {
-      final args = _extraireArguments(match.group(1)!);
+      argsBruts = match.group(1)!;
+    } else {
+      // 2. Tenter le format sans parenthèses : Afficher ...
+      match = RegExp(
+        r'^(?:afficher|ecrire)\b\s*(.*)$',
+        caseSensitive: false,
+      ).firstMatch(ligne);
+      if (match != null) {
+        argsBruts = match.group(1)!;
+      }
+    }
+
+    if (match != null) {
+      if (argsBruts.trim().isEmpty) return "";
+      final args = _extraireArguments(argsBruts);
       String resultat = "";
 
       for (final arg in args) {
         final a = arg.trim();
+        if (a.isEmpty) continue;
         if (a.startsWith('"') && a.endsWith('"')) {
           resultat += a.substring(1, a.length - 1);
         } else {
-          final val = await evaluateur.evaluer(a);
-          resultat += _formaterValeur(val);
+          try {
+            final val = await evaluateur.evaluer(a);
+            resultat += _formaterValeur(val);
+          } catch (e) {
+            throw Exception("Erreur dans l'expression '$a' : $e");
+          }
         }
       }
       return resultat;
     }
-    return "";
+    throw Exception(
+      "Syntaxe de 'Afficher' invalide. Attendu: Afficher(...) ou Afficher ...",
+    );
   }
 
   String _formaterValeur(dynamic val) {
@@ -58,16 +81,17 @@ class IOHandler {
   /// Gère la commande Afficher_Table()
   Future<String> executerAfficherTable(String ligne) async {
     final match = RegExp(
-      r'afficher_table\s*\((.*)\)',
+      r'^(?:afficher|ecrire)_table\s*(?:\((.*)\)|(.*))$',
       caseSensitive: false,
     ).firstMatch(ligne);
 
     if (match != null) {
-      final arg = match.group(1)!.trim();
+      final arg = (match.group(1) ?? match.group(2))?.trim() ?? "";
+      if (arg.isEmpty) throw Exception("afficher_table attend un argument.");
       final valeur = await evaluateur.evaluer(arg);
       return _formaterValeur(valeur);
     }
-    return "";
+    throw Exception("Syntaxe de 'afficher_table' invalide.");
   }
 
   /// Gère la commande Effacer
@@ -78,7 +102,7 @@ class IOHandler {
   /// Gère la commande Afficher2D()
   Future<String> executerAfficher2D(String ligne) async {
     final match = RegExp(
-      r'afficher2D\s*\((.*)\)',
+      r'^(?:afficher|ecrire)2D\s*(?:\((.*)\)|(.*))$',
       caseSensitive: false,
     ).firstMatch(ligne);
 
@@ -96,7 +120,7 @@ class IOHandler {
   /// Gère la commande AfficherTabStructure()
   Future<String> executerAfficherTabStructure(String ligne) async {
     final match = RegExp(
-      r'afficherTabStructure\s*\((.*)\)',
+      r'^(?:afficher|ecrire)TabStructure\s*(?:\((.*)\)|(.*))$',
       caseSensitive: false,
     ).firstMatch(ligne);
 
@@ -114,12 +138,18 @@ class IOHandler {
   /// Gère la commande Lire()
   Future<void> executerLire(String ligne) async {
     final match = RegExp(
-      r'lire\s*\((.*)\)',
+      r'^lire\s*(?:\((.*)\)|(.*))$',
       caseSensitive: false,
     ).firstMatch(ligne);
-    if (match == null) return;
+    if (match == null) {
+      throw Exception(
+        "Syntaxe de 'Lire' invalide. Attendu: Lire(variable) ou Lire variable",
+      );
+    }
 
-    final variableBrute = match.group(1)!.trim();
+    final variableBrute = (match.group(1) ?? match.group(2))!.trim();
+    if (variableBrute.isEmpty)
+      throw Exception("Lire attend le nom d'une variable.");
     final saisie = await onInput();
     dynamic valeur;
 

@@ -41,7 +41,7 @@ dependencies:
   crypto: ^3.0.3
   flutter_tts: ^4.2.0
 
-  win32: ^5.1.1
+
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +80,7 @@ flutter:
     - assets/regles_de_MCD_à_MLD.json
     - docs/
     - docs/guide-utilisateur/
+    - lib/interpreteur/blocs/donnerTableau/
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

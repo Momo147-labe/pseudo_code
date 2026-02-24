@@ -9,6 +9,68 @@ import 'package:pseudo_code/interpreteur/validateur.dart';
 import 'package:pseudo_code/providers/debug_provider.dart';
 
 class Interpreteur {
+  static final RegExp _regVars = RegExp(r'^variables\b', caseSensitive: false);
+  static final RegExp _regDebut = RegExp(
+    r'^début\b|^debut\b',
+    caseSensitive: false,
+  );
+  static final RegExp _regFinSpecific = RegExp(
+    r'^fin[a-z]+',
+    caseSensitive: false,
+  );
+  static final RegExp _regFin = RegExp(r'^fin\b', caseSensitive: false);
+  static final RegExp _regFinOnly = RegExp(r'^fin\s*$', caseSensitive: false);
+  static final RegExp _siReg = RegExp(
+    r'^si\s+(.*)\s+alors$',
+    caseSensitive: false,
+  );
+  static final RegExp _sinonSiReg = RegExp(
+    r'^sinon\s+si\s+(.*)\s+alors$',
+    caseSensitive: false,
+  );
+  static final RegExp _selonReg = RegExp(
+    r'^selon\s+(.*)\s+faire$',
+    caseSensitive: false,
+  );
+  static final RegExp _tantqueReg = RegExp(
+    r'^tantque\s+(.*)\s+faire$',
+    caseSensitive: false,
+  );
+  static final RegExp _pourReg = RegExp(
+    r'^pour\s+([a-zA-Z_]\w*)\s*(?:<-|de)\s*(.*)\s+(?:a|à)\s+(.*?)(?:\s+pas\s+(.*))?\s+faire$',
+    caseSensitive: false,
+  );
+  static final RegExp _jusquaReg = RegExp(
+    r'^jusqua\s+(.*)$',
+    caseSensitive: false,
+  );
+  static final RegExp _casReg = RegExp(r'^cas\s+', caseSensitive: false);
+  static final RegExp _sinonAutreReg = RegExp(
+    r'^(?:sinon|autre)\s*(?::\s*)?$',
+    caseSensitive: false,
+  );
+  static final RegExp _regConstLine = RegExp(
+    r'^const\s+(.*)$',
+    caseSensitive: false,
+  );
+  static final RegExp _regAssignConst = RegExp(
+    r'^([a-zA-Z_]\w*)\s*(?:<-|←|=)\s*(.*)$',
+  );
+  static final RegExp _regTypeStruct = RegExp(
+    r'^type\s+([a-zA-Z_]\w*)\s*=\s*structure',
+    caseSensitive: false,
+  );
+  static final RegExp _regTypeSimple = RegExp(
+    r'^type\s+([a-zA-Z_]\w*)\s*=\s*(.*)$',
+    caseSensitive: false,
+  );
+  static final RegExp _tabReg = RegExp(
+    r"tableau\s*\[(.*)\]\s+(?:d'|de\s+)(\w+)",
+    caseSensitive: false,
+  );
+  static final RegExp _regValidId = RegExp(r'^[a-zA-Z][a-zA-Z0-9_]*$');
+  static final RegExp _regStartsWithNum = RegExp(r'^[0-9]');
+
   static Future<void> executer(
     String code, {
     required DebugProvider provider,
@@ -50,7 +112,7 @@ class Interpreteur {
       onOutput: onOutput,
     );
 
-    // Initialisation état débogage
+    // Initialisation état débogage (Déjà fait au début, on garde pour la cohérence si appelé ailleurs)
     provider.setErrorLine(null);
     provider.setHighlightLine(null);
     provider.updateDebugVariables({});
@@ -78,14 +140,22 @@ class Interpreteur {
     int baseOffset = 0,
     bool dansVariables = false,
     bool dansDebut = false,
+    String? nomContexte,
   }) async {
     // Pile pour l'exécution dynamique
     final List<String> pileBlocs = [];
+    // Cache pour figer les bornes et le pas des boucles "pour"
+    final Map<int, Map<String, dynamic>> frozenLoops = {};
 
+    int instructionCount = 0;
     int i = startIndex;
     while (i < lignes.length) {
-      // Force UI refresh
-      await Future.delayed(Duration.zero);
+      instructionCount++;
+      // Optimisation performance: ne pas tout ralentir en attendant à chaque ligne
+      // On rafraîchit l'UI seulement toutes les 50 instructions
+      if (instructionCount % 50 == 0) {
+        await Future.delayed(Duration.zero);
+      }
 
       String ligneFull = lignes[i];
       String ligne = ligneFull.trim();
@@ -113,22 +183,17 @@ class Interpreteur {
         continue;
       }
 
-      final regVars = RegExp(r'^variables\b', caseSensitive: false);
-      final regDebut = RegExp(r'^début\b|^debut\b', caseSensitive: false);
-      final regFin = RegExp(r'^fin\b', caseSensitive: false);
-
-      if (regVars.hasMatch(ligne) && !dansDebut) {
+      if (_regVars.hasMatch(ligne) && !dansDebut) {
         dansVariables = true;
         continue;
       }
-      if (regDebut.hasMatch(ligne)) {
+      if (_regDebut.hasMatch(ligne)) {
         dansVariables = false;
         dansDebut = true;
         continue;
       }
-      if (regFin.hasMatch(ligne)) {
-        if (RegExp(r'^fin[a-z]+', caseSensitive: false).hasMatch(ligne) &&
-            !RegExp(r'^fin\s*$', caseSensitive: false).hasMatch(ligne)) {
+      if (_regFin.hasMatch(ligne)) {
+        if (_regFinSpecific.hasMatch(ligne) && !_regFinOnly.hasMatch(ligne)) {
           // Bloc spécifique, ignoré ici
         } else {
           provider.setHighlightLine(null);
@@ -176,31 +241,12 @@ class Interpreteur {
         }
       } else if (dansDebut) {
         try {
-          final siReg = RegExp(r'^si\s+(.*)\s+alors$', caseSensitive: false);
-          final sinonSiReg = RegExp(
-            r'^sinon\s+si\s+(.*)\s+alors$',
-            caseSensitive: false,
-          );
-          final selonReg = RegExp(
-            r'^selon\s+(.*)\s+faire$',
-            caseSensitive: false,
-          );
-          final tantqueReg = RegExp(
-            r'^tantque\s+(.*)\s+faire$',
-            caseSensitive: false,
-          );
-          final pourReg = RegExp(
-            r'^pour\s+([a-zA-Z_]\w*)\s*(?:<-|de)\s*(.*)\s+(?:a|à)\s+(.*?)(?:\s+pas\s+(.*))?\s+faire$',
-            caseSensitive: false,
-          );
-          final jusquaReg = RegExp(r'^jusqua\s+(.*)$', caseSensitive: false);
-
-          final siMatch = siReg.firstMatch(ligne);
-          final sinonSiMatch = sinonSiReg.firstMatch(ligne);
-          final selonMatch = selonReg.firstMatch(ligne);
-          final tantqueMatch = tantqueReg.firstMatch(ligne);
-          final pourMatch = pourReg.firstMatch(ligne);
-          final jusquaMatch = jusquaReg.firstMatch(ligne);
+          final siMatch = _siReg.firstMatch(ligne);
+          final sinonSiMatch = _sinonSiReg.firstMatch(ligne);
+          final selonMatch = _selonReg.firstMatch(ligne);
+          final tantqueMatch = _tantqueReg.firstMatch(ligne);
+          final pourMatch = _pourReg.firstMatch(ligne);
+          final jusquaMatch = _jusquaReg.firstMatch(ligne);
 
           if (siMatch != null) {
             pileBlocs.add('si');
@@ -226,11 +272,7 @@ class Interpreteur {
             i = await NavigateurBlocs.sauterVersCas(lignes, i, valCible, exec);
           } else if (pileBlocs.isNotEmpty &&
               pileBlocs.last == 'selon' &&
-              (RegExp(r'^cas\s+', caseSensitive: false).hasMatch(ligne) ||
-                  RegExp(
-                    r'^(?:sinon|autre)\s*(?::\s*)?$',
-                    caseSensitive: false,
-                  ).hasMatch(ligne))) {
+              (_casReg.hasMatch(ligne) || _sinonAutreReg.hasMatch(ligne))) {
             i = NavigateurBlocs.trouverFinBlocCorrespondant(
               lignes,
               i,
@@ -295,6 +337,11 @@ class Interpreteur {
                 ['fpour', 'finpour'],
               );
             } else {
+              frozenLoops[indexInstruction] = {
+                'endVal': endVal,
+                'pas': pas,
+                'varName': varName,
+              };
               pileBlocs.add('pour');
             }
           } else if (ligne.toLowerCase() == 'fpour' ||
@@ -306,25 +353,15 @@ class Interpreteur {
                 ligne.toLowerCase(),
                 ['pour'],
               );
-              final m = pourReg.firstMatch(lignes[pourLineIdx].trim());
-              if (m != null) {
-                final varName = m.group(1)!;
-                final endVal = await exec.evaluer(m.group(3)!);
-                num pas = 1;
-                if (m.group(4) != null) {
-                  pas = await exec.evaluer(m.group(4)!);
-                } else {
-                  // On doit recalculer le pas par défaut si non spécifié
-                  final startValInit = await exec.evaluer(m.group(2)!);
-                  if (startValInit is num &&
-                      endVal is num &&
-                      startValInit > endVal) {
-                    pas = -1;
-                  }
-                }
+
+              final frozen = frozenLoops[pourLineIdx];
+              if (frozen != null) {
+                final varName = frozen['varName'] as String;
+                final endVal = frozen['endVal'] as num;
+                final pas = frozen['pas'] as num;
 
                 dynamic currentVal = env.lire(varName);
-                if (currentVal is num && endVal is num) {
+                if (currentVal is num) {
                   currentVal = currentVal + pas;
                   env.assigner(varName, currentVal);
 
@@ -338,12 +375,15 @@ class Interpreteur {
                   if (condition) {
                     i = pourLineIdx + 1;
                   } else {
+                    frozenLoops.remove(pourLineIdx);
                     pileBlocs.removeLast();
                   }
                 } else {
+                  frozenLoops.remove(pourLineIdx);
                   pileBlocs.removeLast();
                 }
               } else {
+                // Fallback si pas figé (ne devrait pas arriver avec la nouvelle logique)
                 pileBlocs.removeLast();
               }
             }
@@ -371,8 +411,10 @@ class Interpreteur {
           }
         } catch (e) {
           final errLine = indexInstruction + baseOffset + 1;
+          provider.setHighlightLine(null);
           provider.setErrorLine(errLine);
-          onOutput("Erreur à la ligne $errLine: $e");
+          final suffix = nomContexte != null ? " (dans '$nomContexte')" : "";
+          onOutput("Erreur à la ligne $errLine$suffix: $e");
           return "__ERROR__";
         }
       }
@@ -394,19 +436,16 @@ class Interpreteur {
     );
 
     // Regex capture 'const' puis tout ce qui suit
-    final regConstLine = RegExp(r'^const\s+(.*)$', caseSensitive: false);
-
     for (int i = 0; i < lignes.length; i++) {
       final l = lignes[i].trim();
-      final matchLine = regConstLine.firstMatch(l);
+      final matchLine = _regConstLine.firstMatch(l);
       if (matchLine != null) {
         final declarations = matchLine.group(1)!;
         // Diviser par virgules, mais respecter les parenthèses/crochets si besoin
         // Ici on suppose des expressions simples ou on utilise un splitter robuste
         final parts = _splitDeclarations(declarations);
         for (final part in parts) {
-          final regAssign = RegExp(r'^([a-zA-Z_]\w*)\s*(?:<-|←|=)\s*(.*)$');
-          final m = regAssign.firstMatch(part.trim());
+          final m = _regAssignConst.firstMatch(part.trim());
           if (m != null) {
             final nom = m.group(1)!;
             _validerNomIdentifier(nom);
@@ -448,18 +487,10 @@ class Interpreteur {
     Environnement env,
   ) {
     int i = 0;
-    final regTypeStruct = RegExp(
-      r'^type\s+([a-zA-Z_]\w*)\s*=\s*structure',
-      caseSensitive: false,
-    );
-    final regTypeSimple = RegExp(
-      r'^type\s+([a-zA-Z_]\w*)\s*=\s*(.*)$',
-      caseSensitive: false,
-    );
 
     while (i < lignes.length) {
       String l = lignes[i].trim();
-      final matchStruct = regTypeStruct.firstMatch(l);
+      final matchStruct = _regTypeStruct.firstMatch(l);
       if (matchStruct != null) {
         String nomStruct = matchStruct.group(1)!;
         _validerNomIdentifier(nomStruct);
@@ -486,7 +517,7 @@ class Interpreteur {
           PseudoStructureDefinition(nom: nomStruct, champs: champs),
         );
       } else {
-        final matchSimple = regTypeSimple.firstMatch(l);
+        final matchSimple = _regTypeSimple.firstMatch(l);
         if (matchSimple != null) {
           final nom = matchSimple.group(1)!;
           _validerNomIdentifier(nom);
@@ -593,11 +624,7 @@ class Interpreteur {
       _validerNomIdentifier(nom);
 
       if (typeLower.startsWith('tableau')) {
-        final tabReg = RegExp(
-          r"tableau\s*\[(.*)\]\s+(?:d'|de\s+)(\w+)",
-          caseSensitive: false,
-        );
-        final match = tabReg.firstMatch(typeBrut);
+        final match = _tabReg.firstMatch(typeBrut);
         if (match != null) {
           final rangesStr = match.group(1)!;
           final elemType = match.group(2)!;
@@ -666,9 +693,8 @@ class Interpreteur {
     }
 
     // Règle 2: Regex ^[a-zA-Z][a-zA-Z0-9_]*$
-    final reg = RegExp(r'^[a-zA-Z][a-zA-Z0-9_]*$');
-    if (!reg.hasMatch(nom)) {
-      if (RegExp(r'^[0-9]').hasMatch(nom)) {
+    if (!_regValidId.hasMatch(nom)) {
+      if (_regStartsWithNum.hasMatch(nom)) {
         throw Exception(
           "Erreur: Le nom '$nom' ne peut pas commencer par un chiffre.",
         );
