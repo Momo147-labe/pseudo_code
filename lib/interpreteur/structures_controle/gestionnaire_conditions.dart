@@ -54,7 +54,6 @@ class GestionnaireConditions {
         return await NavigateurBlocs.sauterVersBrancheSuivante(
           lignes,
           indexCourant,
-          exec,
         );
       }
     }

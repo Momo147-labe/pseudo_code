@@ -84,8 +84,8 @@ class _EditeurWidgetState extends State<EditeurWidget> {
 
     if (!widget.isStandalone) {
       _fileProvider = context.read<FileProvider>();
-      _insertSubscription = _fileProvider?.insertRequests.listen((text) {
-        _handleInsertionRequest(text);
+      _insertSubscription = _fileProvider?.insertRequests.listen((request) {
+        _handleInsertionRequest(request);
       });
       _fileProvider?.addListener(_handleFileProviderChange);
     }
@@ -540,9 +540,10 @@ class _EditeurWidgetState extends State<EditeurWidget> {
     _isInsertingSuggestion = false;
   }
 
-  void _handleInsertionRequest(String snippet) {
+  void _handleInsertionRequest(InsertionRequest request) {
     final selection = _controller.selection;
     final currentText = _controller.text;
+    final snippet = request.snippet;
     String newFullCode;
 
     if (!selection.isValid) {
@@ -555,8 +556,19 @@ class _EditeurWidgetState extends State<EditeurWidget> {
       );
     }
 
-    // Au lieu d'appliquer, on propose
-    context.read<FileProvider>().proposeCodeChange(newFullCode);
+    if (request.direct) {
+      // Insertion directe sans review
+      _controller.text = newFullCode;
+      if (selection.isValid) {
+        _controller.selection = TextSelection.collapsed(
+          offset: selection.start + snippet.length,
+        );
+      }
+      _onChanged(newFullCode, context.read<FileProvider>());
+    } else {
+      // Au lieu d'appliquer, on propose
+      context.read<FileProvider>().proposeCodeChange(newFullCode);
+    }
   }
 
   void _onChanged(String text, FileProvider provider) {

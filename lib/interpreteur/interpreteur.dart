@@ -1,11 +1,9 @@
 import 'package:pseudo_code/interpreteur/environnement.dart';
 import 'package:pseudo_code/interpreteur/executeur.dart';
-import 'package:pseudo_code/interpreteur/mots_cles.dart';
 import 'package:pseudo_code/interpreteur/navigateur_blocs.dart';
 import 'package:pseudo_code/interpreteur/blocs/tableaux.dart';
-import 'package:pseudo_code/interpreteur/blocs/fonctions.dart';
-import 'package:pseudo_code/interpreteur/blocs/structures.dart';
 import 'package:pseudo_code/interpreteur/validateur.dart';
+import 'package:pseudo_code/interpreteur/pre_analyseur.dart';
 import 'package:pseudo_code/providers/debug_provider.dart';
 
 class Interpreteur {
@@ -49,27 +47,6 @@ class Interpreteur {
     r'^(?:sinon|autre)\s*(?::\s*)?$',
     caseSensitive: false,
   );
-  static final RegExp _regConstLine = RegExp(
-    r'^const\s+(.*)$',
-    caseSensitive: false,
-  );
-  static final RegExp _regAssignConst = RegExp(
-    r'^([a-zA-Z_]\w*)\s*(?:<-|←|=)\s*(.*)$',
-  );
-  static final RegExp _regTypeStruct = RegExp(
-    r'^type\s+([a-zA-Z_]\w*)\s*=\s*structure',
-    caseSensitive: false,
-  );
-  static final RegExp _regTypeSimple = RegExp(
-    r'^type\s+([a-zA-Z_]\w*)\s*=\s*(.*)$',
-    caseSensitive: false,
-  );
-  static final RegExp _tabReg = RegExp(
-    r"tableau\s*\[(.*)\]\s+(?:d'|de\s+)(\w+)",
-    caseSensitive: false,
-  );
-  static final RegExp _regValidId = RegExp(r'^[a-zA-Z][a-zA-Z0-9_]*$');
-  static final RegExp _regStartsWithNum = RegExp(r'^[0-9]');
 
   static Future<void> executer(
     String code, {
@@ -98,12 +75,8 @@ class Interpreteur {
 
     final env = Environnement();
 
-    // 2. Pré-analyse pour enregistrer les constantes, types et structures
-    await _enregistrerConstantes(lignes, env, provider, onOutput);
-    _enregistrerTypesEtStructures(lignes, env);
-
-    // 3. Pré-analyse pour enregistrer les fonctions et procédures
-    _enregistrerSousProgrammes(lignes, env);
+    // 2. Pré-analyse (constantes, types, structures, fonctions)
+    await PreAnalyseur.analyser(lignes, env, provider, onOutput);
 
     final exec = Executeur(
       env,
@@ -187,6 +160,7 @@ class Interpreteur {
         dansVariables = true;
         continue;
       }
+      final ligneLower = ligne.toLowerCase();
       if (_regDebut.hasMatch(ligne)) {
         dansVariables = false;
         dansDebut = true;
@@ -194,7 +168,11 @@ class Interpreteur {
       }
       if (_regFin.hasMatch(ligne)) {
         if (_regFinSpecific.hasMatch(ligne) && !_regFinOnly.hasMatch(ligne)) {
-          // Bloc spécifique, ignoré ici
+          if (!ligneLower.startsWith('finsi') &&
+              !ligneLower.startsWith('fin si')) {
+            // Bloc spécifique, ignoré ici (fintantque, finpour, etc.)
+            // sauf s'il est traité dans le switch plus bas
+          }
         } else {
           provider.setHighlightLine(null);
           dansDebut = false;
@@ -251,19 +229,23 @@ class Interpreteur {
           if (siMatch != null) {
             pileBlocs.add('si');
             if (!(await exec.evaluerBooleen(siMatch.group(1)!))) {
-              i = await NavigateurBlocs.sauterVersBrancheSuivante(
-                lignes,
-                i,
-                exec,
-              );
+              i = await NavigateurBlocs.sauterVersBrancheSuivante(lignes, i);
             }
-          } else if (sinonSiMatch != null || ligne.toLowerCase() == 'sinon') {
+          } else if (sinonSiMatch != null) {
+            pileBlocs.add('si');
+            if (!(await exec.evaluerBooleen(sinonSiMatch.group(1)!))) {
+              i = await NavigateurBlocs.sauterVersBrancheSuivante(lignes, i);
+            }
+          } else if (ligneLower.startsWith('sinon') ||
+              ligneLower.startsWith('sinon:')) {
             i = NavigateurBlocs.trouverFinBlocCorrespondant(lignes, i, 'si', [
               'finsi',
+              'fin si',
             ]);
             if (pileBlocs.isNotEmpty && pileBlocs.last == 'si')
               pileBlocs.removeLast();
-          } else if (ligne.toLowerCase() == 'finsi') {
+          } else if (ligneLower.startsWith('finsi') ||
+              ligneLower.startsWith('fin si')) {
             if (pileBlocs.isNotEmpty && pileBlocs.last == 'si')
               pileBlocs.removeLast();
           } else if (selonMatch != null) {
@@ -280,7 +262,8 @@ class Interpreteur {
               ['finselon'],
             );
             pileBlocs.removeLast();
-          } else if (ligne.toLowerCase() == 'finselon') {
+          } else if (ligneLower.startsWith('finselon') ||
+              ligneLower.startsWith('fin selon')) {
             if (pileBlocs.isNotEmpty && pileBlocs.last == 'selon')
               pileBlocs.removeLast();
           } else if (tantqueMatch != null) {
@@ -294,7 +277,9 @@ class Interpreteur {
               );
               pileBlocs.removeLast();
             }
-          } else if (ligne.toLowerCase() == 'fintantque') {
+          } else if (ligneLower.startsWith('fintantque') ||
+              ligneLower.startsWith('fin tant que') ||
+              ligneLower.startsWith('fintant que')) {
             if (pileBlocs.isNotEmpty && pileBlocs.last == 'tantque') {
               i = NavigateurBlocs.trouverDebutBlocCorrespondant(
                 lignes,
@@ -344,8 +329,9 @@ class Interpreteur {
               };
               pileBlocs.add('pour');
             }
-          } else if (ligne.toLowerCase() == 'fpour' ||
-              ligne.toLowerCase() == 'finpour') {
+          } else if (ligneLower.startsWith('finpour') ||
+              ligneLower.startsWith('fpour') ||
+              ligneLower.startsWith('fin pour')) {
             if (pileBlocs.isNotEmpty && pileBlocs.last == 'pour') {
               final pourLineIdx = NavigateurBlocs.trouverDebutBlocCorrespondant(
                 lignes,
@@ -422,187 +408,6 @@ class Interpreteur {
     return null;
   }
 
-  static Future<void> _enregistrerConstantes(
-    List<String> lignes,
-    Environnement env,
-    DebugProvider provider,
-    Function(String) onOutput,
-  ) async {
-    final exec = Executeur(
-      env,
-      provider: provider,
-      onInput: () async => "",
-      onOutput: onOutput,
-    );
-
-    // Regex capture 'const' puis tout ce qui suit
-    for (int i = 0; i < lignes.length; i++) {
-      final l = lignes[i].trim();
-      final matchLine = _regConstLine.firstMatch(l);
-      if (matchLine != null) {
-        final declarations = matchLine.group(1)!;
-        // Diviser par virgules, mais respecter les parenthèses/crochets si besoin
-        // Ici on suppose des expressions simples ou on utilise un splitter robuste
-        final parts = _splitDeclarations(declarations);
-        for (final part in parts) {
-          final m = _regAssignConst.firstMatch(part.trim());
-          if (m != null) {
-            final nom = m.group(1)!;
-            _validerNomIdentifier(nom);
-            final expr = m.group(2)!;
-            try {
-              final valeur = await exec.evaluer(expr);
-              env.declarerConstante(nom, valeur);
-            } catch (e) {
-              onOutput(
-                "Erreur lors de l'évaluation de la constante '$nom': $e",
-              );
-            }
-          }
-        }
-      }
-    }
-  }
-
-  static List<String> _splitDeclarations(String s) {
-    final result = <String>[];
-    String courant = "";
-    int parenStack = 0;
-    for (int i = 0; i < s.length; i++) {
-      if (s[i] == '(') parenStack++;
-      if (s[i] == ')') parenStack--;
-      if (s[i] == ',' && parenStack == 0) {
-        result.add(courant.trim());
-        courant = "";
-      } else {
-        courant += s[i];
-      }
-    }
-    if (courant.isNotEmpty) result.add(courant.trim());
-    return result;
-  }
-
-  static void _enregistrerTypesEtStructures(
-    List<String> lignes,
-    Environnement env,
-  ) {
-    int i = 0;
-
-    while (i < lignes.length) {
-      String l = lignes[i].trim();
-      final matchStruct = _regTypeStruct.firstMatch(l);
-      if (matchStruct != null) {
-        String nomStruct = matchStruct.group(1)!;
-        _validerNomIdentifier(nomStruct);
-        nomStruct = nomStruct.toLowerCase();
-        List<ChampStructure> champs = [];
-        i++;
-        while (i < lignes.length) {
-          String ligneChamp = lignes[i].trim();
-          if (ligneChamp.toLowerCase() == 'finstructure') break;
-          if (ligneChamp.contains(':')) {
-            final p = ligneChamp.split(':');
-            final noms = p[0].split(',').map((e) => e.trim());
-            final type = p[1].trim();
-            for (final n in noms) {
-              if (n.isNotEmpty) {
-                _validerNomIdentifier(n);
-                champs.add(ChampStructure(nom: n, type: type));
-              }
-            }
-          }
-          i++;
-        }
-        env.declarerStructure(
-          PseudoStructureDefinition(nom: nomStruct, champs: champs),
-        );
-      } else {
-        final matchSimple = _regTypeSimple.firstMatch(l);
-        if (matchSimple != null) {
-          final nom = matchSimple.group(1)!;
-          _validerNomIdentifier(nom);
-          final def = matchSimple.group(2)!;
-          env.declarerType(nom, def);
-        }
-      }
-      i++;
-    }
-  }
-
-  static void _enregistrerSousProgrammes(
-    List<String> lignes,
-    Environnement env,
-  ) {
-    int i = 0;
-    while (i < lignes.length) {
-      String l = lignes[i].trim();
-      if (l.toLowerCase().startsWith('fonction')) {
-        final match = GestionnaireFonctions.regFonction.firstMatch(l);
-        if (match != null) {
-          final nom = match.group(1)!;
-          _validerNomIdentifier(nom);
-          final params = GestionnaireFonctions.extraireParametres(
-            match.group(2)!,
-          );
-          // Valider noms des paramètres
-          for (final p in params) {
-            _validerNomIdentifier(p.nom);
-          }
-          final typeRetour = match.group(3)!;
-          final debutIdx = i + 1;
-          final finIdx = NavigateurBlocs.trouverFinBlocCorrespondant(
-            lignes,
-            debutIdx,
-            'fonction',
-            ['finfonction'],
-          );
-          env.declarerFonction(
-            PseudoFonction(
-              nom: nom,
-              parametres: params,
-              typeRetour: typeRetour,
-              lignes: lignes.sublist(debutIdx, finIdx - 1),
-              offset: debutIdx,
-            ),
-          );
-          i = finIdx;
-          continue;
-        }
-      } else if (l.toLowerCase().startsWith('procedure')) {
-        final match = GestionnaireFonctions.regProcedure.firstMatch(l);
-        if (match != null) {
-          final nom = match.group(1)!;
-          _validerNomIdentifier(nom);
-          final params = GestionnaireFonctions.extraireParametres(
-            match.group(2)!,
-          );
-          // Valider noms des paramètres
-          for (final p in params) {
-            _validerNomIdentifier(p.nom);
-          }
-          final debutIdx = i + 1;
-          final finIdx = NavigateurBlocs.trouverFinBlocCorrespondant(
-            lignes,
-            debutIdx,
-            'procedure',
-            ['finprocedure'],
-          );
-          env.declarerProcedure(
-            PseudoProcedure(
-              nom: nom,
-              parametres: params,
-              lignes: lignes.sublist(debutIdx, finIdx - 1),
-              offset: debutIdx,
-            ),
-          );
-          i = finIdx;
-          continue;
-        }
-      }
-      i++;
-    }
-  }
-
   static Future<void> traiterDeclarations(
     String ligne,
     Environnement env,
@@ -621,10 +426,13 @@ class Interpreteur {
     final noms = nomsBruts.split(',').map((e) => e.trim());
     for (final nom in noms) {
       if (nom.isEmpty) continue;
-      _validerNomIdentifier(nom);
+      PreAnalyseur.validerNomIdentifier(nom);
 
       if (typeLower.startsWith('tableau')) {
-        final match = _tabReg.firstMatch(typeBrut);
+        final match = RegExp(
+          r"tableau\s*\[(.*)\]\s+(?:d'|de\s+)(\w+)",
+          caseSensitive: false,
+        ).firstMatch(typeBrut);
         if (match != null) {
           final rangesStr = match.group(1)!;
           final elemType = match.group(2)!;
@@ -676,37 +484,9 @@ class Interpreteur {
           final structDef = env.chercherStructure(typeLower);
           if (structDef != null) {
             env.declarer(nom, structDef.instancier(), typeBrut);
-          } else {
-            throw Exception("Type inconnu : '$typeBrut'");
           }
         }
       }
-    }
-  }
-
-  static void _validerNomIdentifier(String nom) {
-    if (nom.isEmpty) return;
-
-    // Règle 1: Ne pas être un mot-clé
-    if (MotsCles.estUnMotCle(nom)) {
-      throw Exception("Erreur: '$nom' est un mot-clé réservé du langage.");
-    }
-
-    // Règle 2: Regex ^[a-zA-Z][a-zA-Z0-9_]*$
-    if (!_regValidId.hasMatch(nom)) {
-      if (_regStartsWithNum.hasMatch(nom)) {
-        throw Exception(
-          "Erreur: Le nom '$nom' ne peut pas commencer par un chiffre.",
-        );
-      }
-      if (nom.contains(' ')) {
-        throw Exception(
-          "Erreur: Le nom '$nom' ne peut pas contenir d'espaces.",
-        );
-      }
-      throw Exception(
-        "Erreur: Le nom '$nom' contient des caractères spéciaux non autorisés.",
-      );
     }
   }
 }

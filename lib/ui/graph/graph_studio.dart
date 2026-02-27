@@ -136,22 +136,6 @@ class _GraphStudioState extends State<GraphStudio> {
               ),
             ),
             const VerticalDivider(indent: 12, endIndent: 12, width: 24),
-
-            // --- HISTORIQUE ---
-            _ToolbarButton(
-              icon: Icons.undo,
-              tooltip: "Annuler",
-              onPressed: provider.canUndo ? provider.undo : null,
-              theme: theme,
-            ),
-            _ToolbarButton(
-              icon: Icons.redo,
-              tooltip: "Rétablir",
-              onPressed: provider.canRedo ? provider.redo : null,
-              theme: theme,
-            ),
-            const VerticalDivider(indent: 12, endIndent: 12, width: 24),
-
             // --- HISTORIQUE ---
             _ToolbarButton(
               icon: Icons.undo,
@@ -308,10 +292,13 @@ class _GraphStudioState extends State<GraphStudio> {
               theme: theme,
             ),
             _ToolbarButton(
-              icon: Icons.center_focus_strong_outlined,
-              tooltip: "Recentrer",
-              onPressed: () => provider.resetView(),
+              icon: provider.multiSelectMode
+                  ? Icons.layers_outlined
+                  : Icons.layers_clear_outlined,
+              tooltip: "Sélection multiple",
+              onPressed: () => provider.toggleMultiSelectMode(),
               theme: theme,
+              color: provider.multiSelectMode ? ThemeColors.vscodeBlue : null,
             ),
 
             const VerticalDivider(indent: 12, endIndent: 12, width: 24),
@@ -414,6 +401,7 @@ class _GraphStudioState extends State<GraphStudio> {
           "• Double-clic vide : Nouveau sommet\n"
           "• Glisser sommet : Déplacer\n"
           "• Appui long + Glisser : Nouvelle arête\n"
+          "• Sélection multiple : Glisser sur le fond (Lasso) ou cliquer sur plusieurs sommets\n"
           "• Clic droit : Menu options (Renommer, Supprimer, etc.)",
         ),
         actions: [

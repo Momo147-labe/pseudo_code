@@ -125,10 +125,22 @@ class IOHandler {
     ).firstMatch(ligne);
 
     if (match != null) {
-      final arg = match.group(1)!.trim();
-      final valeur = await evaluateur.evaluer(arg);
+      final argsStr = match.group(1) ?? match.group(2) ?? "";
+      if (argsStr.trim().isEmpty) return "";
+
+      final args = _extraireArguments(argsStr);
+      final valeur = await evaluateur.evaluer(args[0]);
+
+      int? limit;
+      if (args.length > 1) {
+        final limitVal = await evaluateur.evaluer(args[1]);
+        if (limitVal is int) {
+          limit = limitVal;
+        }
+      }
+
       if (valeur is PseudoTableau) {
-        return valeur.formatStructureGrid();
+        return valeur.formatStructureGrid(limit: limit);
       }
       return _formaterValeur(valeur);
     }

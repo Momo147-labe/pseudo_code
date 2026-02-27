@@ -62,7 +62,6 @@ class NavigateurBlocs {
   static Future<int> sauterVersBrancheSuivante(
     List<String> lignes,
     int index,
-    Executeur exec,
   ) async {
     int niveau = 0;
     final siReg = RegExp(r'^si\s+(.*)\s+alors$', caseSensitive: false);
@@ -70,6 +69,7 @@ class NavigateurBlocs {
       r'^sinon\s+si\s+(.*)\s+alors$',
       caseSensitive: false,
     );
+    final finsiReg = RegExp(r'^(fin\s*si|finsi)$', caseSensitive: false);
     final blockStarts = [
       'selon',
       'pour',
@@ -89,21 +89,25 @@ class NavigateurBlocs {
     ];
 
     for (int j = index; j < lignes.length; j++) {
-      String l = lignes[j].trim();
-      if (l.isEmpty || l.startsWith('//')) continue;
+      String lRaw = lignes[j].trim();
+      if (lRaw.isEmpty || lRaw.startsWith('//')) continue;
+
+      // Nettoyage pour les comparaisons avec ancres $
+      String l = lRaw.split('//')[0].trim();
       String lower = l.toLowerCase();
 
       if (siReg.hasMatch(l)) {
         niveau++;
-      } else if (lower == 'finsi') {
+      } else if (finsiReg.hasMatch(lower)) {
         if (niveau == 0) return j;
         niveau--;
       } else if (niveau == 0) {
         final mSi = sinonSiReg.firstMatch(l);
         if (mSi != null) {
-          if (await exec.evaluerBooleen(mSi.group(1)!)) return j + 1;
+          // On retourne l'index du sinon si pour qu'il soit traité comme un nouveau bloc
+          return j;
         } else if (lower == 'sinon' || lower == 'sinon:') {
-          return j + 1;
+          return j;
         }
       } else {
         // Gérer les autres types de blocs

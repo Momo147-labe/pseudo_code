@@ -268,6 +268,15 @@ Le langage propose un ensemble de fonctions intégrées pour manipuler vos donn�
 - **`est_numerique(s)`** : Vérifie si le texte est un nombre.
   - *Exemple* : `est_numerique("12")` → `vrai`
 
+### 📺 Affichage Avancé (Tableaux et Structures)
+Ces fonctions permettent de visualiser des données complexes sous forme de tableaux ASCII élégants dans la console.
+
+- **`afficher_table(T)`** : Affiche un tableau 1D dans un encadré avec les index.
+- **`afficher2D(T)`** : Affiche un tableau 2D sous forme de grille (matrice).
+- **`afficherTabStructure(T, [limite])`** : Affiche un tableau de structures sous forme de table avec des colonnes nommées.
+  - *Note* : Le paramètre `limite` (optionnel) permet d'afficher seulement les n premiers éléments.
+- **`ecrire_table`, `ecrire2D`, `ecrireTabStructure`** : Ce sont les alias exacts des fonctions ci-dessus.
+
 ---
 
 ## 💡 12. Mode Aide et Algorithmes Inclus

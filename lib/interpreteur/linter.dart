@@ -1,3 +1,5 @@
+import 'mots_cles.dart';
+
 class LintFix {
   final String title;
   final String replacement;
@@ -28,7 +30,8 @@ enum LintType { warning, error }
 class IdentifierInfo {
   final int line;
   final String? type;
-  IdentifierInfo({required this.line, this.type});
+  bool isUsed;
+  IdentifierInfo({required this.line, this.type, this.isUsed = false});
 }
 
 class StructureDefInfo {
@@ -98,7 +101,11 @@ class Linter {
     bool isDeclared(String name) {
       final lower = name.toLowerCase();
       for (int k = scopeStack.length - 1; k >= 0; k--) {
-        if (scopeStack[k].containsKey(lower)) return true;
+        if (scopeStack[k].containsKey(lower)) {
+          // On marque comme utilisé si on cherche à savoir s'il est déclaré (usage possible)
+          // Mais attention, l'analyse d'usage réelle se fait plus bas.
+          return true;
+        }
       }
       return false;
     }
@@ -111,87 +118,38 @@ class Linter {
       return null;
     }
 
+    void markAsUsed(String name) {
+      final lower = name.toLowerCase();
+      for (int k = scopeStack.length - 1; k >= 0; k--) {
+        if (scopeStack[k].containsKey(lower)) {
+          scopeStack[k][lower]!.isUsed = true;
+          return;
+        }
+      }
+    }
+
+    void checkUnusedVariables(Map<String, IdentifierInfo> scope) {
+      scope.forEach((name, info) {
+        // On ignore les noms de fonctions/procédures dans le scope global pour éviter le bruit
+        // et les types s'ils sont enregistrés là.
+        if (!info.isUsed && !MotsCles.estUnMotCle(name)) {
+          issues.add(
+            LintIssue(
+              line: info.line,
+              message: "La variable '$name' est déclarée mais jamais utilisée.",
+              type: LintType.warning,
+              ruleId: 'unused_variable',
+            ),
+          );
+        }
+      });
+    }
+
+    bool unreachable = false;
+
     bool isDeclaredInCurrentScope(String name) {
       return scopeStack.last.containsKey(name.toLowerCase());
     }
-
-    final commonKeywords = {
-      'lire',
-      'écrire',
-      'ecrire',
-      'afficher',
-      'afficher_table',
-      'ecrire_table',
-      'afficher2d',
-      'ecrire2d',
-      'affichertabstructure',
-      'ecriretabstructure',
-      'effacer',
-      'si',
-      'alors',
-      'sinon',
-      'finsi',
-      'tantque',
-      'faire',
-      'fintantque',
-      'pour',
-      'allant',
-      'de',
-      'à',
-      'a',
-      'pas',
-      'finpour',
-      'fpour',
-      'repeter',
-      'jusqua',
-      'selon',
-      'cas',
-      'finselon',
-      'fonction',
-      'finfonction',
-      'procedure',
-      'finprocedure',
-      'retourner',
-      'vrai',
-      'faux',
-      'entier',
-      'réel',
-      'reel',
-      'chaîne',
-      'chaine',
-      'booléen',
-      'booleen',
-      'tableau',
-      'type',
-      'structure',
-      'finstructure',
-      'algorithme',
-      'variables',
-      'début',
-      'debut',
-      'fin',
-      'const',
-      'racine_carree',
-      'racine',
-      'long',
-      'maj',
-      'minus',
-      'abs',
-      'hasard',
-      'arrondi',
-      'tronque',
-      'en_entier',
-      'en_reel',
-      'en_chaine',
-      'typevar',
-      'est_numerique',
-      'div',
-      'mod',
-      'et',
-      'ou',
-      'non',
-      'car',
-    };
 
     for (int i = 0; i < lines.length; i++) {
       String lineFull = lines[i];
@@ -232,10 +190,27 @@ class Linter {
 
       if (lineLower == 'finfonction' || lineLower == 'finprocedure') {
         if (scopeStack.length > 1) {
+          checkUnusedVariables(scopeStack.last);
           scopeStack.removeLast();
         }
         dansVariables = false;
+        unreachable = false;
         continue;
+      }
+
+      if (unreachable) {
+        issues.add(
+          LintIssue(
+            line: i + 1,
+            message: "Code inaccessible détecté après 'retourner'.",
+            type: LintType.warning,
+            ruleId: 'unreachable_code',
+          ),
+        );
+      }
+
+      if (lineLower.startsWith('retourner')) {
+        unreachable = true;
       }
 
       if (lineLower == 'variables') {
@@ -353,6 +328,13 @@ class Linter {
         // Nettoyer la ligne pour ne pas analyser l'intérieur des chaînes
         String cleanedLine = line.replaceAll(RegExp(r'".*?"'), ' ');
 
+        // Remplacer le contenu des crochets de tableaux par un espace pour ignorer leur contenu de base (ex: v[j+1] -> v )
+        // Attention : il peut y avoir des sous-variables dans les crochets, mais pour la vérification des "bases",
+        // une approche simple est de masquer la partie d'indexation pour la déclaration de la racine du tableau.
+        // Les sous-variables (ex: `j` dans `v[j]`) seront capturées plus loin via un autre match de RegExp.
+        // Remarque : On extrait uniquement les identifiants normaux.
+        cleanedLine = cleanedLine.replaceAll(RegExp(r'\[.*?\]'), ' ');
+
         // On récupère tous les mots, y compris ceux avec des points (accès champs)
         final matches = RegExp(
           r'[a-zA-Z_à-ÿÀ-ß][a-zA-Z0-9_à-ÿÀ-ß]*(\.[a-zA-Z_à-ÿÀ-ß][a-zA-Z0-9_à-ÿÀ-ß]*)*',
@@ -362,14 +344,15 @@ class Linter {
           final fullName = match.group(0);
           if (fullName == null) continue;
 
-          // Si l'identifiant est précédé d'un point (ex: tab[i].champ),
+          // Si l'identifiant est précédé d'un point (ex: tab[i].champ) ou d'un crochet fermant (ex: tab[i]),
           // c'est un accès champ et non une base variable à vérifier ici.
           bool estAccesChampIndependant = false;
           int lookBack = match.start - 1;
           while (lookBack >= 0 && cleanedLine[lookBack].trim().isEmpty) {
             lookBack--;
           }
-          if (lookBack >= 0 && cleanedLine[lookBack] == '.') {
+          if (lookBack >= 0 &&
+              (cleanedLine[lookBack] == '.' || cleanedLine[lookBack] == ']')) {
             estAccesChampIndependant = true;
           }
 
@@ -379,7 +362,7 @@ class Linter {
           // Vérifier la base (variable ou mot-clé)
           if (!estAccesChampIndependant &&
               !isDeclared(baseName) &&
-              !commonKeywords.contains(baseName)) {
+              !MotsCles.estUnMotCle(baseName)) {
             if (!issues.any(
               (iss) => iss.line == i + 1 && iss.message.contains("'$baseName'"),
             )) {
@@ -393,6 +376,10 @@ class Linter {
               );
             }
             continue;
+          }
+
+          if (isDeclared(baseName)) {
+            markAsUsed(baseName);
           }
 
           // Si c'est un accès champ (ex: obj.champ), vérifier si possible
@@ -419,8 +406,58 @@ class Linter {
             }
           }
         }
+
+        // --- 5. Vérification Stricte des Types (Addition mixte) ---
+        if (line.contains('+')) {
+          final plusParts = line.split('+');
+          if (plusParts.length >= 2) {
+            String? typePrec;
+            for (var part in plusParts) {
+              final trimmedPart = part.trim();
+              String? currentType;
+              if (trimmedPart.startsWith('"'))
+                currentType = "chaine";
+              else if (RegExp(r'^\d').hasMatch(trimmedPart))
+                currentType = "nombre";
+              else {
+                final match = RegExp(r'[a-zA-Z_]\w*').firstMatch(trimmedPart);
+                if (match != null) {
+                  final info = getInfo(match.group(0)!);
+                  currentType =
+                      (info?.type == 'entier' ||
+                          info?.type == 'reel' ||
+                          info?.type == 'réel')
+                      ? "nombre"
+                      : info?.type;
+                }
+              }
+
+              if (typePrec != null &&
+                  currentType != null &&
+                  typePrec != currentType) {
+                if ((typePrec == "chaine" && currentType == "nombre") ||
+                    (typePrec == "nombre" && currentType == "chaine")) {
+                  issues.add(
+                    LintIssue(
+                      line: i + 1,
+                      message:
+                          "Opération mixte risquée : addition d'un nombre et d'une chaîne.",
+                      type: LintType.warning,
+                      ruleId: 'mixed_type_addition',
+                    ),
+                  );
+                  break;
+                }
+              }
+              if (currentType != null) typePrec = currentType;
+            }
+          }
+        }
       }
     }
+
+    // Vérification finale du scope global
+    checkUnusedVariables(scopeStack.first);
 
     return issues;
   }

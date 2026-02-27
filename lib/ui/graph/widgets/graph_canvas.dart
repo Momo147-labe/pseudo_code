@@ -111,269 +111,301 @@ class GraphCanvasState extends State<GraphCanvas> {
     final provider = context.watch<GraphProvider>();
     final theme = context.watch<ThemeProvider>().currentTheme;
 
-    return MouseRegion(
-      cursor: _currentCursor,
-      child: Stack(
-        children: [
-          DragTarget<String>(
-            onAcceptWithDetails: (details) {
-              if (details.data == 'new_node') {
-                final RenderBox renderBox =
-                    context.findRenderObject() as RenderBox;
-                final localPos = renderBox.globalToLocal(details.offset);
-                final scenePos = _transformationController.toScene(localPos);
-                provider.addNode(scenePos);
-              }
-            },
-            builder: (context, candidateData, rejectedData) {
-              return InteractiveViewer(
-                transformationController: _transformationController,
-                boundaryMargin: const EdgeInsets.all(1000),
-                minScale: 0.1,
-                maxScale: 5.0,
-                panEnabled: _lassoStart == null && _draggedNodeId == null,
-                onInteractionStart: (details) {
-                  if (_draggedNodeId == null && _lassoStart == null) {
-                    setState(
-                      () => _currentCursor = SystemMouseCursors.grabbing,
+    return Container(
+      color: ThemeColors.editorBg(
+        theme,
+      ), // Fond global constant pour l'aspect infini
+      child: MouseRegion(
+        cursor: _currentCursor,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: DragTarget<String>(
+                onAcceptWithDetails: (details) {
+                  if (details.data == 'new_node') {
+                    final RenderBox renderBox =
+                        context.findRenderObject() as RenderBox;
+                    final localPos = renderBox.globalToLocal(details.offset);
+                    final scenePos = _transformationController.toScene(
+                      localPos,
                     );
+                    provider.addNode(scenePos);
                   }
                 },
-                onInteractionEnd: (details) {
-                  if (_currentCursor == SystemMouseCursors.grabbing) {
-                    setState(() => _currentCursor = SystemMouseCursors.grab);
-                  }
-                },
-                child: GestureDetector(
-                  onTapDown: (details) {
-                    final tappedNodeId = _getNodeAtPosition(
-                      details.localPosition,
-                      provider,
-                    );
+                builder: (context, candidateData, rejectedData) {
+                  final isMultiSelect =
+                      HardwareKeyboard.instance.logicalKeysPressed.contains(
+                        LogicalKeyboardKey.shiftLeft,
+                      ) ||
+                      HardwareKeyboard.instance.logicalKeysPressed.contains(
+                        LogicalKeyboardKey.shiftRight,
+                      ) ||
+                      provider.multiSelectMode;
 
-                    if (tappedNodeId != null) {
-                      final isShift =
-                          HardwareKeyboard.instance.logicalKeysPressed.contains(
-                            LogicalKeyboardKey.shiftLeft,
-                          ) ||
-                          HardwareKeyboard.instance.logicalKeysPressed.contains(
-                            LogicalKeyboardKey.shiftRight,
-                          );
-                      provider.selectNode(tappedNodeId, multi: isShift);
-                    } else {
-                      provider.selectNode(null);
-                      setState(() {
-                        _connectingNodeId = null;
-                        _draggedNodeId = null;
-                        _lassoStart = null;
-                        _lassoEnd = null;
-                      });
-                    }
-                  },
-                  onDoubleTapDown: (details) {
-                    final tappedNodeId = _getNodeAtPosition(
-                      details.localPosition,
-                      provider,
-                    );
-                    if (tappedNodeId != null) {
-                      // Optionnel: action sur sommet (ex: renommer)
-                      return;
-                    }
-
-                    final tappedEdgeId = _getEdgeAtPosition(
-                      details.localPosition,
-                      provider,
-                    );
-                    if (tappedEdgeId != null) {
-                      final edge = provider.edges.firstWhere(
-                        (e) => e.id == tappedEdgeId,
-                      );
-                      _showWeightDialog(context, edge, provider);
-                      return;
-                    }
-
-                    // Le double-clic sur un espace vide ne crée plus de sommet
-                  },
-                  onPanStart: (details) {
-                    final tappedNodeId = _getNodeAtPosition(
-                      details.localPosition,
-                      provider,
-                    );
-                    if (tappedNodeId != null) {
-                      setState(() => _draggedNodeId = tappedNodeId);
-                      provider.startNodeDrag(tappedNodeId);
-                    } else {
-                      final isShift =
-                          HardwareKeyboard.instance.logicalKeysPressed.contains(
-                            LogicalKeyboardKey.shiftLeft,
-                          ) ||
-                          HardwareKeyboard.instance.logicalKeysPressed.contains(
-                            LogicalKeyboardKey.shiftRight,
-                          );
-
-                      if (isShift) {
+                  return InteractiveViewer(
+                    transformationController: _transformationController,
+                    boundaryMargin: const EdgeInsets.all(
+                      50000,
+                    ), // Marge quasi-infinie
+                    minScale: 0.1,
+                    maxScale: 5.0,
+                    clipBehavior: Clip
+                        .hardEdge, // Empêche les noeuds de dépasser sur les menus
+                    panEnabled: _draggedNodeId == null && _lassoStart == null,
+                    onInteractionStart: (details) {
+                      if (_draggedNodeId == null && _lassoStart == null) {
                         setState(() {
-                          _lassoStart = details.localPosition;
-                          _lassoEnd = details.localPosition;
+                          _currentCursor = SystemMouseCursors.grabbing;
                         });
                       }
-                    }
-                  },
-                  onPanUpdate: (details) {
-                    if (_draggedNodeId != null) {
-                      final scale = _transformationController.value
-                          .getMaxScaleOnAxis();
-                      final sceneDelta = details.delta / scale;
-
-                      if (provider.selectedNodeIds.contains(_draggedNodeId)) {
-                        provider.updateSelectionPosition(sceneDelta);
-                      } else {
-                        provider.selectNode(_draggedNodeId);
-                        final scenePos = _transformationController.toScene(
-                          details.localPosition,
-                        );
-                        provider.updateNodePosition(_draggedNodeId!, scenePos);
+                    },
+                    onInteractionEnd: (details) {
+                      if (_currentCursor == SystemMouseCursors.grabbing) {
+                        setState(() {
+                          _currentCursor = SystemMouseCursors.grab;
+                        });
                       }
-                    } else if (_lassoStart != null) {
-                      setState(() {
-                        _lassoEnd = details.localPosition;
-                      });
-                      final rect = Rect.fromPoints(_lassoStart!, _lassoEnd!);
-                      provider.selectNodesInRect(rect);
-                    }
-                  },
-                  onPanEnd: (details) {
-                    if (_draggedNodeId != null) {
-                      provider.endNodeDrag();
-                    }
-                    setState(() {
-                      _draggedNodeId = null;
-                      _lassoStart = null;
-                      _lassoEnd = null;
-                    });
-                  },
-
-                  onLongPressStart: (details) {
-                    final tappedNodeId = _getNodeAtPosition(
-                      details.localPosition,
-                      provider,
-                    );
-                    if (tappedNodeId != null) {
-                      setState(() {
-                        _connectingNodeId = tappedNodeId;
-                        _connectionEnd = details.localPosition;
-                        _longPressStartPos = details.localPosition;
-                      });
-                    }
-                  },
-                  onLongPressMoveUpdate: (details) {
-                    if (_connectingNodeId != null) {
-                      setState(() => _connectionEnd = details.localPosition);
-                    }
-                  },
-                  onLongPressEnd: (details) {
-                    if (_connectingNodeId != null) {
-                      final targetNodeId = _getNodeAtPosition(
-                        details.localPosition,
-                        provider,
-                      );
-                      if (targetNodeId != null &&
-                          targetNodeId != _connectingNodeId) {
-                        provider.addEdge(
-                          _connectingNodeId!,
-                          targetNodeId,
-                          directed: provider.isDirected,
-                        );
-                      } else if (_longPressStartPos != null &&
-                          (details.localPosition - _longPressStartPos!)
-                                  .distance <
-                              15) {
-                        _showNodeMenu(
-                          context,
-                          details.globalPosition,
-                          _connectingNodeId!,
-                          provider,
-                        );
-                      }
-                      setState(() {
-                        _connectingNodeId = null;
-                        _connectionEnd = null;
-                        _longPressStartPos = null;
-                      });
-                    }
-                  },
-                  onSecondaryTapDown: (details) {
-                    final tappedNodeId = _getNodeAtPosition(
-                      details.localPosition,
-                      provider,
-                    );
-                    if (tappedNodeId != null) {
-                      _showNodeMenu(
-                        context,
-                        details.globalPosition,
-                        tappedNodeId,
-                        provider,
-                      );
-                      return;
-                    }
-
-                    final tappedEdgeId = _getEdgeAtPosition(
-                      details.localPosition,
-                      provider,
-                    );
-                    if (tappedEdgeId != null) {
-                      _showEdgeMenu(
-                        context,
-                        details.globalPosition,
-                        tappedEdgeId,
-                        provider,
-                      );
-                    }
-                  },
-                  child: RepaintBoundary(
-                    key: _canvasKey,
+                    },
                     child: Container(
-                      width: 5000,
-                      height: 5000,
-                      color: Colors.transparent,
-                      child: CustomPaint(
-                        painter: GraphPainter(
-                          nodes: provider.nodes,
-                          edges: provider.edges,
-                          selectedNodeIds: provider.selectedNodeIds,
-                          connectingNodeId: _connectingNodeId,
-                          visitedNodes: provider.visitedNodes,
-                          activeEdgeId: provider.activeEdgeId,
-                          theme: theme,
-                          connectionEnd: _connectionEnd,
-                          lassoRect: _lassoStart != null && _lassoEnd != null
-                              ? Rect.fromPoints(_lassoStart!, _lassoEnd!)
-                              : null,
-                          showGrid: provider.snapToGrid,
-                          startNodeId: provider.startNodeId,
-                          endNodeId: provider.endNodeId,
-                          dijkstraResult: provider.dijkstraResult,
-                        ),
+                      width: 90000,
+                      height: 90000,
+                      // Suppression de la couleur ici, gérée par le conteneur racine
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          // 1. Fond
+                          Positioned.fill(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTapDown: (details) {
+                                provider.selectNode(null);
+                                setState(() {
+                                  _connectingNodeId = null;
+                                  _draggedNodeId = null;
+                                  _lassoStart = null;
+                                  _lassoEnd = null;
+                                });
+                              },
+                              onPanStart: isMultiSelect
+                                  ? (details) {
+                                      setState(() {
+                                        _lassoStart = details.localPosition;
+                                        _lassoEnd = details.localPosition;
+                                      });
+                                    }
+                                  : null,
+                              onPanUpdate: isMultiSelect
+                                  ? (details) {
+                                      setState(() {
+                                        _lassoEnd = details.localPosition;
+                                      });
+                                      final rect = Rect.fromPoints(
+                                        _lassoStart!,
+                                        _lassoEnd!,
+                                      );
+                                      provider.selectNodesInRect(rect);
+                                    }
+                                  : null,
+                              onPanEnd: isMultiSelect
+                                  ? (details) {
+                                      setState(() {
+                                        _lassoStart = null;
+                                        _lassoEnd = null;
+                                      });
+                                    }
+                                  : null,
+                              onSecondaryTapDown: (details) {
+                                final tappedEdgeId = _getEdgeAtPosition(
+                                  details.localPosition,
+                                  provider,
+                                );
+                                if (tappedEdgeId != null) {
+                                  _showEdgeMenu(
+                                    context,
+                                    details.globalPosition,
+                                    tappedEdgeId,
+                                    provider,
+                                  );
+                                }
+                              },
+                              onDoubleTapDown: (details) {
+                                final tappedEdgeId = _getEdgeAtPosition(
+                                  details.localPosition,
+                                  provider,
+                                );
+                                if (tappedEdgeId != null) {
+                                  final edge = provider.edges.firstWhere(
+                                    (e) => e.id == tappedEdgeId,
+                                  );
+                                  _showWeightDialog(context, edge, provider);
+                                }
+                              },
+                            ),
+                          ),
+
+                          // 2. Rendu
+                          IgnorePointer(
+                            child: RepaintBoundary(
+                              key: _canvasKey,
+                              child: CustomPaint(
+                                size: const Size(50000, 50000),
+                                painter: GraphPainter(
+                                  nodes: provider.nodes,
+                                  edges: provider.edges,
+                                  selectedNodeIds: provider.selectedNodeIds,
+                                  connectingNodeId: _connectingNodeId,
+                                  visitedNodes: provider.visitedNodes,
+                                  activeEdgeId: provider.activeEdgeId,
+                                  theme: theme,
+                                  connectionEnd: _connectionEnd,
+                                  lassoRect:
+                                      _lassoStart != null && _lassoEnd != null
+                                      ? Rect.fromPoints(
+                                          _lassoStart!,
+                                          _lassoEnd!,
+                                        )
+                                      : null,
+                                  showGrid: provider.snapToGrid,
+                                  startNodeId: provider.startNodeId,
+                                  endNodeId: provider.endNodeId,
+                                  dijkstraResult: provider.dijkstraResult,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          // 3. Interactions Sommets
+                          ...provider.nodes.map((node) {
+                            final isMobile =
+                                MediaQuery.of(context).size.width < 768;
+                            final radius = isMobile ? 35.0 : 25.0;
+                            return Positioned(
+                              left: node.position.dx - radius,
+                              top: node.position.dy - radius,
+                              width: radius * 2,
+                              height: radius * 2,
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTapDown: (details) {
+                                  HapticFeedback.lightImpact();
+                                  provider.selectNode(
+                                    node.id,
+                                    multi: isMultiSelect,
+                                  );
+                                  setState(() => _draggedNodeId = node.id);
+                                },
+                                onPanStart: (details) {
+                                  setState(() => _draggedNodeId = node.id);
+                                  provider.startNodeDrag(node.id);
+                                },
+                                onPanUpdate: (details) {
+                                  final scale = _transformationController.value
+                                      .getMaxScaleOnAxis();
+                                  final sceneDelta = details.delta / scale;
+                                  if (provider.selectedNodeIds.contains(
+                                    node.id,
+                                  )) {
+                                    provider.updateSelectionPosition(
+                                      sceneDelta,
+                                    );
+                                  } else {
+                                    provider.selectNode(node.id);
+                                    provider.updateNodePosition(
+                                      node.id,
+                                      node.position + sceneDelta,
+                                    );
+                                  }
+                                },
+                                onPanEnd: (details) {
+                                  provider.endNodeDrag();
+                                  setState(() => _draggedNodeId = null);
+                                },
+                                onLongPressStart: (details) {
+                                  setState(() {
+                                    _connectingNodeId = node.id;
+                                    _connectionEnd = node.position;
+                                    _longPressStartPos = details.globalPosition;
+                                  });
+                                },
+                                onLongPressMoveUpdate: (details) {
+                                  if (_connectingNodeId != null) {
+                                    final scenePos = _transformationController
+                                        .toScene(details.globalPosition);
+                                    setState(() => _connectionEnd = scenePos);
+                                  }
+                                },
+                                onLongPressEnd: (details) {
+                                  if (_connectingNodeId != null) {
+                                    final scenePos = _transformationController
+                                        .toScene(details.globalPosition);
+                                    final targetNodeId = _getNodeAtPosition(
+                                      scenePos,
+                                      provider,
+                                    );
+                                    final dragDistance =
+                                        (details.globalPosition -
+                                                (_longPressStartPos ??
+                                                    details.globalPosition))
+                                            .distance;
+
+                                    if (targetNodeId != null &&
+                                        targetNodeId != _connectingNodeId) {
+                                      provider.addEdge(
+                                        _connectingNodeId!,
+                                        targetNodeId,
+                                        directed: provider.isDirected,
+                                      );
+                                      HapticFeedback.mediumImpact();
+                                    } else if (dragDistance < 20) {
+                                      _showNodeMenu(
+                                        context,
+                                        details.globalPosition,
+                                        _connectingNodeId!,
+                                        provider,
+                                      );
+                                    }
+                                    setState(() {
+                                      _connectingNodeId = null;
+                                      _connectionEnd = null;
+                                      _longPressStartPos = null;
+                                    });
+                                  }
+                                },
+                                onSecondaryTapDown: (details) {
+                                  _showNodeMenu(
+                                    context,
+                                    details.globalPosition,
+                                    node.id,
+                                    provider,
+                                  );
+                                },
+                              ),
+                            );
+                          }),
+                        ],
                       ),
                     ),
-                  ),
-                ),
-              );
-            },
-          ),
-          Positioned(
-            bottom: 16,
-            right: 16,
-            child: _MiniMap(provider: provider, theme: theme),
-          ),
-        ],
+                  );
+                },
+              ),
+            ),
+            Positioned(
+              bottom: 16,
+              right: 16,
+              child: _MiniMap(provider: provider, theme: theme),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   String? _getNodeAtPosition(Offset pos, GraphProvider provider) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+    final radius = isMobile ? 35.0 : 25.0; // Hitbox adaptative
+
     for (final node in provider.nodes) {
-      if ((node.position - pos).distance < 25) {
+      if ((node.position - pos).distance < radius) {
         return node.id;
       }
     }
@@ -381,6 +413,9 @@ class GraphCanvasState extends State<GraphCanvas> {
   }
 
   String? _getEdgeAtPosition(Offset pos, GraphProvider provider) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+    final hitDistance = isMobile ? 20.0 : 10.0; // Hitbox adaptative
+
     for (final edge in provider.edges) {
       final from = provider.nodes
           .firstWhere((n) => n.id == edge.fromId)
@@ -389,7 +424,7 @@ class GraphCanvasState extends State<GraphCanvas> {
 
       // Distance point à segment
       final double distance = _distanceToSegment(pos, from, to);
-      if (distance < 10) {
+      if (distance < hitDistance) {
         return edge.id;
       }
     }

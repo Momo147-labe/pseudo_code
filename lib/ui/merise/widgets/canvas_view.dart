@@ -50,7 +50,9 @@ class _MeriseCanvasViewState extends State<MeriseCanvasView> {
         return RepaintBoundary(
           key: _canvasKey,
           child: Container(
-            color: ThemeColors.editorBg(widget.theme),
+            color: ThemeColors.editorBg(
+              widget.theme,
+            ), // Fond global constant pour l'aspect infini
             child: Listener(
               onPointerMove: (event) {
                 if (provider.isLinkMode && provider.linkSourceId != null) {
@@ -59,8 +61,9 @@ class _MeriseCanvasViewState extends State<MeriseCanvasView> {
                 }
               },
               child: ClipRect(
+                // Empêche le débordement sur les menus
                 child: Stack(
-                  clipBehavior: Clip.hardEdge,
+                  clipBehavior: Clip.none,
                   children: [
                     // Grille de fond
                     CustomPaint(
@@ -445,8 +448,8 @@ class _MeriseCanvasViewState extends State<MeriseCanvasView> {
                         ),
                       ),
                   ],
-                ),
-              ),
+                ), // fin Stack
+              ), // fin ClipRect
             ),
           ),
         );

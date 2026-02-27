@@ -50,15 +50,7 @@ class ThemeProvider with ChangeNotifier {
   }
 
   void toggleTheme() {
-    if (_currentTheme == AppTheme.dark)
-      setTheme(AppTheme.light);
-    else if (_currentTheme == AppTheme.light)
-      setTheme(AppTheme.dracula);
-    else if (_currentTheme == AppTheme.dracula)
-      setTheme(AppTheme.oneDark);
-    else if (_currentTheme == AppTheme.oneDark)
-      setTheme(AppTheme.papier);
-    else
-      setTheme(AppTheme.dark);
+    final nextIndex = (_currentTheme.index + 1) % AppTheme.values.length;
+    setTheme(AppTheme.values[nextIndex]);
   }
 }

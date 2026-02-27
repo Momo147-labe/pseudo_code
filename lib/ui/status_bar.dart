@@ -15,17 +15,18 @@ class StatusBar extends StatelessWidget {
     final theme = context.watch<ThemeProvider>().currentTheme;
     final isMobile = MediaQuery.of(context).size.width < 768;
 
-    if (provider.activeMainView == ActiveMainView.merise) {
+    if (provider.activeMainView == ActiveMainView.merise ||
+        provider.activeMainView == ActiveMainView.graph ||
+        provider.activeMainView == ActiveMainView.challenges) {
       return const SizedBox.shrink();
     }
 
     return Container(
-      height: isMobile ? 55 : 22,
+      height: 55,
       color: ThemeColors.topbarBg(theme),
       child: Column(
         children: [
-          if (isMobile)
-            Expanded(child: _buildOperatorBar(context, fileProvider, theme)),
+          Expanded(child: _buildOperatorBar(context, fileProvider, theme)),
           Container(
             height: 22,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -102,7 +103,7 @@ class StatusBar extends StatelessWidget {
   ) {
     final operators = [
       // Arithmétique
-      '<-', '+', '-', '*', '/', '%',
+      '<-', '+', '-', '*', '/', '%', '^', 'div', 'mod',
       '|', // Séparateur visuel simple
       // Comparaison
       '=', '<>', '<', '>', '<=', '>=',

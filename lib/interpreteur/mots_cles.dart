@@ -26,6 +26,7 @@ class MotsCles {
     'faire',
     'de',
     'à',
+    'a',
     'selon',
     'cas',
     'finselon',

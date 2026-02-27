@@ -36,14 +36,17 @@ class ValidateurStructure {
 
     // 2. Vérifier la fin (doit finir par Fin)
     int dernierIdx = -1;
+    String dernierContenu = "";
     for (int i = lignes.length - 1; i >= 0; i--) {
-      if (lignes[i].trim().isNotEmpty && !lignes[i].trim().startsWith('//')) {
+      final l = lignes[i].split('//')[0].trim().toLowerCase();
+      if (l.isNotEmpty) {
         dernierIdx = i;
+        dernierContenu = l;
         break;
       }
     }
 
-    if (dernierIdx == -1 || lignes[dernierIdx].trim().toLowerCase() != 'fin') {
+    if (dernierIdx == -1 || !dernierContenu.startsWith('fin')) {
       errors.add(
         StructureError(
           "L'algorithme doit se terminer par le mot-clé 'Fin'.",
@@ -54,14 +57,13 @@ class ValidateurStructure {
 
     for (int i = 0; i < lignes.length; i++) {
       final ligneBrute = lignes[i];
-      String l = ligneBrute.trim().toLowerCase();
-      if (l.isEmpty || l.startsWith('//')) continue;
+      String l = ligneBrute.split('//')[0].trim().toLowerCase();
 
-      // On retire tout ce qui est entre guillemets pour ne pas confondre
-      // les mots-clés avec du texte affiché
+      // On retire tout ce qui est entre guillemets
       l = l.replaceAll(RegExp(r'".*?"'), '');
+      if (l.isEmpty) continue;
 
-      // 3. Détection des limites du programme (Début/Fin internes)
+      // 3. Détection des limites du programme
       if (l == 'début' || l == 'debut') aDebut = true;
       if (l == 'fin') aFin = true;
 
@@ -83,31 +85,25 @@ class ValidateurStructure {
       final finstructureReg = RegExp(r'\bfinstructure\b');
 
       bool estFermeture = false;
-      if (finsiReg.hasMatch(l)) {
+      if (finsiReg.hasMatch(l) || l.startsWith('fin si')) {
         stack.removeLastIf('si', errors, i + 1);
         estFermeture = true;
-      }
-      if (fintantqueReg.hasMatch(l)) {
+      } else if (fintantqueReg.hasMatch(l) || l.startsWith('fin tant que')) {
         stack.removeLastIf('tantque', errors, i + 1);
         estFermeture = true;
-      }
-      if (finpourReg.hasMatch(l)) {
+      } else if (finpourReg.hasMatch(l) || l.startsWith('fin pour')) {
         stack.removeLastIf('pour', errors, i + 1);
         estFermeture = true;
-      }
-      if (jusquaReg.hasMatch(l)) {
+      } else if (jusquaReg.hasMatch(l)) {
         stack.removeLastIf('repeter', errors, i + 1);
         estFermeture = true;
-      }
-      if (finfonctionReg.hasMatch(l)) {
+      } else if (finfonctionReg.hasMatch(l)) {
         stack.removeLastIf('fonction', errors, i + 1);
         estFermeture = true;
-      }
-      if (finprocedureReg.hasMatch(l)) {
+      } else if (finprocedureReg.hasMatch(l)) {
         stack.removeLastIf('procedure', errors, i + 1);
         estFermeture = true;
-      }
-      if (finstructureReg.hasMatch(l)) {
+      } else if (finstructureReg.hasMatch(l)) {
         stack.removeLastIf('structure', errors, i + 1);
         estFermeture = true;
       }

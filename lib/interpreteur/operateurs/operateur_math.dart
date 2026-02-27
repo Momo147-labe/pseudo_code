@@ -53,20 +53,29 @@ class OperateurMath {
   /// Division de deux nombres (avec vérification division par zéro)
   static dynamic division(dynamic a, dynamic b) {
     if (a is num && b is num) {
-      if (b == 0) {
-        throw Exception("Division par zéro impossible.");
-      }
+      if (b == 0) throw Exception("Division par zéro impossible.");
       return a / b;
+    }
+    if ((a is num || a is BigInt) && (b is num || b is BigInt)) {
+      final valA = a is BigInt ? a.toDouble() : (a as num).toDouble();
+      final valB = b is BigInt ? b.toDouble() : (b as num).toDouble();
+      if (valB == 0) throw Exception("Division par zéro impossible.");
+      return valA / valB;
     }
     throw Exception("Impossible de diviser $a par $b");
   }
 
   /// Modulo (reste de la division)
   static dynamic modulo(dynamic a, dynamic b) {
+    if ((a is int || a is BigInt) && (b is int || b is BigInt)) {
+      final valA = a is int ? BigInt.from(a) : a as BigInt;
+      final valB = b is int ? BigInt.from(b) : b as BigInt;
+      if (valB == BigInt.zero) throw Exception("Modulo par zéro impossible.");
+      final res = valA % valB;
+      return res.isValidInt ? res.toInt() : res;
+    }
     if (a is num && b is num) {
-      if (b == 0) {
-        throw Exception("Modulo par zéro impossible.");
-      }
+      if (b == 0) throw Exception("Modulo par zéro impossible.");
       return a % b;
     }
     throw Exception("Impossible de calculer $a mod $b");
@@ -74,10 +83,16 @@ class OperateurMath {
 
   /// Division entière
   static dynamic divisionEntiere(dynamic a, dynamic b) {
-    if (a is num && b is num) {
-      if (b == 0) {
+    if ((a is int || a is BigInt) && (b is int || b is BigInt)) {
+      final valA = a is int ? BigInt.from(a) : a as BigInt;
+      final valB = b is int ? BigInt.from(b) : b as BigInt;
+      if (valB == BigInt.zero)
         throw Exception("Division entière par zéro impossible.");
-      }
+      final res = valA ~/ valB;
+      return res.isValidInt ? res.toInt() : res;
+    }
+    if (a is num && b is num) {
+      if (b == 0) throw Exception("Division entière par zéro impossible.");
       return a ~/ b;
     }
     throw Exception("Impossible de calculer $a div $b");
@@ -88,7 +103,14 @@ class OperateurMath {
   /// Puissance (a^b)
   static dynamic puissance(dynamic base, dynamic exposant) {
     if (base is num && exposant is num) {
+      if (base is int && exposant is int && exposant >= 0) {
+        final res = BigInt.from(base).pow(exposant);
+        return res.isValidInt ? res.toInt() : res;
+      }
       return pow(base, exposant);
+    }
+    if (base is BigInt && exposant is int && exposant >= 0) {
+      return base.pow(exposant);
     }
     throw Exception("Impossible de calculer $base ^ $exposant");
   }

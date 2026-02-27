@@ -55,6 +55,14 @@ class GraphProvider with ChangeNotifier {
   Set<String> _selectedNodeIds = {};
   Set<String> get selectedNodeIds => _selectedNodeIds;
 
+  bool _multiSelectMode = false;
+  bool get multiSelectMode => _multiSelectMode;
+
+  void toggleMultiSelectMode() {
+    _multiSelectMode = !_multiSelectMode;
+    notifyListeners();
+  }
+
   bool _resetViewRequested = false;
   bool get resetViewRequested => _resetViewRequested;
 

@@ -70,19 +70,6 @@ class ActivityBar extends StatelessWidget {
             tooltip: 'Changer de thème',
           ),
           _ActivityIcon(
-            icon: profile != null
-                ? Icons.person
-                : Icons.account_circle_outlined,
-            imageUrl: profile?.avatarUrl,
-            onTap: () => showDialog(
-              context: context,
-              builder: (context) => profile != null
-                  ? const UserProfileModal()
-                  : const AuthChoiceModal(),
-            ),
-            tooltip: profile != null ? "Mon Profil" : "Se Connecter",
-          ),
-          _ActivityIcon(
             icon: Icons.help_outline,
             onTap: () => Navigator.push(
               context,
@@ -117,6 +104,12 @@ class ActivityBar extends StatelessWidget {
         return Icons.code;
       case AppTheme.papier:
         return Icons.description_outlined;
+      case AppTheme.nord:
+        return Icons.ac_unit;
+      case AppTheme.aura:
+        return Icons.auto_awesome;
+      case AppTheme.genese:
+        return Icons.rocket_launch_outlined;
     }
   }
 }

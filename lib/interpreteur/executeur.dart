@@ -249,9 +249,12 @@ class Executeur {
 
     // Si on sort sans '__RETURN__', on vérifie si la variable du nom de la fonction a été modifiée
     if (sp is PseudoFonction) {
+      provider.updateDebugVariables(env.snapshot());
       return envLocal.lire(sp.nom);
     }
 
+    // Rafraîchissement visuel du debugger pour montrer les valeurs passées par référence
+    provider.updateDebugVariables(env.snapshot());
     return null;
   }
 }

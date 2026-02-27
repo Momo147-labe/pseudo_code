@@ -3,354 +3,313 @@ import 'package:pseudo_code/interpreteur/blocs/tableaux.dart';
 import 'package:pseudo_code/interpreteur/blocs/structures.dart';
 import 'package:pseudo_code/interpreteur/operateurs/operateur_math.dart';
 import 'package:pseudo_code/interpreteur/operateurs/operateur_logique.dart';
-import 'package:pseudo_code/interpreteur/utils.dart';
+import 'package:pseudo_code/interpreteur/analyse_lexicale.dart';
 
 class EvaluateurExpression {
-  static final RegExp _regFuncMatch = RegExp(r'^([a-zA-Z_]\w*)\s*\((.*)\)$');
-
   final Environnement env;
   final Future<dynamic> Function(String, List<String>)? onAppelFonction;
 
   EvaluateurExpression(this.env, {this.onAppelFonction});
 
   Future<dynamic> evaluer(String expr) async {
-    expr = expr.trim();
-    if (expr.isEmpty) return null;
+    final tokens = AnalyseLexicale.analyser(
+      expr,
+    ).where((t) => t.type != TokenType.finLigne).toList();
 
-    // 1. Gérer les priorités (parenthèses)
-    if (expr.startsWith('(') && expr.endsWith(')')) {
-      // Vérifier si ce sont des parenthèses englobantes réelles
-      int pile = 0;
-      bool englobantes = true;
-      for (int i = 0; i < expr.length - 1; i++) {
-        if (expr[i] == '(') pile++;
-        if (expr[i] == ')') pile--;
-        if (pile == 0) {
-          englobantes = false;
-          break;
-        }
-      }
-      if (englobantes) return await evaluer(expr.substring(1, expr.length - 1));
+    if (tokens.isEmpty) return null;
+
+    final parser = _Parser(tokens, env, onAppelFonction, this);
+    return await parser.parseTopLevel();
+  }
+}
+
+class _Parser {
+  final List<Token> tokens;
+  final Environnement env;
+  final Future<dynamic> Function(String, List<String>)? onAppelFonction;
+  final EvaluateurExpression evaluateur;
+  int pos = 0;
+
+  _Parser(this.tokens, this.env, this.onAppelFonction, this.evaluateur);
+
+  Token get current =>
+      pos < tokens.length ? tokens[pos] : Token(TokenType.finLigne, "");
+
+  void advance() => pos++;
+
+  bool matches(dynamic types, {String? valeur}) {
+    if (pos >= tokens.length) return false;
+    final token = tokens[pos];
+    if (types is List) {
+      if (!types.contains(token.type)) return false;
+    } else {
+      if (token.type != types) return false;
     }
+    if (valeur != null && token.valeur.toLowerCase() != valeur.toLowerCase()) {
+      return false;
+    }
+    return true;
+  }
 
-    // 2. Opérateurs logiques et comparaisons (plus basse priorité)
-    // 2. Opérateurs logiques et comparaisons (plus basse priorité)
-    final resOu = await _evaluerLogique(expr, ' ou ');
-    if (resOu != null) return resOu;
+  Future<dynamic> parse() async {
+    return await ou();
+  }
 
-    final resEt = await _evaluerLogique(expr, ' et ');
-    if (resEt != null) return resEt;
+  Future<dynamic> parseTopLevel() async {
+    final result = await ou();
+    if (pos < tokens.length) {
+      throw Exception(
+        "Erreur de syntaxe : Fin d'expression attendue à '${tokens[pos].valeur}'",
+      );
+    }
+    return result;
+  }
 
-    // Gestion du NON (négation)
-    if (expr.toLowerCase().startsWith('non ') ||
-        expr.toLowerCase().startsWith('non(')) {
-      final sub = expr.substring(3).trim();
-      final val = await evaluer(sub);
+  // ou -> et ( 'ou' et )*
+  Future<dynamic> ou() async {
+    dynamic node = await et();
+    while (matches(TokenType.motCle, valeur: 'ou')) {
+      advance();
+      final right = await et();
+      node = OperateurLogique.ou(node, right);
+    }
+    return node;
+  }
+
+  // et -> comparaison ( 'et' comparaison )*
+  Future<dynamic> et() async {
+    dynamic node = await comparaison();
+    while (matches(TokenType.motCle, valeur: 'et')) {
+      advance();
+      final right = await comparaison();
+      node = OperateurLogique.et(node, right);
+    }
+    return node;
+  }
+
+  // comparaison -> addition ( OP addition )?
+  Future<dynamic> comparaison() async {
+    dynamic node = await addition();
+    final ops = ['<=', '>=', '!=', '<>', '≠', '=', '<', '>'];
+    if (matches(TokenType.operateur) && ops.contains(current.valeur)) {
+      final op = current.valeur;
+      advance();
+      final right = await addition();
+      node = OperateurLogique.comparer(node, right, op);
+    }
+    return node;
+  }
+
+  // addition -> multiplication ( ('+'|'-') multiplication )*
+  Future<dynamic> addition() async {
+    dynamic node = await multiplication();
+    while (matches(TokenType.operateur) &&
+        (current.valeur == '+' || current.valeur == '-')) {
+      final op = current.valeur;
+      advance();
+      final right = await multiplication();
+      if (op == '+') {
+        node = OperateurMath.addition(node, right);
+      } else {
+        node = OperateurMath.soustraction(node, right);
+      }
+    }
+    return node;
+  }
+
+  // multiplication -> puissance ( ('*'|'/'|'mod'|'div'|'%') puissance )*
+  Future<dynamic> multiplication() async {
+    dynamic node = await puissance();
+    while (true) {
+      if (matches(TokenType.operateur) &&
+          (current.valeur == '*' ||
+              current.valeur == '/' ||
+              current.valeur == '%')) {
+        final op = current.valeur;
+        advance();
+        final right = await puissance();
+        if (op == '*') node = OperateurMath.multiplication(node, right);
+        if (op == '/') node = OperateurMath.division(node, right);
+        if (op == '%') node = OperateurMath.modulo(node, right);
+      } else if (matches(TokenType.motCle) &&
+          (current.valeur.toLowerCase() == 'mod' ||
+              current.valeur.toLowerCase() == 'div')) {
+        final op = current.valeur.toLowerCase();
+        advance();
+        final right = await puissance();
+        if (op == 'mod') node = OperateurMath.modulo(node, right);
+        if (op == 'div') node = OperateurMath.divisionEntiere(node, right);
+      } else {
+        break;
+      }
+    }
+    return node;
+  }
+
+  // puissance -> unaire ( '^' unaire | '²' | '³' )*
+  Future<dynamic> puissance() async {
+    dynamic node = await unaire();
+    while (true) {
+      if (matches(TokenType.operateur, valeur: '^')) {
+        advance();
+        final right = await unaire();
+        node = OperateurMath.puissance(node, right);
+      } else if (matches(TokenType.operateur, valeur: '²')) {
+        advance();
+        node = OperateurMath.puissance(node, 2);
+      } else if (matches(TokenType.operateur, valeur: '³')) {
+        advance();
+        node = OperateurMath.puissance(node, 3);
+      } else {
+        break;
+      }
+    }
+    return node;
+  }
+
+  // unaire -> '-' unaire | 'non' unaire | atom
+  Future<dynamic> unaire() async {
+    if (matches(TokenType.operateur, valeur: '-')) {
+      advance();
+      final right = await unaire();
+      return OperateurMath.soustraction(0, right);
+    }
+    if (matches(TokenType.motCle, valeur: 'non')) {
+      advance();
+      final val = await unaire();
       if (val is bool) return !val;
       throw Exception("L'opérateur 'non' attend un booléen, reçu: $val");
     }
+    return await atome();
+  }
 
-    final compOps = ['<=', '>=', '!=', '<>', '≠', '=', '<', '>'];
-    for (final op in compOps) {
-      if (expr.contains(op)) {
-        // Attention: Ne pas splitter si c'est dans une chaîne
-        final parts = _splitHorsChaine(expr, op);
-        if (parts.length == 2) {
-          final v1 = await evaluer(parts[0]);
-          final v2 = await evaluer(parts[1]);
-          return _comparer(v1, v2, op);
-        }
+  // atome -> nombre | chaine | booleen | '(' expression ')' | racine_carree(...) | id_ou_appel_ou_acces
+  Future<dynamic> atome() async {
+    if (matches(TokenType.nombre)) {
+      final val = current.valeur;
+      advance();
+      return num.tryParse(val) ?? BigInt.tryParse(val);
+    }
+    if (matches(TokenType.chaine)) {
+      final val = current.valeur;
+      advance();
+      return val.substring(1, val.length - 1);
+    }
+    if (matches(TokenType.booleen)) {
+      final val = current.valeur.toLowerCase();
+      advance();
+      return val == 'vrai';
+    }
+    if (matches(TokenType.separateur, valeur: '(')) {
+      advance();
+      final val = await parse();
+      if (!matches(TokenType.separateur, valeur: ')')) {
+        throw Exception("Parenthèse fermante manquante");
       }
+      advance();
+      return val;
     }
 
-    // 3. Gestion du moins unaire (ex: -10, -a, -(3+2))
-    if (expr.startsWith('-')) {
-      // On retire le signe et on vérifie si le reste contient des opérateurs
-      // de même priorité (+, -) non protégés par des parenthèses
-      final reste = expr.substring(1).trim();
-      final testSplit = _splitHorsChaine(reste, '+', op2: '-');
-
-      // Si le split ne donne qu'un seul morceau, c'est que le '-' initial
-      // porte sur toute l'expression restante (atome ou bloc parenthésé)
-      if (testSplit.length == 1) {
-        final valeur = await evaluer(reste);
-        return OperateurMath.soustraction(0, valeur);
-      }
+    // Gestion racine_carree (ancien format fonction pré-définie)
+    if (matches(TokenType.motCle, valeur: 'racine_carree')) {
+      advance();
+      if (!matches(TokenType.separateur, valeur: '('))
+        throw Exception("Parenthèse ouvrante attendue après racine_carree");
+      advance();
+      final val = await parse();
+      if (!matches(TokenType.separateur, valeur: ')'))
+        throw Exception("Parenthèse fermante attendue");
+      advance();
+      return OperateurMath.racine(val);
     }
 
-    // 4. Addition / Soustraction
-    final addSubParts = _splitHorsChaine(expr, '+', op2: '-');
-    if (addSubParts.length > 1) {
-      dynamic resultat = await evaluer(addSubParts[0]);
-      int charIdx = addSubParts[0].length;
-      for (int i = 1; i < addSubParts.length; i++) {
-        String op = expr[charIdx];
-        dynamic suivant = await evaluer(addSubParts[i]);
-
-        // Délégation aux opérateurs mathématiques
-        if (op == '+') {
-          resultat = OperateurMath.addition(resultat, suivant);
-        } else {
-          resultat = OperateurMath.soustraction(resultat, suivant);
-        }
-
-        charIdx += addSubParts[i].length + 1;
-      }
-      return resultat;
+    // ID, Appel de fonction, Accès Tableau, Accès Structure
+    if (matches(TokenType.identifiant) || matches(TokenType.motCle)) {
+      return await idOuAppelOuAcces();
     }
 
-    // 4. Multiplication / Division / Mod / Div
-    final multDivParts = _splitHorsChaine(
-      expr,
-      '*',
-      op2: '/',
-      op3: ' mod ',
-      op4: ' div ',
-      op5: '%',
-    );
-    if (multDivParts.length > 1) {
-      dynamic resultat = await evaluer(multDivParts[0]);
-      int currentPos = multDivParts[0].length;
-      for (int i = 1; i < multDivParts.length; i++) {
-        String opFound = "";
-        if (expr.substring(currentPos).startsWith('*'))
-          opFound = '*';
-        else if (expr.substring(currentPos).startsWith('/'))
-          opFound = '/';
-        else if (expr.substring(currentPos).toLowerCase().startsWith(' mod '))
-          opFound = ' mod ';
-        else if (expr.substring(currentPos).toLowerCase().startsWith(' div '))
-          opFound = ' div ';
-        else if (expr.substring(currentPos).startsWith('%'))
-          opFound = '%';
+    throw Exception("Expression invalide ou inattendue : '${current.valeur}'");
+  }
 
-        dynamic suivant = await evaluer(multDivParts[i]);
+  Future<dynamic> idOuAppelOuAcces() async {
+    final name = current.valeur;
+    advance();
 
-        // Délégation aux opérateurs mathématiques
-        if (opFound == '*') {
-          resultat = OperateurMath.multiplication(resultat, suivant);
-        } else if (opFound == '/') {
-          resultat = OperateurMath.division(resultat, suivant);
-        } else if (opFound == ' mod ' || opFound == '%') {
-          resultat = OperateurMath.modulo(resultat, suivant);
-        } else if (opFound == ' div ') {
-          resultat = OperateurMath.divisionEntiere(resultat, suivant);
-        }
+    dynamic currentVal;
 
-        currentPos += multDivParts[i].length + opFound.length;
-      }
-      return resultat;
-    }
+    // 1. Appel de fonction ?
+    if (matches(TokenType.separateur, valeur: '(')) {
+      advance();
+      final args = <String>[];
+      if (!matches(TokenType.separateur, valeur: ')')) {
+        while (true) {
+          // On capture l'expression brute pour l'évaluateur (on pourrait faire mieux avec l'AST)
+          // Mais ici on va juste parser l'expression pour obtenir sa valeur, puis la re-stringify?
+          // Non, on va modifier onAppelFonction pour accepter des valeurs déjà évaluées?
+          // Non, on garde la compatibilité. On va donc "re-capturer" le texte de l'argument.
+          int start = pos;
+          await parse();
+          // On recreé le texte de l'argument à partir des tokens consommés
+          String argText = tokens
+              .sublist(start, pos)
+              .map((t) => t.valeur)
+              .join(' ');
+          args.add(argText);
 
-    // 5. Puissance (^)
-    if (expr.contains('^')) {
-      final parts = _splitHorsChaine(expr, '^');
-      if (parts.length == 2) {
-        return OperateurMath.puissance(
-          await evaluer(parts[0]),
-          await evaluer(parts[1]),
-        );
-      }
-    }
-
-    // 6. Atomes (Nombres, Chaînes, Variables, Fonctions, Accès Tableaux, Accès Structures)
-
-    // Fonctions Math
-    if (expr.toLowerCase().startsWith('racine_carree(')) {
-      final sub = expr.substring(14, expr.length - 1);
-      return OperateurMath.racine(await evaluer(sub));
-    }
-
-    // Chaîne de caractères
-    if (expr.startsWith('"') && expr.endsWith('"')) {
-      return expr.substring(1, expr.length - 1);
-    }
-
-    // Booléens
-    if (expr.toLowerCase() == 'vrai') return true;
-    if (expr.toLowerCase() == 'faux') return false;
-
-    // Nombres
-    final numVal = num.tryParse(expr);
-    if (numVal != null) return numVal;
-
-    // Si c'est un entier brut qui dépasse 64-bit
-    if (RegExp(r'^\d+$').hasMatch(expr)) {
-      final bigVal = BigInt.tryParse(expr);
-      if (bigVal != null) return bigVal;
-    }
-
-    // Appel de fonction (ex: addition(1, 2))
-    final funcMatch = _regFuncMatch.firstMatch(expr);
-    if (funcMatch != null && onAppelFonction != null) {
-      final nom = funcMatch.group(1)!;
-      final argsStr = funcMatch.group(2)!;
-      final args = _extraireArguments(argsStr);
-      return await onAppelFonction!(nom, args);
-    }
-
-    // Accès Tableau (ex: notes[i] ou M[i, j])
-    final tabMatch = GestionnaireTableaux.regAcces.firstMatch(expr);
-    if (tabMatch != null) {
-      final nomTab = tabMatch.group(1)!;
-      final indicesBruts = tabMatch.group(2)!;
-      final tab = env.lire(nomTab);
-      if (tab is! PseudoTableau)
-        throw Exception("'$nomTab' n'est pas un tableau.");
-
-      final parts = _extraireArguments(indicesBruts);
-      final indices = <int>[];
-      for (final p in parts) {
-        final idx = await evaluer(p);
-        if (idx is! int)
-          throw Exception("L'indice doit être un entier. Reçu: $idx");
-        indices.add(idx);
-      }
-      return tab.lire(indices);
-    }
-
-    // Accès Structure (ex: e.nom ou tab[i].nom)
-    if (expr.contains('.')) {
-      final parts = InterpreteurUtils.splitChemin(expr);
-      if (parts.length > 1) {
-        dynamic courant = await evaluer(parts[0].trim());
-        for (int i = 1; i < parts.length; i++) {
-          if (courant is PseudoStructureInstance) {
-            String part = parts[i].trim();
-            // Vérifier si c'est un accès tableau (ex: tab[i])
-            final matchTab = GestionnaireTableaux.regAcces.firstMatch(part);
-            if (matchTab != null) {
-              final nomChamp = matchTab.group(1)!;
-              final indicesBruts = matchTab.group(2)!;
-
-              dynamic tab = courant.lire(nomChamp);
-              if (tab is! PseudoTableau) {
-                throw Exception(
-                  "'$nomChamp' n'est pas un tableau dans la structure.",
-                );
-              }
-
-              final indices = <int>[];
-              final indexParts = InterpreteurUtils.splitArguments(indicesBruts);
-              for (final p in indexParts) {
-                final idx = await evaluer(p);
-                if (idx is! int) throw Exception("Indice doit être entier");
-                indices.add(idx);
-              }
-              courant = tab.lire(indices);
-            } else {
-              courant = courant.lire(part);
-            }
+          if (matches(TokenType.separateur, valeur: ',')) {
+            advance();
           } else {
-            throw Exception(
-              "'${parts[i - 1]}' n'est pas une structure valide pour accéder à '${parts[i]}'.",
-            );
-          }
-        }
-        return courant;
-      }
-    }
-
-    // Variable simple
-    return env.lire(expr);
-  }
-
-  Future<dynamic>? _evaluerLogique(String expr, String op) async {
-    final parts = _splitHorsChaine(expr, op);
-    if (parts.length >= 2) {
-      final v1 = await evaluer(parts[0]);
-      final v2 = await evaluer(parts[1]);
-
-      if (op == ' ou ') {
-        return OperateurLogique.ou(v1, v2);
-      } else if (op == ' et ') {
-        return OperateurLogique.et(v1, v2);
-      }
-    }
-    return null;
-  }
-
-  bool _comparer(dynamic v1, dynamic v2, String op) {
-    return OperateurLogique.comparer(v1, v2, op);
-  }
-
-  List<String> _splitHorsChaine(
-    String s,
-    String op, {
-    String? op2,
-    String? op3,
-    String? op4,
-    String? op5,
-  }) {
-    final result = <String>[];
-    String courant = "";
-    bool dansChaine = false;
-    int pileParen = 0;
-
-    for (int i = 0; i < s.length; i++) {
-      if (s[i] == '"') dansChaine = !dansChaine;
-      if (!dansChaine) {
-        if (s[i] == '(') pileParen++;
-        if (s[i] == ')') pileParen--;
-      }
-
-      bool matches = false;
-      String currentOp = "";
-      if (!dansChaine && pileParen == 0) {
-        final rest = s.substring(i).toLowerCase();
-
-        // Liste des opérateurs à vérifier
-        final ops = [op, op2, op3, op4, op5].where((o) => o != null).toList();
-
-        for (final o in ops) {
-          if (rest.startsWith(o!.toLowerCase())) {
-            // Cas spécial pour le moins unaire :
-            // Si l'opérateur est '-' et qu'il est au tout début ou précédé
-            // d'un autre opérateur (+, -, *, /, ^, etc.), on l'ignore ici.
-            if (o.trim() == '-') {
-              String avant = s.substring(0, i).trim();
-              if (avant.isEmpty ||
-                  avant.endsWith('+') ||
-                  avant.endsWith('-') ||
-                  avant.endsWith('*') ||
-                  avant.endsWith('/') ||
-                  avant.endsWith('^') ||
-                  avant.endsWith('(') ||
-                  avant.endsWith(',') ||
-                  avant.endsWith('=') ||
-                  avant.endsWith('<') ||
-                  avant.endsWith('>') ||
-                  avant.endsWith('≠') ||
-                  avant.endsWith('≤') ||
-                  avant.endsWith('≥') ||
-                  avant.toLowerCase().endsWith(' mod') ||
-                  avant.toLowerCase().endsWith(' div') ||
-                  avant.toLowerCase().endsWith(' et') ||
-                  avant.toLowerCase().endsWith(' ou')) {
-                continue;
-              }
-            }
-
-            matches = true;
-            currentOp = o;
             break;
           }
         }
       }
+      if (!matches(TokenType.separateur, valeur: ')'))
+        throw Exception("Parenthèse fermante attendue pour l'appel de '$name'");
+      advance();
 
-      if (matches) {
-        result.add(courant);
-        courant = "";
-        i += currentOp.length - 1;
+      if (onAppelFonction == null)
+        throw Exception("Appels de fonctions non supportés ici.");
+      currentVal = await onAppelFonction!(name, args);
+    } else {
+      // 2. Simple variable
+      currentVal = env.lire(name);
+    }
+
+    // 3. Chainage d'accès ( [indices] ou .champ )
+    while (true) {
+      if (matches(TokenType.separateur, valeur: '[')) {
+        advance();
+        if (currentVal is! PseudoTableau)
+          throw Exception("'$name' n'est pas un tableau.");
+        final indices = <int>[];
+        while (true) {
+          final idx = await parse();
+          if (idx is! int) throw Exception("L'indice doit être un entier");
+          indices.add(idx);
+          if (matches(TokenType.separateur, valeur: ',')) {
+            advance();
+          } else {
+            break;
+          }
+        }
+        if (!matches(TokenType.separateur, valeur: ']'))
+          throw Exception("] attendu");
+        advance();
+        currentVal = currentVal.lire(indices);
+      } else if (matches(TokenType.separateur, valeur: '.')) {
+        advance();
+        if (currentVal is! PseudoStructureInstance)
+          throw Exception("Structure attendue");
+        if (!matches(TokenType.identifiant))
+          throw Exception("Nom de champ attendu");
+        final fieldName = current.valeur;
+        advance();
+        currentVal = currentVal.lire(fieldName);
       } else {
-        courant += s[i];
+        break;
       }
     }
-    result.add(courant);
-    return result;
-  }
 
-  List<String> _extraireArguments(String argsBruts) {
-    return InterpreteurUtils.splitArguments(argsBruts);
+    return currentVal;
   }
 }

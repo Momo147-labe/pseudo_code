@@ -401,22 +401,28 @@ class FileProvider with ChangeNotifier {
     }
   }
 
-  final _insertRequestController = StreamController<String>.broadcast();
-  Stream<String> get insertRequests => _insertRequestController.stream;
+  final _insertRequestController =
+      StreamController<InsertionRequest>.broadcast();
+  Stream<InsertionRequest> get insertRequests =>
+      _insertRequestController.stream;
 
-  void requestInsertion(String snippet) {
+  void requestInsertion(String snippet, {bool direct = false}) {
     if (activeFile != null) {
-      _insertRequestController.add(snippet);
+      _insertRequestController.add(InsertionRequest(snippet, direct: direct));
     }
   }
 
-  void insertText(String text) {
-    // Rediriger vers le nouveau flux de requête pour bénéficier de la review
-    requestInsertion(text);
+  void insertText(String text, {bool direct = true}) {
+    requestInsertion(text, direct: direct);
   }
 
-  void insertCode(String code) {
-    // Rediriger vers le nouveau flux de requête
-    requestInsertion(code);
+  void insertCode(String code, {bool direct = false}) {
+    requestInsertion(code, direct: direct);
   }
+}
+
+class InsertionRequest {
+  final String snippet;
+  final bool direct;
+  InsertionRequest(this.snippet, {this.direct = false});
 }

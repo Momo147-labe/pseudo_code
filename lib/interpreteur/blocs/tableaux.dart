@@ -28,7 +28,13 @@ class PseudoTableau {
   dynamic lire(List<int> indices) {
     _validerIndices(indices);
     final key = indices.join(',');
-    return _elements[key] ?? _valeurParDefaut();
+
+    // Si l'élément n'existe pas encore, on l'initialise et on le stocke
+    if (!_elements.containsKey(key)) {
+      _elements[key] = _valeurParDefaut();
+    }
+
+    return _elements[key];
   }
 
   void _validerIndices(List<int> indices) {
@@ -103,7 +109,7 @@ class PseudoTableau {
     return sb.toString();
   }
 
-  String formatStructureGrid() {
+  String formatStructureGrid({int? limit}) {
     if (mins.length > 2) return toString();
     final is2D = mins.length == 2;
 
@@ -123,16 +129,22 @@ class PseudoTableau {
 
     if (!is2D) {
       // FORMAT 1D : Tableau horizontal (Champs = Colonnes)
-      return _format1DStructureTable(fieldNames);
+      return _format1DStructureTable(fieldNames, limit: limit);
     } else {
       // FORMAT 2D : Grille de matrices (Chaque cellule = Boîte multi-lignes)
-      return _format2DStructureGrid(fieldNames);
+      return _format2DStructureGrid(fieldNames, limit: limit);
     }
   }
 
-  String _format1DStructureTable(List<String> fieldNames) {
+  String _format1DStructureTable(List<String> fieldNames, {int? limit}) {
     final rowMin = mins[0];
-    final rowMax = maxs[0];
+    int rowMax = maxs[0];
+
+    // Application de la limite si fournie (ex: afficherTabStructure(v, n))
+    if (limit != null && limit > 0) {
+      rowMax = rowMin + limit - 1;
+      if (rowMax > maxs[0]) rowMax = maxs[0];
+    }
 
     // Calculer la largeur de chaque colonne (y compris l'index)
     Map<String, int> widths = {};
@@ -191,11 +203,16 @@ class PseudoTableau {
     return sb.toString();
   }
 
-  String _format2DStructureGrid(List<String> fieldNames) {
+  String _format2DStructureGrid(List<String> fieldNames, {int? limit}) {
     final rowMin = mins[0];
-    final rowMax = maxs[0];
+    int rowMax = maxs[0];
     final colMin = mins[1];
     final colMax = maxs[1];
+
+    if (limit != null && limit > 0) {
+      rowMax = rowMin + limit - 1;
+      if (rowMax > maxs[0]) rowMax = maxs[0];
+    }
 
     int maxCellWidth = 0;
     for (int i = rowMin; i <= rowMax; i++) {
