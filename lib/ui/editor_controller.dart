@@ -43,6 +43,30 @@ class CodeEditorController extends TextEditingController {
     }
   }
 
+  // --- Search Highlighting ---
+  List<int> _searchMatches = [];
+  int _currentMatchIndex = -1;
+  String _searchQuery = '';
+
+  List<int> get searchMatches => _searchMatches;
+  int get currentMatchIndex => _currentMatchIndex;
+  String get searchQuery => _searchQuery;
+
+  set searchMatches(List<int> matches) {
+    _searchMatches = matches;
+    notifyListeners();
+  }
+
+  set currentMatchIndex(int index) {
+    _currentMatchIndex = index;
+    notifyListeners();
+  }
+
+  set searchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
   // --- Bracket Matching Logic ---
   int? _matchStart;
   int? _matchEnd;
@@ -506,6 +530,25 @@ class CodeEditorController extends TextEditingController {
               fontWeight: FontWeight.bold,
               color: Colors.white,
             );
+          }
+        }
+
+        // Search Matches Highlight
+        if (_searchQuery.isNotEmpty) {
+          for (int j = 0; j < _searchMatches.length; j++) {
+            final matchPos = _searchMatches[j];
+            if (currentTokenOffset >= matchPos &&
+                currentTokenOffset + lineSegment.length <=
+                    matchPos + _searchQuery.length) {
+              final isCurrent = j == _currentMatchIndex;
+              tokenStyle = tokenStyle.copyWith(
+                backgroundColor: isCurrent
+                    ? Colors.orange.withValues(alpha: 0.6)
+                    : Colors.yellow.withValues(alpha: 0.3),
+                color: isCurrent ? Colors.white : null,
+              );
+              break;
+            }
           }
         }
 

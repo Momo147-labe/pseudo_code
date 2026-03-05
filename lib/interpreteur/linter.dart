@@ -58,7 +58,8 @@ class Linter {
           fixes: [
             LintFix(
               title: "Ajouter 'Algorithme MonProgramme'",
-              replacement: "Algorithme MonProgramme\n${lines[0]}",
+              replacement:
+                  "Algorithme MonProgramme\n \n Début \n \n //instructions \n \n Fin\n",
             ),
           ],
         ),

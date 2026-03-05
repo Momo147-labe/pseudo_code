@@ -131,6 +131,13 @@ class BarreHaut extends StatelessWidget {
             tooltip: 'Sauvegarder le fichier (Ctrl+S)',
             theme: theme,
           ),
+          if (appProvider.activeMainView == ActiveMainView.algorithm)
+            _HeaderAction(
+              icon: Icons.search,
+              onPressed: () => appProvider.toggleEditorSearch(),
+              tooltip: 'Rechercher dans l\'éditeur (Ctrl+F)',
+              theme: theme,
+            ),
           const SizedBox(width: 8),
           IconButton(
             onPressed: onDebug,

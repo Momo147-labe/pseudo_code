@@ -56,7 +56,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
   final Set<int> _foldableLines = {};
 
   // Search & Replace State
-  bool _isSearchVisible = false;
+  // Search & Replace State
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _replaceController = TextEditingController();
   List<int> _searchMatches = [];
@@ -65,6 +65,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
   // minimap
   final ScrollController _minimapScrollController = ScrollController();
   StreamSubscription? _insertSubscription;
+  StreamSubscription? _jumpSubscription;
   FileProvider? _fileProvider;
 
   @override
@@ -86,6 +87,9 @@ class _EditeurWidgetState extends State<EditeurWidget> {
       _fileProvider = context.read<FileProvider>();
       _insertSubscription = _fileProvider?.insertRequests.listen((request) {
         _handleInsertionRequest(request);
+      });
+      _jumpSubscription = _fileProvider?.jumpRequests.listen((line) {
+        _jumpToLine(line);
       });
       _fileProvider?.addListener(_handleFileProviderChange);
     }
@@ -373,6 +377,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
   @override
   void dispose() {
     _insertSubscription?.cancel();
+    _jumpSubscription?.cancel();
     _fileProvider?.removeListener(_handleFileProviderChange);
     _controller.removeListener(_updateFoldableLines);
     _controller.removeListener(_onControllerChanged);
@@ -646,6 +651,33 @@ class _EditeurWidgetState extends State<EditeurWidget> {
       start--;
     }
     return start;
+  }
+
+  void _jumpToLine(int line1Based) {
+    if (line1Based <= 0) return;
+    final text = _controller.text;
+    final lines = text.split('\n');
+    if (line1Based > lines.length) return;
+
+    // Calculate offset
+    int offset = 0;
+    for (int i = 0; i < line1Based - 1; i++) {
+      offset += lines[i].length + 1;
+    }
+
+    _controller.selection = TextSelection.collapsed(offset: offset);
+    _focusNode.requestFocus();
+
+    // Scroll
+    final fontSize = context.read<AppProvider>().fontSize;
+    final lineHeight = fontSize * 1.5;
+    final scrollOffset = (line1Based - 1) * lineHeight;
+
+    _editorScrollController.animateTo(
+      scrollOffset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   void _updateFoldableLines() {
@@ -1121,12 +1153,10 @@ class _EditeurWidgetState extends State<EditeurWidget> {
           ),
           SearchIntent: CallbackAction<SearchIntent>(
             onInvoke: (intent) {
-              setState(() {
-                _isSearchVisible = !_isSearchVisible;
-                if (_isSearchVisible) {
-                  _focusNode.unfocus();
-                }
-              });
+              appProvider.toggleEditorSearch();
+              if (appProvider.isEditorSearchVisible) {
+                _focusNode.unfocus();
+              }
               return null;
             },
           ),
@@ -1220,6 +1250,8 @@ class _EditeurWidgetState extends State<EditeurWidget> {
                               withComposing: false,
                             ),
                             theme: theme,
+                            lintIssues: activeFile?.lintIssues ?? [],
+                            executionErrorLine: debugProvider.errorLine,
                           ),
                       ],
                     ),
@@ -1229,7 +1261,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
                   _buildReviewBanner(theme, fileProvider),
               ],
             ),
-            if (_isSearchVisible)
+            if (appProvider.isEditorSearchVisible)
               EditorSearchPanel(
                 searchController: _searchController,
                 replaceController: _replaceController,
@@ -1242,7 +1274,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
                 onPrevMatch: _prevMatch,
                 onReplaceCurrent: _replaceCurrent,
                 onReplaceAll: _replaceAll,
-                onClose: () => setState(() => _isSearchVisible = false),
+                onClose: () => appProvider.setEditorSearchVisible(false),
               ),
             // Sticky Scroll Header
             if (!isMobile)
@@ -1328,16 +1360,19 @@ class _EditeurWidgetState extends State<EditeurWidget> {
   }
 
   void _performSearch() {
-    final query = _searchController.text;
+    final query = _searchController.text.toLowerCase();
     if (query.isEmpty) {
       setState(() {
         _searchMatches = [];
         _currentMatchIndex = -1;
+        _controller.searchMatches = [];
+        _controller.currentMatchIndex = -1;
+        _controller.searchQuery = '';
       });
       return;
     }
 
-    final text = _controller.text;
+    final text = _controller.text.toLowerCase();
     final matches = <int>[];
     int index = text.indexOf(query);
     while (index != -1) {
@@ -1348,6 +1383,9 @@ class _EditeurWidgetState extends State<EditeurWidget> {
     setState(() {
       _searchMatches = matches;
       _currentMatchIndex = matches.isEmpty ? -1 : 0;
+      _controller.searchMatches = matches;
+      _controller.currentMatchIndex = _currentMatchIndex;
+      _controller.searchQuery = _searchController.text;
     });
 
     if (_currentMatchIndex != -1) {
@@ -1359,6 +1397,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
     if (_searchMatches.isEmpty) return;
     setState(() {
       _currentMatchIndex = (_currentMatchIndex + 1) % _searchMatches.length;
+      _controller.currentMatchIndex = _currentMatchIndex;
     });
     _scrollToMatch();
   }
@@ -1369,6 +1408,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
       _currentMatchIndex =
           (_currentMatchIndex - 1 + _searchMatches.length) %
           _searchMatches.length;
+      _controller.currentMatchIndex = _currentMatchIndex;
     });
     _scrollToMatch();
   }
@@ -1412,7 +1452,10 @@ class _EditeurWidgetState extends State<EditeurWidget> {
       pos + query.length,
       replace,
     );
-    _controller.text = newText;
+    _controller.value = _controller.value.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: pos + replace.length),
+    );
     _performSearch();
   }
 
@@ -1421,8 +1464,16 @@ class _EditeurWidgetState extends State<EditeurWidget> {
     final replace = _replaceController.text;
     if (query.isEmpty) return;
 
-    final newText = _controller.text.replaceAll(query, replace);
-    _controller.text = newText;
+    // Use a more robust replace that respects our found matches if it was case-insensitive
+    // But since we are doing a global replace, we can use a regex with case-insensitive flag if needed
+    // For now, let's just use the current text and replace matching our matches array from end to start to keep offsets valid
+    String currentText = _controller.text;
+    for (int i = _searchMatches.length - 1; i >= 0; i--) {
+      final pos = _searchMatches[i];
+      currentText = currentText.replaceRange(pos, pos + query.length, replace);
+    }
+
+    _controller.text = currentText;
     _performSearch();
   }
 

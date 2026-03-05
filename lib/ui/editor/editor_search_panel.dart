@@ -35,7 +35,7 @@ class EditorSearchPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: 40,
+      top: isMobile ? 36 : 40,
       right: isMobile ? 0 : 20,
       left: isMobile ? 0 : null,
       child: Material(
@@ -44,8 +44,8 @@ class EditorSearchPanel extends StatelessWidget {
         color: ThemeColors.sidebarBg(theme),
         child: Container(
           width: isMobile ? null : 300,
-          margin: isMobile ? const EdgeInsets.symmetric(horizontal: 16) : null,
-          padding: const EdgeInsets.all(12),
+          margin: isMobile ? const EdgeInsets.symmetric(horizontal: 8) : null,
+          padding: EdgeInsets.all(isMobile ? 8 : 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.white12),
@@ -55,11 +55,20 @@ class EditorSearchPanel extends StatelessWidget {
             children: [
               Row(
                 children: [
+                  Icon(
+                    Icons.search,
+                    size: isMobile ? 14 : 16,
+                    color: Colors.white38,
+                  ),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
                       controller: searchController,
                       autofocus: true,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isMobile ? 12 : 13,
+                      ),
                       decoration: InputDecoration(
                         hintText: AppLocalizations.of(context)!.searchHint,
                         hintStyle: const TextStyle(color: Colors.white38),
@@ -73,59 +82,108 @@ class EditorSearchPanel extends StatelessWidget {
                     searchMatches.isEmpty
                         ? '0/0'
                         : '${currentMatchIndex + 1}/${searchMatches.length}',
-                    style: const TextStyle(color: Colors.white38, fontSize: 11),
+                    style: TextStyle(
+                      color: Colors.white38,
+                      fontSize: isMobile ? 10 : 11,
+                    ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.keyboard_arrow_up, size: 18),
+                  _CompactIconButton(
+                    icon: Icons.keyboard_arrow_up,
                     onPressed: onPrevMatch,
-                    color: Colors.white70,
+                    isMobile: isMobile,
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.keyboard_arrow_down, size: 18),
+                  _CompactIconButton(
+                    icon: Icons.keyboard_arrow_down,
                     onPressed: onNextMatch,
-                    color: Colors.white70,
+                    isMobile: isMobile,
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 18),
+                  _CompactIconButton(
+                    icon: Icons.close,
                     onPressed: onClose,
-                    color: Colors.white70,
+                    isMobile: isMobile,
                   ),
                 ],
               ),
-              const Divider(color: Colors.white12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: replaceController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                      decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context)!.replaceHint,
-                        hintStyle: const TextStyle(color: Colors.white38),
-                        isDense: true,
-                        border: InputBorder.none,
+              if (!isMobile ||
+                  replaceController.text.isNotEmpty ||
+                  searchMatches.isNotEmpty) ...[
+                const Divider(color: Colors.white12, height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: replaceController,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: isMobile ? 12 : 13,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: AppLocalizations.of(context)!.replaceHint,
+                          hintStyle: const TextStyle(color: Colors.white38),
+                          isDense: true,
+                          border: InputBorder.none,
+                        ),
                       ),
                     ),
-                  ),
-                  TextButton(
-                    onPressed: onReplaceAll,
-                    child: Text(
-                      AppLocalizations.of(context)!.replaceAll,
-                      style: const TextStyle(fontSize: 12),
+                    TextButton(
+                      onPressed: onReplaceAll,
+                      style: TextButton.styleFrom(
+                        padding: isMobile
+                            ? const EdgeInsets.symmetric(horizontal: 4)
+                            : null,
+                        minimumSize: isMobile ? Size.zero : null,
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.replaceAll,
+                        style: TextStyle(fontSize: isMobile ? 11 : 12),
+                      ),
                     ),
-                  ),
-                  TextButton(
-                    onPressed: onReplaceCurrent,
-                    child: Text(
-                      AppLocalizations.of(context)!.replaceCurrent,
-                      style: const TextStyle(fontSize: 12),
+                    TextButton(
+                      onPressed: onReplaceCurrent,
+                      style: TextButton.styleFrom(
+                        padding: isMobile
+                            ? const EdgeInsets.symmetric(horizontal: 4)
+                            : null,
+                        minimumSize: isMobile ? Size.zero : null,
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.replaceCurrent,
+                        style: TextStyle(fontSize: isMobile ? 11 : 12),
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _CompactIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+  final bool isMobile;
+
+  const _CompactIconButton({
+    required this.icon,
+    required this.onPressed,
+    required this.isMobile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: isMobile ? 30 : 40,
+      height: isMobile ? 30 : 40,
+      child: IconButton(
+        icon: Icon(icon, size: isMobile ? 16 : 18),
+        onPressed: onPressed,
+        color: Colors.white70,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
       ),
     );
   }

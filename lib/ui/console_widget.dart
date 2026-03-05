@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import '../providers/app_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/debug_provider.dart';
@@ -41,6 +44,7 @@ class ConsoleWidgetState extends State<ConsoleWidget> {
   final TextEditingController _consoleSearchController =
       TextEditingController();
   String _consoleSearchQuery = '';
+  String _logFilter = 'all'; // all, output, system
 
   @override
   void initState() {
@@ -210,6 +214,34 @@ class ConsoleWidgetState extends State<ConsoleWidget> {
     });
   }
 
+  Future<void> _exportLogs() async {
+    try {
+      final content = _messages.join('\n');
+      final directory = await getApplicationDocumentsDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final file = File(p.join(directory.path, "log_console_$timestamp.txt"));
+      await file.writeAsString(content);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Log exporté : ${file.path}"),
+            backgroundColor: Colors.blueAccent,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Erreur d'exportation : $e"),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
   void _submitInput() {
     final text = _inputController.text;
     if (text.isNotEmpty) {
@@ -313,39 +345,48 @@ class ConsoleWidgetState extends State<ConsoleWidget> {
   }
 
   void _afficherDetailsGuide(dynamic entry) {
-    final buffer = StringBuffer();
-    buffer.writeln("=== ${entry['commande'].toString().toUpperCase()} ===");
-    buffer.writeln("CONTENU :");
-    buffer.writeln("  ${entry['contenu']}");
+    _bufferTerminal(
+      "» ${entry['commande'].toString().toUpperCase()} «",
+      system: true,
+    );
+    _bufferTerminal("————————————————————————————————————————", system: true);
+    _bufferTerminal("• DESCR : ${entry['contenu']}", system: true);
 
     if (entry['caracteristique'] != null) {
-      buffer.writeln("\nCARACTÉRISTIQUES :");
+      _bufferTerminal("\n• CARACTÉRISTIQUES :", system: true);
       for (var c in entry['caracteristique']) {
-        buffer.writeln("  - $c");
+        _bufferTerminal("  - $c", system: true);
       }
     }
 
     if (entry['exemple'] != null) {
-      buffer.writeln("\nEXEMPLE :");
+      _bufferTerminal("\n• EXEMPLE :", system: true);
       if (entry['exemple']['probleme'] != null) {
-        buffer.writeln("  Problème : ${entry['exemple']['probleme']}");
+        _bufferTerminal(
+          "  Problème : ${entry['exemple']['probleme']}",
+          system: true,
+        );
       }
       if (entry['exemple']['etapes'] != null) {
-        buffer.writeln("  Étapes :");
+        _bufferTerminal("  Étapes :", system: true);
         for (var etape in entry['exemple']['etapes']) {
-          buffer.writeln("    $etape");
+          _bufferTerminal("    $etape", system: true);
         }
       }
     }
-    _bufferTerminal(buffer.toString().trim());
+    _bufferTerminal("————————————————————————————————————————", system: true);
   }
 
   // Helpers pour accumuler les messages
-  void _bufferTerminal(String text) {
+  void _bufferTerminal(String text, {bool system = false}) {
     if (_messages.isNotEmpty && _messages.last == '> ') {
       _messages.removeLast();
     }
-    _messages.add(text);
+    _messages.add(
+      system && !text.startsWith('[') && !text.startsWith('>')
+          ? "[SYST] $text"
+          : text,
+    );
   }
 
   void _flushTerminal() {
@@ -398,21 +439,15 @@ class ConsoleWidgetState extends State<ConsoleWidget> {
 
     return Container(
       decoration: BoxDecoration(
-        color: ThemeColors.editorBg(theme),
+        color: ThemeColors.sidebarBg(theme).withValues(alpha: 0.9),
         border: Border(
           top: BorderSide(
-            color:
-                provider.consolePosition == ConsolePosition.bottom &&
-                    provider.isConsoleVisible
-                ? (isDark ? Colors.white10 : Colors.black12)
-                : Colors.transparent,
+            color: Colors.white.withValues(alpha: 0.05),
+            width: 0.5,
           ),
           left: BorderSide(
-            color:
-                provider.consolePosition == ConsolePosition.right &&
-                    provider.isConsoleVisible
-                ? (isDark ? Colors.white10 : Colors.black12)
-                : Colors.transparent,
+            color: Colors.white.withValues(alpha: 0.05),
+            width: 0.5,
           ),
         ),
       ),
@@ -429,196 +464,298 @@ class ConsoleWidgetState extends State<ConsoleWidget> {
                 ),
               ),
             ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _PanelTab(
-                    title: 'CONSOLE',
-                    theme: theme,
-                    isActive: _activeTab == 'CONSOLE',
-                    onTap: () => setState(() => _activeTab = 'CONSOLE'),
-                  ),
-                  _PanelTab(
-                    title: 'AVERTISSEMENTS',
-                    theme: theme,
-                    isActive: _activeTab == 'WARNINGS',
-                    onTap: () => setState(() => _activeTab = 'WARNINGS'),
-                    badgeCount: anomaliesCount,
-                  ),
-                  _PanelTab(
-                    title: 'GUIDE',
-                    theme: theme,
-                    isActive: _activeTab == 'TERMINAL',
-                    onTap: () => setState(() => _activeTab = 'TERMINAL'),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: Icon(
-                      Icons.vertical_align_top,
-                      size: 16,
-                      color: provider.consolePosition == ConsolePosition.top
-                          ? Colors.blueAccent
-                          : ThemeColors.textMain(theme).withValues(alpha: 0.5),
-                    ),
-                    onPressed: () =>
-                        provider.setConsolePosition(ConsolePosition.top),
-                    tooltip: "Position: Haut",
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.vertical_align_bottom,
-                      size: 16,
-                      color: provider.consolePosition == ConsolePosition.bottom
-                          ? Colors.blueAccent
-                          : ThemeColors.textMain(theme).withValues(alpha: 0.5),
-                    ),
-                    onPressed: () =>
-                        provider.setConsolePosition(ConsolePosition.bottom),
-                    tooltip: "Position: Bas",
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.align_horizontal_right,
-                      size: 16,
-                      color: provider.consolePosition == ConsolePosition.right
-                          ? Colors.blueAccent
-                          : ThemeColors.textMain(theme).withValues(alpha: 0.5),
-                    ),
-                    onPressed: () =>
-                        provider.setConsolePosition(ConsolePosition.right),
-                    tooltip: "Position: Droite",
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.zoom_in,
-                      size: 16,
-                      color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
-                    ),
-                    onPressed: () => setState(
-                      () => _fontSize = (_fontSize + 1).clamp(8, 30),
-                    ),
-                    tooltip: "Zoomer",
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.zoom_out,
-                      size: 16,
-                      color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
-                    ),
-                    onPressed: () => setState(
-                      () => _fontSize = (_fontSize - 1).clamp(8, 30),
-                    ),
-                    tooltip: "Dézoomer",
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: Icon(
-                      Icons.copy,
-                      size: 16,
-                      color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
-                    ),
-                    onPressed: () {
-                      if (_activeTab == 'WARNINGS') {
-                        // Copier les avertissements
-                        final fileProvider = context.read<FileProvider>();
-                        final text = fileProvider.anomalies
-                            .map((a) => "Ligne ${a.line}: ${a.message}")
-                            .join('\n');
-                        Clipboard.setData(ClipboardData(text: text));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              "Avertissements copiés dans le presse-papier",
-                            ),
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
-                      } else {
-                        // Copier la console/guide
-                        final allContent = _messages.join('\n');
-                        Clipboard.setData(ClipboardData(text: allContent));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              "Contenu copié dans le presse-papier",
-                            ),
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
-                      }
-                    },
-                    tooltip: "Copier tout",
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.clear_all,
-                      size: 16,
-                      color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
-                    ),
-                    onPressed: () {
-                      setState(() => _messages.clear());
-                      _inputHistory.clear();
-                      _historyIndex = -1;
-                    },
-                    tooltip: "Effacer la console",
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.search,
-                      size: 16,
-                      color: _isConsoleSearchVisible
-                          ? Colors.blueAccent
-                          : ThemeColors.textMain(theme).withValues(alpha: 0.5),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isConsoleSearchVisible = !_isConsoleSearchVisible;
-                        if (!_isConsoleSearchVisible) {
-                          _consoleSearchQuery = '';
-                          _consoleSearchController.clear();
-                        }
-                      });
-                    },
-                    tooltip: "Rechercher dans la console",
-                  ),
-                  if (_isConsoleSearchVisible)
-                    SizedBox(
-                      width: 150,
-                      child: TextField(
-                        controller: _consoleSearchController,
-                        style: TextStyle(
-                          color: ThemeColors.textBright(theme),
-                          fontSize: 12,
+            child: Row(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _PanelTab(
+                          title: 'CONSOLE',
+                          theme: theme,
+                          isActive: _activeTab == 'CONSOLE',
+                          onTap: () => setState(() => _activeTab = 'CONSOLE'),
                         ),
-                        decoration: InputDecoration(
-                          hintText: "Rechercher...",
-                          hintStyle: TextStyle(
+                        _PanelTab(
+                          title: 'AVERTISSEMENTS',
+                          theme: theme,
+                          isActive: _activeTab == 'WARNINGS',
+                          onTap: () => setState(() => _activeTab = 'WARNINGS'),
+                          badgeCount: anomaliesCount,
+                        ),
+                        _PanelTab(
+                          title: 'GUIDE',
+                          theme: theme,
+                          isActive: _activeTab == 'TERMINAL',
+                          onTap: () => setState(() => _activeTab = 'TERMINAL'),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: Icon(
+                            Icons.vertical_align_top,
+                            size: 16,
+                            color:
+                                provider.consolePosition == ConsolePosition.top
+                                ? Colors.blueAccent
+                                : ThemeColors.textMain(
+                                    theme,
+                                  ).withValues(alpha: 0.5),
+                          ),
+                          onPressed: () =>
+                              provider.setConsolePosition(ConsolePosition.top),
+                          tooltip: "Position: Haut",
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.vertical_align_bottom,
+                            size: 16,
+                            color:
+                                provider.consolePosition ==
+                                    ConsolePosition.bottom
+                                ? Colors.blueAccent
+                                : ThemeColors.textMain(
+                                    theme,
+                                  ).withValues(alpha: 0.5),
+                          ),
+                          onPressed: () => provider.setConsolePosition(
+                            ConsolePosition.bottom,
+                          ),
+                          tooltip: "Position: Bas",
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.align_horizontal_right,
+                            size: 16,
+                            color:
+                                provider.consolePosition ==
+                                    ConsolePosition.right
+                                ? Colors.blueAccent
+                                : ThemeColors.textMain(
+                                    theme,
+                                  ).withValues(alpha: 0.5),
+                          ),
+                          onPressed: () => provider.setConsolePosition(
+                            ConsolePosition.right,
+                          ),
+                          tooltip: "Position: Droite",
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.zoom_in,
+                            size: 16,
                             color: ThemeColors.textMain(
                               theme,
-                            ).withValues(alpha: 0.3),
+                            ).withValues(alpha: 0.5),
                           ),
-                          border: InputBorder.none,
-                          isDense: true,
+                          onPressed: () => setState(
+                            () => _fontSize = (_fontSize + 1).clamp(8, 30),
+                          ),
+                          tooltip: "Zoomer",
                         ),
-                        onChanged: (val) => setState(
-                          () => _consoleSearchQuery = val.toLowerCase(),
+                        IconButton(
+                          icon: Icon(
+                            Icons.zoom_out,
+                            size: 16,
+                            color: ThemeColors.textMain(
+                              theme,
+                            ).withValues(alpha: 0.5),
+                          ),
+                          onPressed: () => setState(
+                            () => _fontSize = (_fontSize - 1).clamp(8, 30),
+                          ),
+                          tooltip: "Dézoomer",
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: Icon(
+                            Icons.copy,
+                            size: 16,
+                            color: ThemeColors.textMain(
+                              theme,
+                            ).withValues(alpha: 0.5),
+                          ),
+                          onPressed: () {
+                            if (_activeTab == 'WARNINGS') {
+                              // Copier les avertissements
+                              final fileProvider = context.read<FileProvider>();
+                              final text = fileProvider.anomalies
+                                  .map((a) => "Ligne ${a.line}: ${a.message}")
+                                  .join('\n');
+                              Clipboard.setData(ClipboardData(text: text));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "Avertissements copiés dans le presse-papier",
+                                  ),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            } else {
+                              // Copier la console/guide
+                              final allContent = _messages.join('\n');
+                              Clipboard.setData(
+                                ClipboardData(text: allContent),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "Contenu copié dans le presse-papier",
+                                  ),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            }
+                          },
+                          tooltip: "Copier tout",
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.clear_all,
+                            size: 16,
+                            color: ThemeColors.textMain(
+                              theme,
+                            ).withValues(alpha: 0.5),
+                          ),
+                          onPressed: () {
+                            setState(() => _messages.clear());
+                            _inputHistory.clear();
+                            _historyIndex = -1;
+                          },
+                          tooltip: "Effacer la console",
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.search,
+                            size: 16,
+                            color: _isConsoleSearchVisible
+                                ? Colors.blueAccent
+                                : ThemeColors.textMain(
+                                    theme,
+                                  ).withValues(alpha: 0.5),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isConsoleSearchVisible =
+                                  !_isConsoleSearchVisible;
+                              if (!_isConsoleSearchVisible) {
+                                _consoleSearchQuery = '';
+                                _consoleSearchController.clear();
+                              }
+                            });
+                          },
+                          tooltip: "Rechercher dans la console",
+                        ),
+                        const VerticalDivider(
+                          width: 1,
+                          indent: 8,
+                          endIndent: 8,
+                        ),
+                        // Filtres
+                        if (_activeTab == 'CONSOLE') ...[
+                          const SizedBox(width: 8),
+                          _FilterChip(
+                            label: "Tout",
+                            isActive: _logFilter == 'all',
+                            onTap: () => setState(() => _logFilter = 'all'),
+                            theme: theme,
+                          ),
+                          _FilterChip(
+                            label: "Sortie",
+                            isActive: _logFilter == 'output',
+                            onTap: () => setState(() => _logFilter = 'output'),
+                            theme: theme,
+                          ),
+                          _FilterChip(
+                            label: "Syst",
+                            isActive: _logFilter == 'system',
+                            onTap: () => setState(() => _logFilter = 'system'),
+                            theme: theme,
+                          ),
+                        ],
+                      ],
                     ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.close,
-                      size: 16,
-                      color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
-                    ),
-                    onPressed: () => provider.toggleConsole(),
-                    tooltip: "Fermer la console",
                   ),
+                ),
+                // Actions fixes
+                IconButton(
+                  icon: Icon(
+                    Icons.file_download_outlined,
+                    size: 16,
+                    color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
+                  ),
+                  onPressed: _exportLogs,
+                  tooltip: "Exporter le log (.txt)",
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.close,
+                    size: 16,
+                    color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
+                  ),
+                  onPressed: () => provider.toggleConsole(),
+                  tooltip: "Fermer la console",
+                ),
+              ],
+            ),
+          ),
+          // Barre de recherche (si visible)
+          if (_isConsoleSearchVisible)
+            Container(
+              height: 30,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.1),
+                border: Border(
+                  bottom: BorderSide(
+                    color: isDark ? Colors.white10 : Colors.black12,
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.search,
+                    size: 14,
+                    color: Colors.blueAccent.withValues(alpha: 0.7),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _consoleSearchController,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: ThemeColors.textMain(theme),
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: "Rechercher...",
+                        hintStyle: TextStyle(fontSize: 12, color: Colors.grey),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _consoleSearchQuery = value.trim().toLowerCase();
+                        });
+                      },
+                    ),
+                  ),
+                  if (_consoleSearchQuery.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 14),
+                      onPressed: () {
+                        setState(() {
+                          _consoleSearchController.clear();
+                          _consoleSearchQuery = '';
+                        });
+                      },
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
                 ],
               ),
             ),
-          ),
           // Output + Inline Input
           Expanded(
             child: _activeTab == 'WARNINGS'
@@ -626,15 +763,19 @@ class ConsoleWidgetState extends State<ConsoleWidget> {
                 : SelectionArea(
                     child: Builder(
                       builder: (context) {
-                        final filteredMessages = _consoleSearchQuery.isEmpty
-                            ? _messages
-                            : _messages
-                                  .where(
-                                    (m) => m.toLowerCase().contains(
-                                      _consoleSearchQuery,
-                                    ),
-                                  )
-                                  .toList();
+                        final filteredMessages = _messages.where((m) {
+                          // Filter by search query
+                          if (_consoleSearchQuery.isNotEmpty &&
+                              !m.toLowerCase().contains(_consoleSearchQuery)) {
+                            return false;
+                          }
+                          // Filter by category
+                          final isSystem =
+                              m.startsWith('[') || m.startsWith('>');
+                          if (_logFilter == 'output' && isSystem) return false;
+                          if (_logFilter == 'system' && !isSystem) return false;
+                          return true;
+                        }).toList();
 
                         return ListView.builder(
                           controller: _scrollController,
@@ -744,13 +885,10 @@ class ConsoleWidgetState extends State<ConsoleWidget> {
                                               ),
                                             ],
                                           )
-                                        : Text(
+                                        : _buildStyledMessage(
                                             m,
-                                            style: TextStyle(
-                                              color: _getMessageColor(m, theme),
-                                              fontFamily: 'JetBrainsMono',
-                                              fontSize: _fontSize,
-                                            ),
+                                            theme,
+                                            _fontSize,
                                           ),
                                   ),
                                 ),
@@ -792,23 +930,35 @@ class ConsoleWidgetState extends State<ConsoleWidget> {
       itemBuilder: (context, index) {
         final issue = anomalies[index];
         return ListTile(
-          leading: Icon(Icons.warning_amber_rounded, color: Colors.orange),
+          dense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          leading: const Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.orangeAccent,
+            size: 20,
+          ),
           title: Text(
-            issue.message, // property 'message'
+            issue.message,
             style: TextStyle(
-              color: ThemeColors.textMain(theme),
+              color: ThemeColors.textBright(theme),
               fontFamily: 'JetBrainsMono',
-              fontSize: _fontSize,
+              fontSize: _fontSize - 1,
             ),
           ),
           subtitle: Text(
-            "Ligne ${issue.line}", // property 'line'
+            "Ligne ${issue.line}",
             style: TextStyle(
-              color: ThemeColors.textMain(theme).withValues(alpha: 0.5),
+              color: ThemeColors.textMain(theme).withValues(alpha: 0.4),
+              fontSize: 11,
             ),
           ),
+          trailing: const Icon(
+            Icons.chevron_right,
+            size: 16,
+            color: Colors.white12,
+          ),
           onTap: () {
-            // Navigation vers la ligne ???
+            context.read<FileProvider>().jumpToLine(issue.line);
           },
         );
       },
@@ -817,11 +967,54 @@ class ConsoleWidgetState extends State<ConsoleWidget> {
 
   Color _getMessageColor(String m, AppTheme theme) {
     final isDark = theme != AppTheme.light && theme != AppTheme.papier;
-    if (m.startsWith('Erreur') || m.contains('Exception'))
+    if (m.startsWith('Erreur') || m.contains('Exception')) {
       return Colors.redAccent;
+    }
     if (m.startsWith('[')) return isDark ? Colors.white38 : Colors.black38;
     if (m.startsWith('>')) return Colors.blueAccent;
     return ThemeColors.textMain(theme);
+  }
+
+  Widget _buildStyledMessage(String m, AppTheme theme, double fontSize) {
+    final Color baseColor = _getMessageColor(m, theme);
+    final TextStyle baseStyle = TextStyle(
+      color: baseColor,
+      fontFamily: 'JetBrainsMono',
+      fontSize: fontSize,
+    );
+
+    // Expression régulière pour les nombres (entiers et décimaux)
+    final RegExp numberRegex = RegExp(r'\b\d+(\.\d+)?\b');
+    final List<TextSpan> spans = [];
+    int lastIndex = 0;
+
+    for (final match in numberRegex.allMatches(m)) {
+      if (match.start > lastIndex) {
+        spans.add(TextSpan(text: m.substring(lastIndex, match.start)));
+      }
+
+      spans.add(
+        TextSpan(
+          text: match.group(0),
+          style: TextStyle(
+            color: ThemeColors.syntaxNumber(theme),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+      lastIndex = match.end;
+    }
+
+    if (lastIndex < m.length) {
+      spans.add(TextSpan(text: m.substring(lastIndex)));
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: baseStyle,
+        children: spans.isEmpty ? [TextSpan(text: m)] : spans,
+      ),
+    );
   }
 }
 
@@ -845,33 +1038,41 @@ class _PanelTab extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(right: 20),
-        padding: const EdgeInsets.symmetric(
-          vertical: 8,
-          horizontal: 4,
-        ), // Hitbox plus grande
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
           border: isActive
-              ? const Border(
+              ? Border(
                   bottom: BorderSide(
-                    color: Colors.blueAccent,
+                    color: Colors.blueAccent.withValues(alpha: 0.8),
                     width: 2,
-                  ), // Plus visible
+                  ),
                 )
               : null,
+          color: isActive
+              ? Colors.blueAccent.withValues(alpha: 0.05)
+              : Colors.transparent,
         ),
         alignment: Alignment.center,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Icon(
+              _getTabIcon(title),
+              size: 13,
+              color: isActive
+                  ? Colors.blueAccent
+                  : ThemeColors.textMain(theme).withValues(alpha: 0.4),
+            ),
+            const SizedBox(width: 8),
             Text(
               title,
               style: TextStyle(
                 color: isActive
                     ? ThemeColors.textBright(theme)
                     : ThemeColors.textMain(theme).withValues(alpha: 0.5),
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                letterSpacing: 0.5,
               ),
             ),
             if (badgeCount > 0) ...[
@@ -895,6 +1096,66 @@ class _PanelTab extends StatelessWidget {
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+
+  IconData _getTabIcon(String title) {
+    switch (title.toUpperCase()) {
+      case 'CONSOLE':
+        return Icons.terminal_rounded;
+      case 'TERMINAL':
+        return Icons.keyboard_command_key_rounded;
+      case 'WARNINGS':
+      case 'AVERTISSEMENTS':
+        return Icons.warning_amber_rounded;
+      default:
+        return Icons.tab_rounded;
+    }
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+  final AppTheme theme;
+
+  const _FilterChip({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        margin: const EdgeInsets.only(right: 6),
+        decoration: BoxDecoration(
+          color: isActive
+              ? Colors.blueAccent.withValues(alpha: 0.2)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: isActive
+                ? Colors.blueAccent.withValues(alpha: 0.5)
+                : ThemeColors.textMain(theme).withValues(alpha: 0.1),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            color: isActive
+                ? Colors.blueAccent
+                : ThemeColors.textMain(theme).withValues(alpha: 0.5),
+          ),
         ),
       ),
     );

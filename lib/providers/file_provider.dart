@@ -30,6 +30,7 @@ class FileProvider with ChangeNotifier {
   String? _selectedFileInExplorer;
   String _currentDirectory = "";
   final List<String> _expandedFolders = [];
+  final Set<String> _openingFiles = {}; // Fichiers en cours d'ouverture
   String? _proposedCode;
   bool _isReviewMode = false;
 
@@ -166,16 +167,21 @@ class FileProvider with ChangeNotifier {
   }
 
   void createFile(String parentPath, String name) async {
+    final fullPath = p.join(parentPath, name);
+    if (_openingFiles.contains(fullPath)) return;
+
     try {
-      final fullPath = p.join(parentPath, name);
       final file = File(fullPath);
       if (!await file.exists()) {
+        _openingFiles.add(fullPath);
         await file.create();
         openFile(fullPath);
         notifyListeners();
       }
     } catch (e) {
       debugPrint("Erreur creation fichier: $e");
+    } finally {
+      _openingFiles.remove(fullPath);
     }
   }
 
@@ -306,6 +312,7 @@ class FileProvider with ChangeNotifier {
   }
 
   void openFile(String path) async {
+    // 1. Vérification immédiate si déjà ouvert
     final existingIndex = _openFiles.indexWhere((f) => f.path == path);
     if (existingIndex != -1) {
       _activeTabIndex = existingIndex;
@@ -313,16 +320,29 @@ class FileProvider with ChangeNotifier {
       return;
     }
 
+    // 2. Vérification si déjà en cours d'ouverture
+    if (_openingFiles.contains(path)) return;
+
     try {
+      _openingFiles.add(path);
       final file = File(path);
       if (await file.exists()) {
         final content = await file.readAsString();
-        _openFiles.add(AppFile(path: path, content: content));
-        _activeTabIndex = _openFiles.length - 1;
+
+        // 3. Re-vérification après l'opération asynchrone (double check)
+        final alreadyOpenedIndex = _openFiles.indexWhere((f) => f.path == path);
+        if (alreadyOpenedIndex != -1) {
+          _activeTabIndex = alreadyOpenedIndex;
+        } else {
+          _openFiles.add(AppFile(path: path, content: content));
+          _activeTabIndex = _openFiles.length - 1;
+        }
         notifyListeners();
       }
     } catch (e) {
       debugPrint("Erreur lors de l'ouverture du fichier: $e");
+    } finally {
+      _openingFiles.remove(path);
     }
   }
 
@@ -369,12 +389,22 @@ class FileProvider with ChangeNotifier {
     }
   }
 
+  // --- Tableaux de bord et état de l'éditeur ---
+  Timer? _autoSaveTimer;
+
   void updateContent(String newContent) {
     if (activeFile != null) {
       if (activeFile!.content != newContent) {
         activeFile!.content = newContent;
         activeFile!.isModified = true;
         lancerAnalyseStatique(newContent);
+
+        // Redémarrer le timer de sauvegarde automatique
+        _autoSaveTimer?.cancel();
+        _autoSaveTimer = Timer(const Duration(seconds: 2), () {
+          saveCurrentFile();
+        });
+
         notifyListeners();
       }
     }
@@ -394,11 +424,18 @@ class FileProvider with ChangeNotifier {
         final file = File(activeFile!.path);
         await file.writeAsString(activeFile!.content);
         activeFile!.isModified = false;
+        debugPrint("Fichier sauvegardé automatiquement : ${activeFile!.path}");
         notifyListeners();
       } catch (e) {
         debugPrint("Erreur lors de la sauvegarde: $e");
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _autoSaveTimer?.cancel();
+    super.dispose();
   }
 
   final _insertRequestController =
@@ -418,6 +455,14 @@ class FileProvider with ChangeNotifier {
 
   void insertCode(String code, {bool direct = false}) {
     requestInsertion(code, direct: direct);
+  }
+
+  // --- Navigation vers une ligne ---
+  final _jumpRequestController = StreamController<int>.broadcast();
+  Stream<int> get jumpRequests => _jumpRequestController.stream;
+
+  void jumpToLine(int line) {
+    _jumpRequestController.add(line);
   }
 }
 

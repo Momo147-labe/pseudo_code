@@ -19,6 +19,7 @@ class AppProvider with ChangeNotifier {
   // Editor Settings
   double _fontSize = 14.0;
   bool _showMinimap = true;
+  bool _isEditorSearchVisible = false;
 
   // Getters
   String get activeSidebarTab => _activeSidebarTab;
@@ -28,6 +29,7 @@ class AppProvider with ChangeNotifier {
   bool get isConsoleVisible => _isConsoleVisible;
   double get fontSize => _fontSize;
   bool get showMinimap => _showMinimap;
+  bool get isEditorSearchVisible => _isEditorSearchVisible;
   ActiveMainView get activeMainView => _activeMainView;
 
   // Setters
@@ -99,6 +101,18 @@ class AppProvider with ChangeNotifier {
 
   void setFontSize(double size) {
     _fontSize = size;
+    notifyListeners();
+  }
+
+  void setEditorSearchVisible(bool visible) {
+    if (_isEditorSearchVisible != visible) {
+      _isEditorSearchVisible = visible;
+      notifyListeners();
+    }
+  }
+
+  void toggleEditorSearch() {
+    _isEditorSearchVisible = !_isEditorSearchVisible;
     notifyListeners();
   }
 
