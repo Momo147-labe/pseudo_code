@@ -87,7 +87,7 @@ class Executeur {
         ligne.toLowerCase() == 'retourner') {
       final exp = ligne.length > 10 ? ligne.substring(10).trim() : "";
       _resultatRetour = await _evaluateur.evaluer(exp);
-      return "__RETURN__";
+      return '__RETURN__';
     }
 
     // Délégation aux handlers spécialisés

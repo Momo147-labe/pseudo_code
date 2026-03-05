@@ -284,8 +284,15 @@ class _Parser {
         final indices = <int>[];
         while (true) {
           final idx = await parse();
-          if (idx is! int) throw Exception("L'indice doit être un entier");
-          indices.add(idx);
+          int idxInt;
+          if (idx is int) {
+            idxInt = idx;
+          } else if (idx is double && idx == idx.roundToDouble()) {
+            idxInt = idx.toInt();
+          } else {
+            throw Exception("L'indice doit être un entier. Reçu : $idx");
+          }
+          indices.add(idxInt);
           if (matches(TokenType.separateur, valeur: ',')) {
             advance();
           } else {
@@ -300,7 +307,7 @@ class _Parser {
         advance();
         if (currentVal is! PseudoStructureInstance)
           throw Exception("Structure attendue");
-        if (!matches(TokenType.identifiant))
+        if (!matches(TokenType.identifiant) && !matches(TokenType.motCle))
           throw Exception("Nom de champ attendu");
         final fieldName = current.valeur;
         advance();

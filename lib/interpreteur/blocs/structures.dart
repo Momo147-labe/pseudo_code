@@ -12,15 +12,20 @@ class PseudoStructureDefinition {
 
   PseudoStructureDefinition({required this.nom, required this.champs});
 
-  PseudoStructureInstance instancier() {
+  PseudoStructureInstance instancier([
+    PseudoStructureDefinition? Function(String)? resolver,
+  ]) {
     final instance = PseudoStructureInstance(definition: this);
     for (final champ in champs) {
-      instance.valeurs[champ.nom] = _valeurParDefaut(champ.type);
+      instance.valeurs[champ.nom] = _valeurParDefaut(champ.type, resolver);
     }
     return instance;
   }
 
-  dynamic _valeurParDefaut(String type) {
+  dynamic _valeurParDefaut(
+    String type, [
+    PseudoStructureDefinition? Function(String)? resolver,
+  ]) {
     switch (type.toLowerCase()) {
       case 'entier':
         return 0;
@@ -32,7 +37,12 @@ class PseudoStructureDefinition {
       case 'booleen':
         return false;
       default:
-        return null; // Pourrait être une sous-structure plus tard
+        // Tenter de résoudre comme une sous-structure
+        if (resolver != null) {
+          final subDef = resolver(type);
+          if (subDef != null) return subDef.instancier(resolver);
+        }
+        return null;
     }
   }
 }
@@ -49,8 +59,36 @@ class PseudoStructureInstance {
         "Le champ '$champ' n'existe pas dans la structure '${definition.nom}'.",
       );
     }
-    // TODO: On pourrait ajouter une validation de type ici aussi
+    final champDef = definition.champs.firstWhere(
+      (c) => c.nom == champ,
+      orElse: () => throw Exception("Champ '$champ' inconnu."),
+    );
+    _validerTypeChamp(champ, valeur, champDef.type);
     valeurs[champ] = valeur;
+  }
+
+  void _validerTypeChamp(String nom, dynamic valeur, String type) {
+    final t = type.toLowerCase();
+    if (t == 'entier' && valeur is! int && valeur is! BigInt) {
+      throw Exception(
+        "Erreur de type: Le champ '$nom' attend un entier, reçu '${valeur.runtimeType}'.",
+      );
+    } else if ((t == 'réel' || t == 'reel') &&
+        valeur is! double &&
+        valeur is! int) {
+      throw Exception(
+        "Erreur de type: Le champ '$nom' attend un réel, reçu '${valeur.runtimeType}'.",
+      );
+    } else if (t == 'chaine' && valeur is! String) {
+      throw Exception(
+        "Erreur de type: Le champ '$nom' attend une chaîne, reçu '${valeur.runtimeType}'.",
+      );
+    } else if (t == 'booleen' && valeur is! bool) {
+      throw Exception(
+        "Erreur de type: Le champ '$nom' attend un booléen, reçu '${valeur.runtimeType}'.",
+      );
+    }
+    // Pour les sous-structures et tableaux, on laisse passer sans vérification stricte
   }
 
   dynamic lire(String champ) {

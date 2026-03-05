@@ -77,7 +77,10 @@ class FonctionsNatives {
       // 3. Conversion
       case 'en_entier':
         _verifierArgs(nom, args, 1);
-        return int.tryParse(args[0].toString()) ?? 0;
+        return int.tryParse(args[0].toString()) ??
+            (throw Exception(
+              "'${args[0]}' ne peut pas être converti en entier.",
+            ));
       case 'en_reel':
         _verifierArgs(nom, args, 1);
         return double.tryParse(args[0].toString()) ?? 0.0;

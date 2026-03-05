@@ -56,7 +56,7 @@ class MotsCles {
 
   static const List<String> logiques = ['et', 'ou', 'non'];
 
-  static const List<String> maths = ['racine_carree', 'abs', 'div', 'mod'];
+  static const List<String> maths = ['racine_carree', 'div', 'mod'];
 
   static const List<String> types = [
     'entier',

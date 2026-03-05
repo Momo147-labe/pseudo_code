@@ -128,6 +128,26 @@ class Linter {
       }
     }
 
+    void markTypeAsUsed(String? type) {
+      if (type == null) return;
+      final t = type.trim().toLowerCase();
+      // Gérer "tableau[...] de Type"
+      if (t.contains(' de ')) {
+        final parts = t.split(' de ');
+        if (parts.length > 1) {
+          markTypeAsUsed(parts.last.trim());
+        }
+        return;
+      }
+      // Gérer "tableau de Type"
+      if (t.startsWith('tableau ')) {
+        final sub = t.substring(8).trim();
+        markTypeAsUsed(sub);
+        return;
+      }
+      markAsUsed(t);
+    }
+
     void checkUnusedVariables(Map<String, IdentifierInfo> scope) {
       scope.forEach((name, info) {
         // On ignore les noms de fonctions/procédures dans le scope global pour éviter le bruit
@@ -146,6 +166,8 @@ class Linter {
     }
 
     bool unreachable = false;
+    int controlBlockDepth =
+        0; // Pour éviter les faux positifs de code mort dans des branches
 
     bool isDeclaredInCurrentScope(String name) {
       return scopeStack.last.containsKey(name.toLowerCase());
@@ -180,6 +202,7 @@ class Linter {
               final type = parts.length > 1 ? parts[1].trim() : null;
               if (name.isNotEmpty) {
                 declareInScope(name, i + 1, type: type);
+                markTypeAsUsed(type);
               }
             }
           }
@@ -195,6 +218,7 @@ class Linter {
         }
         dansVariables = false;
         unreachable = false;
+        controlBlockDepth = 0;
         continue;
       }
 
@@ -210,7 +234,39 @@ class Linter {
       }
 
       if (lineLower.startsWith('retourner')) {
-        unreachable = true;
+        // On signale le code mort uniquement si on est au niveau supérieur du bloc
+        if (controlBlockDepth == 0) unreachable = true;
+      }
+
+      // Mise à jour de la profondeur des blocs de contrôle
+      if (RegExp(r'^si\s+.*\salors$', caseSensitive: false).hasMatch(line) &&
+          !lineLower.startsWith('sinon')) {
+        controlBlockDepth++;
+      }
+      if (lineLower.startsWith('finsi') || lineLower.startsWith('fin si')) {
+        controlBlockDepth = (controlBlockDepth - 1).clamp(0, 9999);
+      }
+      if (lineLower.startsWith('tantque ') && lineLower.endsWith('faire')) {
+        controlBlockDepth++;
+      }
+      if (lineLower.startsWith('fintantque')) {
+        controlBlockDepth = (controlBlockDepth - 1).clamp(0, 9999);
+      }
+      if (RegExp(r'^pour\s+', caseSensitive: false).hasMatch(line)) {
+        controlBlockDepth++;
+      }
+      if (lineLower.startsWith('finpour') || lineLower.startsWith('fpour')) {
+        controlBlockDepth = (controlBlockDepth - 1).clamp(0, 9999);
+      }
+      if (lineLower == 'repeter') controlBlockDepth++;
+      if (lineLower.startsWith('jusqua')) {
+        controlBlockDepth = (controlBlockDepth - 1).clamp(0, 9999);
+      }
+      if (RegExp(r'^selon\s+', caseSensitive: false).hasMatch(line)) {
+        controlBlockDepth++;
+      }
+      if (lineLower.startsWith('finselon')) {
+        controlBlockDepth = (controlBlockDepth - 1).clamp(0, 9999);
       }
 
       if (lineLower == 'variables') {
@@ -237,6 +293,9 @@ class Linter {
               dansStructureDef = true;
               currentStructureName = typeName.toLowerCase();
               structures[currentStructureName] = StructureDefInfo(fields: []);
+            } else {
+              // type T = info -> marquer info comme utilisé
+              markTypeAsUsed(typeDef);
             }
           }
         }
@@ -259,6 +318,8 @@ class Linter {
               structures[currentStructureName]!.fields.add(f.toLowerCase());
             }
           }
+          final type = parts.length > 1 ? parts[1].trim() : null;
+          markTypeAsUsed(type);
         }
       } else if (dansVariables && line.contains(':')) {
         final parts = line.split(':');
@@ -277,6 +338,7 @@ class Linter {
               );
             } else {
               declareInScope(name, i + 1, type: type);
+              markTypeAsUsed(type);
 
               // Validation du nom
               if (RegExp(r'[^a-zA-Z0-9_]').hasMatch(name)) {
@@ -328,12 +390,9 @@ class Linter {
         // Nettoyer la ligne pour ne pas analyser l'intérieur des chaînes
         String cleanedLine = line.replaceAll(RegExp(r'".*?"'), ' ');
 
-        // Remplacer le contenu des crochets de tableaux par un espace pour ignorer leur contenu de base (ex: v[j+1] -> v )
-        // Attention : il peut y avoir des sous-variables dans les crochets, mais pour la vérification des "bases",
-        // une approche simple est de masquer la partie d'indexation pour la déclaration de la racine du tableau.
-        // Les sous-variables (ex: `j` dans `v[j]`) seront capturées plus loin via un autre match de RegExp.
-        // Remarque : On extrait uniquement les identifiants normaux.
-        cleanedLine = cleanedLine.replaceAll(RegExp(r'\[.*?\]'), ' ');
+        // On ne supprime plus le contenu des crochets : les variables d'index
+        // (ex: j dans v[j]) doivent également être vérifiées et marquées utilisées.
+        // La logique 'estAccesChampIndependant' gère déjà les accès .champ.
 
         // On récupère tous les mots, y compris ceux avec des points (accès champs)
         final matches = RegExp(

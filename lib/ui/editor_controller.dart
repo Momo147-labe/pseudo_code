@@ -279,7 +279,7 @@ class CodeEditorController extends TextEditingController {
     // Construction dynamique du regex à partir de tous les mots-clés
     final allKeywordsPattern = MotsCles.tous.map(RegExp.escape).join('|');
     final regex = RegExp(
-      '\\b($allKeywordsPattern)\\b|(\\d+\\.\\d+)|(\\d+)|("[^"]*")|(//.*)|([a-zA-Z_]\\w*)',
+      '\\b($allKeywordsPattern)\\b|(\\d+\\.\\d+)|(\\d+)|("[^"]*")|(//.*)|([a-zA-Z_]\\w*)|([\\(\\)\\[\\]\\{\\}])',
       caseSensitive: false,
     );
 
@@ -353,6 +353,25 @@ class CodeEditorController extends TextEditingController {
       return style;
     }
 
+    // --- Rainbow Brackets Logic ---
+    final List<Color> rainbowColors = [
+      ThemeColors.syntaxStructure(theme),
+      ThemeColors.syntaxType(theme),
+      ThemeColors.syntaxKeyword(theme),
+      ThemeColors.syntaxIO(theme),
+      ThemeColors.syntaxVariable(theme),
+      ThemeColors.syntaxNumber(theme),
+    ];
+    int currentParenDepth = 0;
+    int currentBracketDepth = 0;
+    int currentBraceDepth = 0;
+
+    // First pass or integrated pass: calculate bracket depths to apply rainbow colors
+    // We'll calculate it on the fly as we iterate through tokens.
+    // Note: This simple approach might be slightly off if brackets are inside strings/comments,
+    // but the regex already handles strings and comments as tokens, so we can ignore them.
+    // --------------------------------
+
     for (final match in regex.allMatches(code)) {
       if (match.start > last) {
         final textPart = code.substring(last, match.start);
@@ -399,6 +418,8 @@ class CodeEditorController extends TextEditingController {
       Color color = style?.color ?? ThemeColors.textMain(theme);
       FontWeight fontWeight = FontWeight.normal;
 
+      bool isRainbowToken = false;
+
       if (token.startsWith('//')) {
         color = ThemeColors.syntaxComment(theme);
       } else if (motsClesStructure.any((k) => k.toLowerCase() == tokenLower)) {
@@ -425,6 +446,33 @@ class CodeEditorController extends TextEditingController {
       )) {
         color = ThemeColors.syntaxNumber(theme);
         fontWeight = FontWeight.bold;
+      } else if (token == '(' || token == ')') {
+        isRainbowToken = true;
+        if (token == '(') {
+          color = rainbowColors[currentParenDepth % rainbowColors.length];
+          currentParenDepth++;
+        } else {
+          currentParenDepth = (currentParenDepth - 1).clamp(0, 999);
+          color = rainbowColors[currentParenDepth % rainbowColors.length];
+        }
+      } else if (token == '[' || token == ']') {
+        isRainbowToken = true;
+        if (token == '[') {
+          color = rainbowColors[currentBracketDepth % rainbowColors.length];
+          currentBracketDepth++;
+        } else {
+          currentBracketDepth = (currentBracketDepth - 1).clamp(0, 999);
+          color = rainbowColors[currentBracketDepth % rainbowColors.length];
+        }
+      } else if (token == '{' || token == '}') {
+        isRainbowToken = true;
+        if (token == '{') {
+          color = rainbowColors[currentBraceDepth % rainbowColors.length];
+          currentBraceDepth++;
+        } else {
+          currentBraceDepth = (currentBraceDepth - 1).clamp(0, 999);
+          color = rainbowColors[currentBraceDepth % rainbowColors.length];
+        }
       } else if (RegExp(r'^[a-zA-Z_]\w*$').hasMatch(token)) {
         color = ThemeColors.syntaxVariable(theme);
       }
@@ -438,7 +486,7 @@ class CodeEditorController extends TextEditingController {
 
         TextStyle tokenStyle = (style ?? const TextStyle()).copyWith(
           color: color,
-          fontWeight: fontWeight,
+          fontWeight: isRainbowToken ? FontWeight.bold : fontWeight,
         );
         tokenStyle = getFoldedStyle(tokenStyle, lineIdx)!;
 

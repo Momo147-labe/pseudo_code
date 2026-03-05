@@ -75,6 +75,7 @@ class ValidateurStructure {
       final fonctionReg = RegExp(r'\bfonction\b');
       final procedureReg = RegExp(r'\bprocedure\b');
       final structureReg = RegExp(r'\bstructure\b');
+      final selonReg = RegExp(r'\bselon\b');
 
       final finsiReg = RegExp(r'\bfinsi\b');
       final fintantqueReg = RegExp(r'\bfintantque\b');
@@ -83,6 +84,7 @@ class ValidateurStructure {
       final finfonctionReg = RegExp(r'\bfinfonction\b');
       final finprocedureReg = RegExp(r'\bfinprocedure\b');
       final finstructureReg = RegExp(r'\bfinstructure\b');
+      final finselonReg = RegExp(r'\bfinselon\b');
 
       bool estFermeture = false;
       if (finsiReg.hasMatch(l) || l.startsWith('fin si')) {
@@ -106,9 +108,13 @@ class ValidateurStructure {
       } else if (finstructureReg.hasMatch(l)) {
         stack.removeLastIf('structure', errors, i + 1);
         estFermeture = true;
+      } else if (finselonReg.hasMatch(l)) {
+        stack.removeLastIf('selon', errors, i + 1);
+        estFermeture = true;
       }
 
       if (!estFermeture) {
+        // L'utilisateur veut une correspondance 1:1 pour si/sinon-si et finsi
         if (siReg.hasMatch(l) && !l.contains('finsi')) stack.add('si');
         if (tantqueReg.hasMatch(l) && !l.contains('fintantque'))
           stack.add('tantque');
@@ -123,6 +129,7 @@ class ValidateurStructure {
           stack.add('procedure');
         if (structureReg.hasMatch(l) && !l.contains('finstructure'))
           stack.add('structure');
+        if (selonReg.hasMatch(l) && !l.contains('finselon')) stack.add('selon');
       }
     }
 

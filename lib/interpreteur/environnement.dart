@@ -6,7 +6,10 @@ class Environnement {
   final Environnement? parent;
   final Map<String, dynamic> variables = {};
   final Map<String, String> types = {};
+  final Map<String, String> noms =
+      {}; // lower -> nom original (pour préserver la casse à l'affichage)
   final Map<String, dynamic> constantes = {};
+  final Map<String, String> nomsConstantes = {}; // lower -> nom original
   final Map<String, PseudoFonction> fonctions = {};
   final Map<String, PseudoProcedure> procedures = {};
   final Map<String, PseudoStructureDefinition> definitionsStructures = {};
@@ -20,20 +23,24 @@ class Environnement {
     Environnement? currentParent = parent;
     while (currentParent != null) {
       for (final entry in currentParent.constantes.entries) {
-        allVars['📦 ${entry.key} (const)'] = entry.value;
+        final nom = currentParent.nomsConstantes[entry.key] ?? entry.key;
+        allVars['\u{1F4E6} $nom (const)'] = entry.value;
       }
       for (final entry in currentParent.variables.entries) {
-        allVars['📦 ${entry.key}'] = entry.value;
+        final nom = currentParent.noms[entry.key] ?? entry.key;
+        allVars['\u{1F4E6} $nom'] = entry.value;
       }
       currentParent = currentParent.parent;
     }
 
-    final prefix = parent != null ? '📍 ' : '📦 ';
+    final prefix = parent != null ? '\u{1F4CD} ' : '\u{1F4E6} ';
     for (final entry in constantes.entries) {
-      allVars['$prefix${entry.key} (const)'] = entry.value;
+      final nom = nomsConstantes[entry.key] ?? entry.key;
+      allVars['$prefix$nom (const)'] = entry.value;
     }
     for (final entry in variables.entries) {
-      allVars['$prefix${entry.key}'] = entry.value;
+      final nom = noms[entry.key] ?? entry.key;
+      allVars['$prefix$nom'] = entry.value;
     }
     return allVars;
   }
@@ -65,10 +72,12 @@ class Environnement {
     }
     variables[lower] = valeur;
     types[lower] = type;
+    noms[lower] = nom; // Préserver la casse originale
   }
 
   void declarerConstante(String nom, dynamic valeur) {
     constantes[nom.toLowerCase()] = valeur;
+    nomsConstantes[nom.toLowerCase()] = nom; // Préserver la casse originale
   }
 
   void declarerFonction(PseudoFonction f) => fonctions[f.nom.toLowerCase()] = f;

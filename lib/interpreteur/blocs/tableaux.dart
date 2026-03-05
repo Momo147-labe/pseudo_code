@@ -9,11 +9,14 @@ class PseudoTableau {
   final PseudoStructureDefinition? structureDef;
   final Map<String, dynamic> _elements = {};
 
+  final PseudoStructureDefinition? Function(String)? resolver;
+
   PseudoTableau({
     required this.mins,
     required this.maxs,
     required this.typeElement,
     this.structureDef,
+    this.resolver,
   }) {
     // Si c'est une structure, on pourrait pré-remplir, mais pour la 2D+
     // on va plutôt le faire à la demande dans 'lire' pour économiser la mémoire
@@ -31,7 +34,7 @@ class PseudoTableau {
 
     // Si l'élément n'existe pas encore, on l'initialise et on le stocke
     if (!_elements.containsKey(key)) {
-      _elements[key] = _valeurParDefaut();
+      _elements[key] = _valeurParDefaut(resolver);
     }
 
     return _elements[key];
@@ -52,8 +55,10 @@ class PseudoTableau {
     }
   }
 
-  dynamic _valeurParDefaut() {
-    if (structureDef != null) return structureDef!.instancier();
+  dynamic _valeurParDefaut([
+    PseudoStructureDefinition? Function(String)? resolver,
+  ]) {
+    if (structureDef != null) return structureDef!.instancier(resolver);
     switch (typeElement.toLowerCase()) {
       case 'entier':
         return 0;
@@ -65,12 +70,22 @@ class PseudoTableau {
       case 'booleen':
         return false;
       default:
+        // Tenter de résoudre comme une structure si typeElement n'est pas basique
+        if (resolver != null) {
+          final subDef = resolver(typeElement);
+          if (subDef != null) return subDef.instancier(resolver);
+        }
         return null;
     }
   }
 
   String formatGrid() {
-    if (mins.length != 2) return toString();
+    if (mins.length == 1) {
+      return "[ ${List.generate(maxs[0] - mins[0] + 1, (i) => lire([mins[0] + i])).join(", ")} ]";
+    }
+    if (mins.length != 2) {
+      return "Tableau à ${mins.length} dimensions: [" + mins.join("..") + "]";
+    }
 
     final rowMin = mins[0];
     final rowMax = maxs[0];

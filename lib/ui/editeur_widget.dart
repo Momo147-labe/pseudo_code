@@ -847,6 +847,76 @@ class _EditeurWidgetState extends State<EditeurWidget> {
     }
   }
 
+  /// Auto-fermeture des délimiteurs : (, [, ", {
+  /// Insère le caractère fermant et place le curseur entre les deux.
+  KeyEventResult _handleAutoClose(String character) {
+    const pairs = {'(': ')', '[': ']', '"': '"', '{': '}'};
+    if (!pairs.containsKey(character)) return KeyEventResult.ignored;
+
+    final sel = _controller.selection;
+    if (!sel.isValid) return KeyEventResult.ignored;
+
+    final text = _controller.text;
+    final closing = pairs[character]!;
+
+    // Si on tape un caractère fermant qui est déjà juste devant le curseur, on saute par-dessus
+    // (Over-typing)
+    if (sel.isCollapsed &&
+        sel.baseOffset < text.length &&
+        text[sel.baseOffset] == character &&
+        (character == ')' ||
+            character == ']' ||
+            character == '"' ||
+            character == '}')) {
+      _controller.selection = TextSelection.collapsed(
+        offset: sel.baseOffset + 1,
+      );
+      return KeyEventResult.handled;
+    }
+
+    // Cas spécial si on tape le caractère fermant explicitement
+    final closingChars = ")]}\"";
+    if (closingChars.contains(character) &&
+        sel.isCollapsed &&
+        sel.baseOffset < text.length &&
+        text[sel.baseOffset] == character) {
+      _controller.selection = TextSelection.collapsed(
+        offset: sel.baseOffset + 1,
+      );
+      return KeyEventResult.handled;
+    }
+
+    // Si un texte est sélectionné, on l'entoure des délimiteurs
+    if (!sel.isCollapsed) {
+      final selected = text.substring(sel.start, sel.end);
+      final newText = text.replaceRange(
+        sel.start,
+        sel.end,
+        '$character$selected$closing',
+      );
+      _controller.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection(
+          baseOffset: sel.start + 1,
+          extentOffset: sel.start + 1 + selected.length,
+        ),
+      );
+      return KeyEventResult.handled;
+    }
+
+    // Insertion standard : caractère + fermant, curseur entre les deux
+    final newText = text.replaceRange(sel.start, sel.end, '$character$closing');
+    _controller.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: sel.start + 1),
+    );
+    // Notifier le provider si disponible (mode non-standalone)
+    if (_fileProvider != null) {
+      _onChanged(newText, _fileProvider!);
+    }
+    return KeyEventResult.handled;
+  }
+
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
@@ -875,8 +945,34 @@ class _EditeurWidgetState extends State<EditeurWidget> {
       }
     }
 
-    // New: Handle Multi-line Indentation with Tab/Shift+Tab
     final selection = _controller.selection;
+
+    // Handle Backspace to remove auto-closed pairs
+    if (event.logicalKey == LogicalKeyboardKey.backspace &&
+        selection.isCollapsed &&
+        selection.baseOffset > 0 &&
+        selection.baseOffset < _controller.text.length) {
+      final charBefore = _controller.text[selection.baseOffset - 1];
+      final charAfter = _controller.text[selection.baseOffset];
+      const openers = '([{"';
+      const closers = ')]}"';
+      int openerIdx = openers.indexOf(charBefore);
+      if (openerIdx != -1 && charAfter == closers[openerIdx]) {
+        final newText = _controller.text.replaceRange(
+          selection.baseOffset - 1,
+          selection.baseOffset + 1,
+          '',
+        );
+        _controller.value = TextEditingValue(
+          text: newText,
+          selection: TextSelection.collapsed(offset: selection.baseOffset - 1),
+        );
+        if (_fileProvider != null) _onChanged(newText, _fileProvider!);
+        return KeyEventResult.handled;
+      }
+    }
+
+    // New: Handle Multi-line Indentation with Tab/Shift+Tab
     if (event.logicalKey == LogicalKeyboardKey.tab &&
         selection.isValid &&
         !selection.isCollapsed) {
@@ -884,7 +980,25 @@ class _EditeurWidgetState extends State<EditeurWidget> {
       return KeyEventResult.handled;
     }
 
-    // 2. Editor shortcuts handling (Auto-indent, Snippets)
+    // 2. Auto-fermeture des délimiteurs (, [, ", {
+    final char = event.character;
+    if (char != null && '([{"'.contains(char)) {
+      return _handleAutoClose(char);
+    }
+
+    // Jump over closing bracket if typed
+    if (char != null && ')]}"'.contains(char)) {
+      if (selection.isCollapsed &&
+          selection.baseOffset < _controller.text.length &&
+          _controller.text[selection.baseOffset] == char) {
+        _controller.selection = TextSelection.collapsed(
+          offset: selection.baseOffset + 1,
+        );
+        return KeyEventResult.handled;
+      }
+    }
+
+    // 3. Editor shortcuts handling (Auto-indent, Snippets)
     if (event.logicalKey == LogicalKeyboardKey.enter) {
       _handleAutoIndent();
       return KeyEventResult.handled;

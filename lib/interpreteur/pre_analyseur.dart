@@ -12,17 +12,17 @@ class PreAnalyseur {
     caseSensitive: false,
   );
   static final RegExp _regAssignConst = RegExp(
-    r'^([a-zA-Z_]\w*)\s*(?:<-|←|=)\s*(.*)$',
+    r'^([a-zA-ZÀ-ÿ_][a-zA-ZÀ-ÿ0-9_]*)\s*(?:<-|←|=)\s*(.*)$',
   );
   static final RegExp _regTypeStruct = RegExp(
-    r'^type\s+([a-zA-Z_]\w*)\s*=\s*structure',
+    r'^type\s+([a-zA-ZÀ-ÿ_][a-zA-ZÀ-ÿ0-9_]*)\s*=\s*structure',
     caseSensitive: false,
   );
   static final RegExp _regTypeSimple = RegExp(
-    r'^type\s+([a-zA-Z_]\w*)\s*=\s*(.*)$',
+    r'^type\s+([a-zA-ZÀ-ÿ_][a-zA-ZÀ-ÿ0-9_]*)\s*=\s*(.*)$',
     caseSensitive: false,
   );
-  static final RegExp _regValidId = RegExp(r'^[a-zA-Z][a-zA-Z0-9_]*$');
+  static final RegExp _regValidId = RegExp(r'^[a-zA-ZÀ-ÿ][a-zA-ZÀ-ÿ0-9_]*$');
   static final RegExp _regStartsWithNum = RegExp(r'^[0-9]');
 
   static Future<void> analyser(

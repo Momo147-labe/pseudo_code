@@ -7,13 +7,13 @@ import 'package:pseudo_code/interpreteur/pre_analyseur.dart';
 import 'package:pseudo_code/providers/debug_provider.dart';
 
 class Interpreteur {
+  /// Signaux internes de sortie de boucle (remplacement des chaînes magiques)
+  static const String _kRetour = '__RETURN__';
+  static const String _kErreur = '__ERROR__';
+
   static final RegExp _regVars = RegExp(r'^variables\b', caseSensitive: false);
   static final RegExp _regDebut = RegExp(
     r'^début\b|^debut\b',
-    caseSensitive: false,
-  );
-  static final RegExp _regFinSpecific = RegExp(
-    r'^fin[a-z]+',
     caseSensitive: false,
   );
   static final RegExp _regFin = RegExp(r'^fin\b', caseSensitive: false);
@@ -119,10 +119,14 @@ class Interpreteur {
     final List<String> pileBlocs = [];
     // Cache pour figer les bornes et le pas des boucles "pour"
     final Map<int, Map<String, dynamic>> frozenLoops = {};
+    // Cache pour éviter la recherche O(n) du début de boucle à chaque itération
+    final Map<int, int> frozenWhileLoops =
+        {}; // index fintantque -> index tantque
+    final Map<int, int> frozenRepeatLoops = {}; // index jusqua -> index repeter
 
     int instructionCount = 0;
-    int i = startIndex;
-    while (i < lignes.length) {
+    int? derniereLigneSautee;
+    for (int i = startIndex; i < lignes.length;) {
       instructionCount++;
       // Optimisation performance: ne pas tout ralentir en attendant à chaque ligne
       // On rafraîchit l'UI seulement toutes les 50 instructions
@@ -135,6 +139,8 @@ class Interpreteur {
 
       // Prise en compte du débogage avant nettoyage pour correspondre à l'affichage
       int indexInstruction = i;
+      bool estUnSaut = (derniereLigneSautee == i);
+      derniereLigneSautee = null;
       i++;
 
       if (ligne.isEmpty || ligne.startsWith('//')) continue;
@@ -167,13 +173,10 @@ class Interpreteur {
         continue;
       }
       if (_regFin.hasMatch(ligne)) {
-        if (_regFinSpecific.hasMatch(ligne) && !_regFinOnly.hasMatch(ligne)) {
-          if (!ligneLower.startsWith('finsi') &&
-              !ligneLower.startsWith('fin si')) {
-            // Bloc spécifique, ignoré ici (fintantque, finpour, etc.)
-            // sauf s'il est traité dans le switch plus bas
-          }
-        } else {
+        // On ne s'arrête que si c'est "fin" (Fin de l'algorithme)
+        // et non un bloc spécifique (finsi, finpour, etc.)
+        if (_regFinOnly.hasMatch(ligne) ||
+            (ligneLower == 'fin' || ligneLower == 'fin.')) {
           provider.setHighlightLine(null);
           dansDebut = false;
           break;
@@ -211,7 +214,7 @@ class Interpreteur {
 
       if (dansVariables) {
         try {
-          await traiterDeclarations(ligne, env);
+          await traiterDeclarations(ligne, env, exec);
         } catch (e) {
           final errLine = indexInstruction + baseOffset + 1;
           onOutput("Erreur de déclaration à la ligne $errLine: $e");
@@ -230,20 +233,34 @@ class Interpreteur {
             pileBlocs.add('si');
             if (!(await exec.evaluerBooleen(siMatch.group(1)!))) {
               i = await NavigateurBlocs.sauterVersBrancheSuivante(lignes, i);
+              derniereLigneSautee = i;
             }
           } else if (sinonSiMatch != null) {
-            pileBlocs.add('si');
-            if (!(await exec.evaluerBooleen(sinonSiMatch.group(1)!))) {
-              i = await NavigateurBlocs.sauterVersBrancheSuivante(lignes, i);
+            if (estUnSaut) {
+              pileBlocs.add('si');
+              if (!(await exec.evaluerBooleen(sinonSiMatch.group(1)!))) {
+                i = await NavigateurBlocs.sauterVersBrancheSuivante(lignes, i);
+                derniereLigneSautee = i;
+              }
+            } else {
+              // On a déjà exécuté une branche, on saute tout le bloc sinon-si
+              i = NavigateurBlocs.trouverFinBlocCorrespondant(lignes, i, 'si', [
+                'finsi',
+                'fin si',
+              ]);
             }
           } else if (ligneLower.startsWith('sinon') ||
               ligneLower.startsWith('sinon:')) {
-            i = NavigateurBlocs.trouverFinBlocCorrespondant(lignes, i, 'si', [
-              'finsi',
-              'fin si',
-            ]);
-            if (pileBlocs.isNotEmpty && pileBlocs.last == 'si')
-              pileBlocs.removeLast();
+            if (estUnSaut) {
+              // On est arrivé ici par saut, donc on exécute ce sinon (conceptuel,
+              // en mode imbriqué 'sinon' ne fait rien de spécial, on continue)
+              // Note: pileBlocs.add n'est pas nécessaire ici car pas de FinSi spécifique au Sinon seul
+            } else {
+              i = NavigateurBlocs.trouverFinBlocCorrespondant(lignes, i, 'si', [
+                'finsi',
+                'fin si',
+              ]);
+            }
           } else if (ligneLower.startsWith('finsi') ||
               ligneLower.startsWith('fin si')) {
             if (pileBlocs.isNotEmpty && pileBlocs.last == 'si')
@@ -281,12 +298,17 @@ class Interpreteur {
               ligneLower.startsWith('fin tant que') ||
               ligneLower.startsWith('fintant que')) {
             if (pileBlocs.isNotEmpty && pileBlocs.last == 'tantque') {
-              i = NavigateurBlocs.trouverDebutBlocCorrespondant(
-                lignes,
+              // Cache : évite une recherche O(n) à chaque itération
+              final tantqueIdx = frozenWhileLoops.putIfAbsent(
                 indexInstruction,
-                'fintantque',
-                ['tantque'],
+                () => NavigateurBlocs.trouverDebutBlocCorrespondant(
+                  lignes,
+                  indexInstruction,
+                  'fintantque',
+                  ['tantque'],
+                ),
               );
+              i = tantqueIdx;
               pileBlocs.removeLast();
             }
           } else if (pourMatch != null) {
@@ -378,19 +400,24 @@ class Interpreteur {
           } else if (jusquaMatch != null) {
             if (pileBlocs.isNotEmpty && pileBlocs.last == 'repeter') {
               if (!(await exec.evaluerBooleen(jusquaMatch.group(1)!))) {
-                i = NavigateurBlocs.trouverDebutBlocCorrespondant(
-                  lignes,
+                // Cache : évite une recherche O(n) à chaque itération
+                final repeterIdx = frozenRepeatLoops.putIfAbsent(
                   indexInstruction,
-                  'jusqua',
-                  ['repeter'],
+                  () => NavigateurBlocs.trouverDebutBlocCorrespondant(
+                    lignes,
+                    indexInstruction,
+                    'jusqua',
+                    ['repeter'],
+                  ),
                 );
+                i = repeterIdx;
               }
               pileBlocs.removeLast();
             }
           } else {
             final sortie = await exec.executerLigne(ligne);
-            if (sortie == "__RETURN__") return "__RETURN__";
-            // Nettoyer les sytèmes de retour spéciaux et afficher si non vide
+            if (sortie == _kRetour) return _kRetour;
+            // Nettoyer les systèmes de retour spéciaux et afficher si non vide
             if (sortie.trim().isNotEmpty) {
               onOutput(sortie);
             }
@@ -401,7 +428,7 @@ class Interpreteur {
           provider.setErrorLine(errLine);
           final suffix = nomContexte != null ? " (dans '$nomContexte')" : "";
           onOutput("Erreur à la ligne $errLine$suffix: $e");
-          return "__ERROR__";
+          return _kErreur;
         }
       }
     }
@@ -411,6 +438,7 @@ class Interpreteur {
   static Future<void> traiterDeclarations(
     String ligne,
     Environnement env,
+    Executeur exec,
   ) async {
     if (!ligne.contains(':')) return;
     final parts = ligne.split(':');
@@ -437,13 +465,8 @@ class Interpreteur {
           final rangesStr = match.group(1)!;
           final elemType = match.group(2)!;
 
-          final exec = Executeur(
-            env,
-            provider: DebugProvider(),
-            onInput: () async => "",
-            onOutput: (_) {},
-          );
-
+          // Réutilise l'Executeur fourni pour évaluer les bornes
+          // (au lieu de créer un Executeur jetable par déclaration)
           final ranges = rangesStr.split(',');
           List<int> mins = [];
           List<int> maxs = [];
@@ -466,6 +489,7 @@ class Interpreteur {
               maxs: maxs,
               typeElement: elemType,
               structureDef: structDef,
+              resolver: env.chercherStructure,
             ),
             typeBrut,
           );
@@ -483,7 +507,11 @@ class Interpreteur {
           // Vérifier si c'est une structure personnalisée
           final structDef = env.chercherStructure(typeLower);
           if (structDef != null) {
-            env.declarer(nom, structDef.instancier(), typeBrut);
+            env.declarer(
+              nom,
+              structDef.instancier(env.chercherStructure),
+              typeBrut,
+            );
           }
         }
       }

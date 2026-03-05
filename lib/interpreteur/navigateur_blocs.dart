@@ -9,7 +9,13 @@ class NavigateurBlocs {
     List<String> keywordsFin,
   ) {
     int niveau = 0;
-    final startReg = RegExp("^($typeBloc)\\b", caseSensitive: false);
+    RegExp startReg;
+    if (typeBloc == 'si') {
+      startReg = RegExp(r'^(si\b|sinon\s+si\b)', caseSensitive: false);
+    } else {
+      startReg = RegExp("^($typeBloc)\\b", caseSensitive: false);
+    }
+
     for (int j = index; j < lignes.length; j++) {
       String l = lignes[j].trim().toLowerCase();
       if (l.isEmpty || l.startsWith('//')) continue;
@@ -48,7 +54,12 @@ class NavigateurBlocs {
       } else {
         bool estUnDebut = false;
         for (final kd in keywordsDebut) {
-          if (l.startsWith(kd)) estUnDebut = true;
+          if (kd.toLowerCase() == 'si') {
+            if (l.startsWith('si') || l.startsWith('sinon si'))
+              estUnDebut = true;
+          } else if (l.startsWith(kd)) {
+            estUnDebut = true;
+          }
         }
         if (estUnDebut) {
           if (niveau == 0) return j;
@@ -56,7 +67,9 @@ class NavigateurBlocs {
         }
       }
     }
-    return 0;
+    throw Exception(
+      "Structure non fermée : début de bloc introuvable à partir de la ligne ${index + 1}.",
+    );
   }
 
   static Future<int> sauterVersBrancheSuivante(
