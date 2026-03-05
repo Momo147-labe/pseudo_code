@@ -1099,6 +1099,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
 
     // Detect mobile mode
     final isMobile = MediaQuery.of(context).size.width < 768;
+    final isDark = theme != AppTheme.light && theme != AppTheme.papier;
 
     if (activeFile == null && !widget.isStandalone) {
       return Container(
@@ -1169,90 +1170,109 @@ class _EditeurWidgetState extends State<EditeurWidget> {
                 Expanded(
                   child: Container(
                     color: ThemeColors.editorBg(theme),
-                    child: Row(
+                    child: Stack(
                       children: [
-                        // Numéros de ligne
-                        EditorGutter(
-                          lineCount: _controller.text.split('\n').length,
-                          scrollController: _gutterScrollController,
-                          isMobile: isMobile,
-                          theme: theme,
-                          breakpoints: debugProvider.breakpoints,
-                          currentHighlightLine:
-                              debugProvider.currentHighlightLine,
-                          errorLine: debugProvider.errorLine,
-                          addedLines: _controller.addedLines,
-                          deletedLines: _controller.deletedLines,
-                          fontSize: appProvider.fontSize,
-                          onToggleBreakpoint: (line) =>
-                              debugProvider.toggleBreakpoint(line),
-                          onToggleFold: _toggleFold,
-                          isLineVisible: _isLineVisible,
-                          foldableLines: _foldableLines,
-                          foldedLines: _foldedLines,
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: GridPainter(
+                              color: ThemeColors.textMain(
+                                theme,
+                              ).withValues(alpha: isDark ? 0.05 : 0.1),
+                            ),
+                          ),
                         ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: CompositedTransformTarget(
-                              link: _layerLink,
-                              child: CompositedTransformTarget(
-                                link: _quickFixLink,
-                                child: MouseRegion(
-                                  onHover: (event) => _handleMouseHover(
-                                    event,
-                                    appProvider.fontSize,
-                                  ),
-                                  onExit: (_) => _hideHoverTooltip(),
-                                  child: TextField(
-                                    controller: _controller,
-                                    focusNode: _focusNode,
-                                    scrollController: _editorScrollController,
-                                    maxLines: null,
-                                    expands: true,
-                                    readOnly:
-                                        !widget.isStandalone &&
-                                        fileProvider.isReviewMode,
-                                    textAlignVertical: TextAlignVertical.top,
-                                    cursorColor: ThemeColors.textBright(theme),
-                                    style: TextStyle(
-                                      color: ThemeColors.textBright(theme),
-                                      fontFamily: themeProvider.fontFamily,
-                                      fontSize: appProvider.fontSize,
+                        Row(
+                          children: [
+                            // Numéros de ligne
+                            EditorGutter(
+                              lineCount: _controller.text.split('\n').length,
+                              scrollController: _gutterScrollController,
+                              isMobile: isMobile,
+                              theme: theme,
+                              breakpoints: debugProvider.breakpoints,
+                              currentHighlightLine:
+                                  debugProvider.currentHighlightLine,
+                              errorLine: debugProvider.errorLine,
+                              addedLines: _controller.addedLines,
+                              deletedLines: _controller.deletedLines,
+                              fontSize: appProvider.fontSize,
+                              onToggleBreakpoint: (line) =>
+                                  debugProvider.toggleBreakpoint(line),
+                              onToggleFold: _toggleFold,
+                              isLineVisible: _isLineVisible,
+                              foldableLines: _foldableLines,
+                              foldedLines: _foldedLines,
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 8.0),
+                                child: CompositedTransformTarget(
+                                  link: _layerLink,
+                                  child: CompositedTransformTarget(
+                                    link: _quickFixLink,
+                                    child: MouseRegion(
+                                      onHover: (event) => _handleMouseHover(
+                                        event,
+                                        appProvider.fontSize,
+                                      ),
+                                      onExit: (_) => _hideHoverTooltip(),
+                                      child: TextField(
+                                        controller: _controller,
+                                        focusNode: _focusNode,
+                                        scrollController:
+                                            _editorScrollController,
+                                        maxLines: null,
+                                        expands: true,
+                                        readOnly:
+                                            !widget.isStandalone &&
+                                            fileProvider.isReviewMode,
+                                        textAlignVertical:
+                                            TextAlignVertical.top,
+                                        cursorColor: ThemeColors.textBright(
+                                          theme,
+                                        ),
+                                        style: TextStyle(
+                                          color: ThemeColors.textBright(theme),
+                                          fontFamily: themeProvider.fontFamily,
+                                          fontSize: appProvider.fontSize,
+                                        ),
+                                        decoration: const InputDecoration(
+                                          border: InputBorder.none,
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.only(
+                                            top: 12,
+                                          ),
+                                        ),
+                                        onChanged: (text) =>
+                                            _onChanged(text, fileProvider),
+                                      ),
                                     ),
-                                    decoration: const InputDecoration(
-                                      border: InputBorder.none,
-                                      isDense: true,
-                                      contentPadding: EdgeInsets.only(top: 12),
-                                    ),
-                                    onChanged: (text) =>
-                                        _onChanged(text, fileProvider),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                        // Minimap
-                        if (appProvider.showMinimap && !isMobile)
-                          EditorMinimap(
-                            scrollController: _minimapScrollController,
-                            textSpan: _controller.buildTextSpan(
-                              context: context,
-                              style: TextStyle(
-                                color: ThemeColors.textMain(
-                                  theme,
-                                ).withValues(alpha: 0.2),
-                                fontSize: 3,
-                                height: 1.5,
-                                fontFamily: themeProvider.fontFamily,
+                            // Minimap
+                            if (appProvider.showMinimap && !isMobile)
+                              EditorMinimap(
+                                scrollController: _minimapScrollController,
+                                textSpan: _controller.buildTextSpan(
+                                  context: context,
+                                  style: TextStyle(
+                                    color: ThemeColors.textMain(
+                                      theme,
+                                    ).withValues(alpha: 0.2),
+                                    fontSize: 3,
+                                    height: 1.5,
+                                    fontFamily: themeProvider.fontFamily,
+                                  ),
+                                  withComposing: false,
+                                ),
+                                theme: theme,
+                                lintIssues: activeFile?.lintIssues ?? [],
+                                executionErrorLine: debugProvider.errorLine,
                               ),
-                              withComposing: false,
-                            ),
-                            theme: theme,
-                            lintIssues: activeFile?.lintIssues ?? [],
-                            executionErrorLine: debugProvider.errorLine,
-                          ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -1716,4 +1736,29 @@ class SaveIntent extends Intent {
 
 class SearchIntent extends Intent {
   const SearchIntent();
+}
+
+class GridPainter extends CustomPainter {
+  final Color color;
+  GridPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 0.5;
+
+    const double spacing = 25.0; // Espacement de la grille
+
+    for (double i = 0; i < size.width; i += spacing) {
+      canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
+    }
+    for (double i = 0; i < size.height; i += spacing) {
+      canvas.drawLine(Offset(0, i), Offset(size.width, i), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) =>
+      (oldDelegate as GridPainter).color != color;
 }
