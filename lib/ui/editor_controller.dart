@@ -5,6 +5,31 @@ import '../providers/debug_provider.dart';
 import '../providers/file_provider.dart';
 import '../theme.dart';
 import '../interpreteur/mots_cles.dart';
+import '../interpreteur/linter.dart';
+
+class Suggestion {
+  final String text;
+  final String type;
+  final IconData icon;
+  final String? category;
+
+  Suggestion({
+    required this.text,
+    required this.type,
+    required this.icon,
+    this.category,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Suggestion &&
+          runtimeType == other.runtimeType &&
+          text.toLowerCase() == other.text.toLowerCase();
+
+  @override
+  int get hashCode => text.toLowerCase().hashCode;
+}
 
 class CodeEditorController extends TextEditingController {
   final List<String> motsClesStructure = MotsCles.structure;
@@ -147,23 +172,74 @@ class CodeEditorController extends TextEditingController {
     _findMatchingBrackets();
   }
 
-  List<String> _extraireNomsSousProgrammes() {
-    final List<String> noms = [];
+  IdentifierInfo? getInfo(String name) {
+    // We get the info from the linter's latest analysis
+    // The linter doesn't expose a global state for all identifiers,
+    // but we can re-analyze or use the fileProvider's knowledge if it was extended.
+    // For now, we will perform a quick scan of declarations to find the line and type.
+    final lines = text.split('\n');
+    final lowerName = name.toLowerCase();
+
+    // Scan lines for declaration
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i].trim();
+      if (line.isEmpty) continue;
+
+      // Check sub-program declaration
+      final subMatch = RegExp(
+        r'(?:procedure|fonction)\s+([a-zA-Z_]\w*)',
+        caseSensitive: false,
+      ).firstMatch(line);
+      if (subMatch != null && subMatch.group(1)!.toLowerCase() == lowerName) {
+        return IdentifierInfo(line: i + 1, type: 'Sous-programme');
+      }
+
+      // Check variable declaration
+      if (line.contains(':')) {
+        final parts = line.split(':');
+        final names = parts[0].split(',').map((e) => e.trim().toLowerCase());
+        if (names.contains(lowerName)) {
+          final type = parts.length > 1 ? parts[1].trim() : null;
+          return IdentifierInfo(line: i + 1, type: type);
+        }
+      }
+    }
+    return null;
+  }
+
+  List<Suggestion> _extraireNomsSousProgrammes() {
+    final List<Suggestion> suggestions = [];
     final reg = RegExp(
-      r'(?:fonction|procedure|structure)\s+([a-zA-Z_]\w*)',
+      r'(?:fonction|procedure|structure)\b\s*([a-zA-Z_]\w*)',
       caseSensitive: false,
     );
     for (final m in reg.allMatches(text)) {
       final nom = m.group(1);
-      if (nom != null && !noms.contains(nom)) noms.add(nom);
+      final line = text.substring(0, m.start).split('\n').last + m.group(0)!;
+      final isFunction = line.toLowerCase().contains('fonction');
+      final isProcedure = line.toLowerCase().contains('procedure');
+
+      if (nom != null) {
+        suggestions.add(
+          Suggestion(
+            text: nom,
+            type: isFunction
+                ? 'Fonction'
+                : (isProcedure ? 'Procédure' : 'Structure'),
+            icon: isFunction
+                ? Icons.functions
+                : (isProcedure ? Icons.terminal : Icons.account_tree),
+          ),
+        );
+      }
     }
-    return noms;
+    return suggestions;
   }
 
-  List<String> _extraireVariables() {
-    final List<String> noms = [];
+  List<Suggestion> _extraireVariables() {
+    final List<Suggestion> suggestions = [];
     final selection = this.selection;
-    if (!selection.isValid) return noms;
+    if (!selection.isValid) return suggestions;
 
     final String code = text;
     final int cursorOffset = selection.baseOffset;
@@ -193,11 +269,6 @@ class CodeEditorController extends TextEditingController {
       }
     }
 
-    // Extract variables only in relevant sections:
-    // - Global Variables block
-    // - Local Variables of current sub-program
-    // - Function parameters
-
     final varReg = RegExp(
       r'([a-zA-Z_]\w*)\s*(?:,\s*[a-zA-Z_]\w*\s*)*:',
       caseSensitive: false,
@@ -213,8 +284,13 @@ class CodeEditorController extends TextEditingController {
       final m = varReg.firstMatch(lines[i]);
       if (m != null) {
         final vars = m.group(0)!.split(':')[0].split(',').map((e) => e.trim());
-        for (final v in vars)
-          if (v.isNotEmpty && !noms.contains(v)) noms.add(v);
+        for (final v in vars) {
+          if (v.isNotEmpty) {
+            suggestions.add(
+              Suggestion(text: v, type: 'Variable Globale', icon: Icons.public),
+            );
+          }
+        }
       }
     }
 
@@ -230,11 +306,16 @@ class CodeEditorController extends TextEditingController {
             .group(1)!
             .split(RegExp(r'[,;]'))
             .map((e) => e.trim().split(':')[0].trim());
-        for (final p in params)
-          if (p.isNotEmpty && !noms.contains(p)) noms.add(p);
+        for (final p in params) {
+          if (p.isNotEmpty) {
+            suggestions.add(
+              Suggestion(text: p, type: 'Paramètre', icon: Icons.move_to_inbox),
+            );
+          }
+        }
       }
 
-      // Add local variables (look for 'Variables' block after sub-program declaration)
+      // Add local variables
       bool inVarBlock = false;
       for (int i = scopeStart + 1; i < lines.length; i++) {
         if (RegExp(
@@ -257,21 +338,146 @@ class CodeEditorController extends TextEditingController {
                 .split(':')[0]
                 .split(',')
                 .map((e) => e.trim());
-            for (final v in vars)
-              if (v.isNotEmpty && !noms.contains(v)) noms.add(v);
+            for (final v in vars) {
+              if (v.isNotEmpty) {
+                suggestions.add(
+                  Suggestion(
+                    text: v,
+                    type: 'Variable Locale',
+                    icon: Icons.label_important,
+                  ),
+                );
+              }
+            }
           }
         }
       }
     }
 
-    return noms;
+    return suggestions;
   }
 
-  List<String> get motsCles {
-    final List<String> liste = List.from(MotsCles.tous);
+  IconData _getIconData(String? iconName) {
+    if (iconName == null) return Icons.code;
+    switch (iconName) {
+      case 'help_outline':
+        return Icons.help_outline;
+      case 'loop':
+        return Icons.loop;
+      case 'sync':
+        return Icons.sync;
+      case 'terminal':
+        return Icons.terminal;
+      case 'analytics':
+        return Icons.analytics;
+      case 'play_circle_outline':
+        return Icons.play_circle_outline;
+      case 'stop_circle':
+        return Icons.stop_circle;
+      case 'functions':
+        return Icons.functions;
+      case 'settings_suggest':
+        return Icons.settings_suggest;
+      case 'output':
+        return Icons.output;
+      case 'input':
+        return Icons.input;
+      case 'grid_on':
+        return Icons.grid_on;
+      case 'bubble_chart':
+        return Icons.bubble_chart;
+      case 'numbers':
+        return Icons.numbers;
+      case 'calculate':
+        return Icons.calculate;
+      case 'text_fields':
+        return Icons.text_fields;
+      case 'toggle_on':
+        return Icons.toggle_on;
+      case 'view_list':
+        return Icons.view_list;
+      case 'data_object':
+        return Icons.data_object;
+      case 'straighten':
+        return Icons.straighten;
+      case 'keyboard_capslock':
+        return Icons.keyboard_capslock;
+      case 'keyboard_arrow_down':
+        return Icons.keyboard_arrow_down;
+      case 'font_download':
+        return Icons.font_download;
+      case 'square_foot':
+        return Icons.square_foot;
+      case 'exposure_zero':
+        return Icons.exposure_zero;
+      case 'casino':
+        return Icons.casino;
+      case 'exposure_plus_1':
+        return Icons.exposure_plus_1;
+      case 'content_cut':
+        return Icons.content_cut;
+      case 'onetwothree':
+        return Icons.onetwothree;
+      case 'abc':
+        return Icons.abc;
+      case 'category':
+        return Icons.category;
+      case 'pin':
+        return Icons.pin;
+      case 'stop':
+        return Icons.stop;
+      case 'lock':
+        return Icons.lock;
+      case 'arrow_forward':
+        return Icons.arrow_forward;
+      case 'alt_route':
+        return Icons.alt_route;
+      case 'play_arrow':
+        return Icons.play_arrow;
+      case 'start':
+        return Icons.start;
+      case 'keyboard_tab':
+        return Icons.keyboard_tab;
+      case 'call_split':
+        return Icons.call_split;
+      case 'check_box':
+        return Icons.check_box;
+      case 'replay':
+        return Icons.replay;
+      case 'flag':
+        return Icons.flag;
+      case 'settings':
+        return Icons.settings;
+      case 'keyboard_return':
+        return Icons.keyboard_return;
+      default:
+        return Icons.code;
+    }
+  }
+
+  List<Suggestion> get motsCles {
+    final List<Suggestion> liste = MotsCles.tous.map((m) {
+      final meta = MotsCles.getMetadata(m);
+      return Suggestion(
+        text: m,
+        type: 'Mot-clé',
+        icon: _getIconData(meta?['icon']),
+        category: meta?['label'],
+      );
+    }).toList();
+
     liste.addAll(_extraireNomsSousProgrammes());
     liste.addAll(_extraireVariables());
-    return liste.toSet().toList(); // Unicité
+
+    // Unicité basée sur le texte (insensible à la casse)
+    final Set<String> uniqueTexts = {};
+    final List<Suggestion> filtered = [];
+    for (final s in liste) {
+      if (uniqueTexts.add(s.text.toLowerCase())) {
+        filtered.add(s);
+      }
+    }
+    return filtered;
   }
 
   Set<int> _hiddenLines = {};

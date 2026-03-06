@@ -9,6 +9,7 @@ import 'documentation_page.dart';
 import '../outils/traducteur.dart';
 import '../outils/exportateur.dart';
 import 'package:flutter/services.dart';
+import '../outils/formateur.dart';
 
 class BarreHaut extends StatelessWidget {
   final VoidCallback onExecuter;
@@ -131,6 +132,19 @@ class BarreHaut extends StatelessWidget {
             tooltip: 'Sauvegarder le fichier (Ctrl+S)',
             theme: theme,
           ),
+          _HeaderAction(
+            icon: Icons.format_align_left,
+            onPressed: () {
+              final content = activeFile?.content;
+              if (content != null) {
+                final formatted = PseudoCodeFormateur.formater(content);
+                fileProvider.updateContent(formatted);
+              }
+            },
+            tooltip: 'Formater le code (Alt+Shift+F)',
+            theme: theme,
+          ),
+          const SizedBox(width: 8),
           if (appProvider.activeMainView == ActiveMainView.algorithm)
             _HeaderAction(
               icon: Icons.search,
@@ -227,6 +241,21 @@ class BarreHaut extends StatelessWidget {
             fileProvider.currentDirectory,
             "nouveau.alg",
           ),
+        ),
+        PopupMenuItem(
+          child: Text(
+            "Formater le code",
+            style: TextStyle(color: ThemeColors.textMain(theme)),
+          ),
+          onTap: () {
+            final activeFile = fileProvider.activeFile;
+            if (activeFile != null) {
+              final formatted = PseudoCodeFormateur.formater(
+                activeFile.content,
+              );
+              fileProvider.updateContent(formatted);
+            }
+          },
         ),
         PopupMenuItem(
           child: Text(

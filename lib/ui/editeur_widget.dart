@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Pour rootBundle
@@ -14,6 +15,8 @@ import 'package:pseudo_code/interpreteur/linter.dart';
 import 'editor/editor_gutter.dart';
 import 'editor/editor_search_panel.dart';
 import 'editor/editor_minimap.dart';
+import '../outils/formateur.dart';
+import '../interpreteur/mots_cles.dart';
 
 class EditeurWidget extends StatefulWidget {
   final CodeEditorController? controller;
@@ -44,7 +47,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
 
   OverlayEntry? _overlay;
   OverlayEntry? _quickFixOverlay;
-  List<String> _suggestions = [];
+  List<Suggestion> _suggestions = [];
   bool _isAideMode = false;
   int _selectedIndex = 0;
   bool _isInsertingSuggestion = false;
@@ -453,11 +456,11 @@ class _EditeurWidgetState extends State<EditeurWidget> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           ...List.generate(_suggestions.length, (index) {
-                            final s = _suggestions[index];
+                            final suggestion = _suggestions[index];
                             final isSelected = index == _selectedIndex;
 
                             return InkWell(
-                              onTap: () => _insertSuggestion(s),
+                              onTap: () => _insertSuggestion(suggestion.text),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12,
@@ -471,24 +474,43 @@ class _EditeurWidgetState extends State<EditeurWidget> {
                                 child: Row(
                                   children: [
                                     Icon(
-                                      Icons.code,
-                                      size: 14,
+                                      suggestion.icon,
+                                      size: 16,
                                       color: isSelected
                                           ? Colors.blueAccent
                                           : Colors.white38,
                                     ),
                                     const SizedBox(width: 12),
-                                    Text(
-                                      s,
-                                      style: TextStyle(
-                                        color: isSelected
-                                            ? Colors.white
-                                            : ThemeColors.textMain(theme),
-                                        fontFamily: 'JetBrainsMono',
-                                        fontSize: 12,
-                                        fontWeight: isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            suggestion.text,
+                                            style: TextStyle(
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : ThemeColors.textMain(theme),
+                                              fontFamily: 'JetBrainsMono',
+                                              fontSize: 12,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                            ),
+                                          ),
+                                          Text(
+                                            suggestion.category ??
+                                                suggestion.type,
+                                            style: TextStyle(
+                                              fontSize: 9,
+                                              color: isSelected
+                                                  ? Colors.blueAccent
+                                                        .withValues(alpha: 0.8)
+                                                  : Colors.white24,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
@@ -609,9 +631,14 @@ class _EditeurWidgetState extends State<EditeurWidget> {
                       path.endsWith('.md'),
                 );
 
-                _suggestions = algoAssets
-                    .map((path) => path.split('/').last.replaceAll('.md', ''))
-                    .toList();
+                _suggestions = algoAssets.map((path) {
+                  final name = path.split('/').last.replaceAll('.md', '');
+                  return Suggestion(
+                    text: name,
+                    type: 'Aide',
+                    icon: Icons.help_outline,
+                  );
+                }).toList();
 
                 if (_suggestions.isNotEmpty) {
                   _selectedIndex = 0;
@@ -627,7 +654,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
         } else {
           _isAideMode = false;
           _suggestions = _controller.motsCles
-              .where((m) => m.toLowerCase().startsWith(word.toLowerCase()))
+              .where((s) => s.text.toLowerCase().startsWith(word.toLowerCase()))
               .toList();
 
           if (_suggestions.isNotEmpty) {
@@ -969,7 +996,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
         return KeyEventResult.handled;
       } else if (event.logicalKey == LogicalKeyboardKey.enter ||
           event.logicalKey == LogicalKeyboardKey.tab) {
-        _insertSuggestion(_suggestions[_selectedIndex]);
+        _insertSuggestion(_suggestions[_selectedIndex].text);
         return KeyEventResult.handled;
       } else if (event.logicalKey == LogicalKeyboardKey.escape) {
         setState(() => _hideOverlay());
@@ -1146,6 +1173,11 @@ class _EditeurWidgetState extends State<EditeurWidget> {
             const SaveIntent(),
         LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyF):
             const SearchIntent(),
+        LogicalKeySet(
+          LogicalKeyboardKey.alt,
+          LogicalKeyboardKey.shift,
+          LogicalKeyboardKey.keyF,
+        ): const FormatIntent(),
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
@@ -1157,6 +1189,16 @@ class _EditeurWidgetState extends State<EditeurWidget> {
               appProvider.toggleEditorSearch();
               if (appProvider.isEditorSearchVisible) {
                 _focusNode.unfocus();
+              }
+              return null;
+            },
+          ),
+          FormatIntent: CallbackAction<FormatIntent>(
+            onInvoke: (intent) {
+              final formatted = PseudoCodeFormateur.formater(_controller.text);
+              if (formatted != _controller.text) {
+                _controller.text = formatted;
+                _onChanged(formatted, fileProvider);
               }
               return null;
             },
@@ -1210,41 +1252,53 @@ class _EditeurWidgetState extends State<EditeurWidget> {
                                   link: _layerLink,
                                   child: CompositedTransformTarget(
                                     link: _quickFixLink,
-                                    child: MouseRegion(
-                                      onHover: (event) => _handleMouseHover(
-                                        event,
-                                        appProvider.fontSize,
-                                      ),
-                                      onExit: (_) => _hideHoverTooltip(),
-                                      child: TextField(
-                                        controller: _controller,
-                                        focusNode: _focusNode,
-                                        scrollController:
-                                            _editorScrollController,
-                                        maxLines: null,
-                                        expands: true,
-                                        readOnly:
-                                            !widget.isStandalone &&
-                                            fileProvider.isReviewMode,
-                                        textAlignVertical:
-                                            TextAlignVertical.top,
-                                        cursorColor: ThemeColors.textBright(
-                                          theme,
+                                    child: GestureDetector(
+                                      onLongPressStart: (details) {
+                                        _showHoverTooltip(
+                                          details.localPosition,
+                                          appProvider.fontSize,
+                                        );
+                                      },
+                                      onTapDown: (_) => _hideHoverTooltip(),
+                                      child: MouseRegion(
+                                        onHover: (event) => _handleMouseHover(
+                                          event,
+                                          appProvider.fontSize,
                                         ),
-                                        style: TextStyle(
-                                          color: ThemeColors.textBright(theme),
-                                          fontFamily: themeProvider.fontFamily,
-                                          fontSize: appProvider.fontSize,
-                                        ),
-                                        decoration: const InputDecoration(
-                                          border: InputBorder.none,
-                                          isDense: true,
-                                          contentPadding: EdgeInsets.only(
-                                            top: 12,
+                                        onExit: (_) => _hideHoverTooltip(),
+                                        child: TextField(
+                                          controller: _controller,
+                                          focusNode: _focusNode,
+                                          scrollController:
+                                              _editorScrollController,
+                                          maxLines: null,
+                                          expands: true,
+                                          readOnly:
+                                              !widget.isStandalone &&
+                                              fileProvider.isReviewMode,
+                                          textAlignVertical:
+                                              TextAlignVertical.top,
+                                          cursorColor: ThemeColors.textBright(
+                                            theme,
                                           ),
+                                          style: TextStyle(
+                                            color: ThemeColors.textBright(
+                                              theme,
+                                            ),
+                                            fontFamily:
+                                                themeProvider.fontFamily,
+                                            fontSize: appProvider.fontSize,
+                                          ),
+                                          decoration: const InputDecoration(
+                                            border: InputBorder.none,
+                                            isDense: true,
+                                            contentPadding: EdgeInsets.only(
+                                              top: 12,
+                                            ),
+                                          ),
+                                          onChanged: (text) =>
+                                              _onChanged(text, fileProvider),
                                         ),
-                                        onChanged: (text) =>
-                                            _onChanged(text, fileProvider),
                                       ),
                                     ),
                                   ),
@@ -1476,6 +1530,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
       text: newText,
       selection: TextSelection.collapsed(offset: pos + replace.length),
     );
+    _onChanged(newText, context.read<FileProvider>());
     _performSearch();
   }
 
@@ -1494,6 +1549,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
     }
 
     _controller.text = currentText;
+    _onChanged(currentText, context.read<FileProvider>());
     _performSearch();
   }
 
@@ -1658,68 +1714,260 @@ class _EditeurWidgetState extends State<EditeurWidget> {
     final word = line.substring(start, end).toLowerCase();
     if (word.isEmpty) return;
 
-    final docs = {
-      'si': 'Structure de contrôle conditionnelle.',
-      'alors':
-          'Délimiteur de début de bloc d\'instructions si la condition est vraie.',
-      'sinon': 'Bloc exécuté si la condition du Si est fausse.',
-      'finsi': 'Fin de la structure conditionnelle.',
-      'pour': 'Boucle itérative avec un compteur.',
-      'tantque': 'Boucle répétitive tant qu\'une condition reste vraie.',
-      'faire': 'Délimiteur marquant le début du corps d\'une boucle.',
-      'fonction': 'Sous-programme retournant une valeur.',
-      'procedure': 'Sous-programme exécutant des instructions sans retour.',
-      'algorithme': 'Début de la déclaration du programme principal.',
-      'variables': 'Section de déclaration des variables.',
-      'entier': 'Type de donnée pour les nombres sans virgule.',
-      'reel': 'Type de donnée pour les nombres à virgule.',
-      'chaine': 'Type de donnée pour le texte.',
-      'booleen': 'Type de donnée vrai/faux.',
-      'lire': 'Instruction pour saisir une donnée.',
-      'ecrire': 'Instruction pour afficher une donnée.',
-    };
+    final meta = MotsCles.getMetadata(word);
+    String? docMarkdown = meta?['desc'];
+    String? syntax = meta?['syntax'];
+    String? category = meta?['label'];
+    IconData? icon;
 
-    if (!docs.containsKey(word)) return;
+    if (meta != null) {
+      final iconName = meta['icon'];
+      if (iconName == 'help_outline')
+        icon = Icons.help_outline;
+      else if (iconName == 'loop')
+        icon = Icons.loop;
+      else if (iconName == 'sync')
+        icon = Icons.sync;
+      else if (iconName == 'terminal')
+        icon = Icons.terminal;
+      else if (iconName == 'analytics')
+        icon = Icons.analytics;
+      else if (iconName == 'play_circle_outline')
+        icon = Icons.play_circle_outline;
+      else if (iconName == 'stop_circle')
+        icon = Icons.stop_circle;
+      else if (iconName == 'functions')
+        icon = Icons.functions;
+      else if (iconName == 'settings_suggest')
+        icon = Icons.settings_suggest;
+      else if (iconName == 'output')
+        icon = Icons.output;
+      else if (iconName == 'input')
+        icon = Icons.input;
+      else if (iconName == 'grid_on')
+        icon = Icons.grid_on;
+      else if (iconName == 'bubble_chart')
+        icon = Icons.bubble_chart;
+      else if (iconName == 'numbers')
+        icon = Icons.numbers;
+      else if (iconName == 'calculate')
+        icon = Icons.calculate;
+      else if (iconName == 'text_fields')
+        icon = Icons.text_fields;
+      else if (iconName == 'toggle_on')
+        icon = Icons.toggle_on;
+    }
+
+    String? varType;
+    String? scopeLabel;
+
+    if (docMarkdown == null) {
+      final info = _controller.getInfo(word);
+      if (info != null) {
+        varType = info.type ?? 'Inconnu';
+        docMarkdown = "Identifiant déclaré à la ligne ${info.line}.";
+        category = "Variable";
+        icon = Icons.data_object;
+        scopeLabel = info.line < 10 ? "Global" : "Locale";
+      }
+    }
+
+    if (docMarkdown == null) return;
 
     final theme = context.read<ThemeProvider>().currentTheme;
 
+    // Responsive positioning logic
+    final screenSize = MediaQuery.of(context).size;
+    const double tooltipWidth = 300;
+    const double tooltipHeight = 200; // Estimated max height
+
+    // Convert local position to global to check screen edges
+    final RenderBox renderBox = context.findRenderObject() as RenderBox;
+    final globalPos = renderBox.localToGlobal(localPos);
+
+    double left = localPos.dx + 40;
+    double top = localPos.dy + (widget.isStandalone ? 20 : 60);
+
+    // If the tooltip would go off the right edge of the screen, flip it to the left of the cursor
+    if (globalPos.dx + tooltipWidth + 40 > screenSize.width) {
+      left = localPos.dx - tooltipWidth - 10;
+    }
+
+    // If it would go off the bottom edge, move it above the cursor
+    if (globalPos.dy + tooltipHeight > screenSize.height) {
+      top = localPos.dy - 100; // Offset upwards
+    }
+
     _hoverOverlay = OverlayEntry(
       builder: (context) => Positioned(
-        left: localPos.dx + 60, // Offset from gutter
-        top: localPos.dy + (widget.isStandalone ? 20 : 60), // Offset from tabs
-        child: Material(
-          elevation: 4,
-          borderRadius: BorderRadius.circular(4),
-          color: ThemeColors.sidebarBg(theme),
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: Colors.blueAccent.withValues(alpha: 0.3),
+        left: left,
+        top: top,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Material(
+              type: MaterialType.transparency,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                constraints: const BoxConstraints(maxWidth: tooltipWidth),
+                decoration: BoxDecoration(
+                  color: ThemeColors.sidebarBg(theme).withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.blueAccent.withValues(alpha: 0.4),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (icon != null)
+                          Icon(icon, size: 16, color: Colors.blueAccent),
+                        Text(
+                          word.toUpperCase(),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.white,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                        if (category != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.blueAccent.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              category.toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueAccent,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const Divider(color: Colors.white24, height: 16),
+                    if (varType != null) ...[
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Wrap(
+                            spacing: 4,
+                            runSpacing: 2,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                "Type : ",
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: ThemeColors.textMain(
+                                    theme,
+                                  ).withValues(alpha: 0.6),
+                                ),
+                              ),
+                              Text(
+                                varType,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: ThemeColors.syntaxType(theme),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (scopeLabel != null)
+                            Wrap(
+                              spacing: 4,
+                              runSpacing: 2,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  "Scope : ",
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: ThemeColors.textMain(
+                                      theme,
+                                    ).withValues(alpha: 0.6),
+                                  ),
+                                ),
+                                Text(
+                                  scopeLabel,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orangeAccent,
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    Text(
+                      docMarkdown!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: ThemeColors.textMain(theme),
+                        height: 1.4,
+                      ),
+                    ),
+                    if (syntax != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        "SYNTAXE",
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: ThemeColors.textMain(
+                            theme,
+                          ).withValues(alpha: 0.5),
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          syntax,
+                          style: const TextStyle(
+                            fontFamily: 'JetBrainsMono',
+                            fontSize: 11,
+                            color: Colors.greenAccent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  word.toUpperCase(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
-                    color: Colors.blueAccent,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  docs[word]!,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: ThemeColors.textMain(theme),
-                  ),
-                ),
-              ],
             ),
           ),
         ),
@@ -1736,6 +1984,10 @@ class SaveIntent extends Intent {
 
 class SearchIntent extends Intent {
   const SearchIntent();
+}
+
+class FormatIntent extends Intent {
+  const FormatIntent();
 }
 
 class GridPainter extends CustomPainter {
