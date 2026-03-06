@@ -153,28 +153,20 @@ class BarreHaut extends StatelessWidget {
               theme: theme,
             ),
           const SizedBox(width: 8),
-          IconButton(
+          _HeaderAction(
             onPressed: onDebug,
-            icon: const Icon(
-              Icons.bug_report,
-              size: 18,
-              color: Colors.blueAccent,
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+            icon: Icons.bug_report,
+            color: Colors.blueAccent,
             tooltip: 'Lancer en mode pas-à-pas',
+            theme: theme,
           ),
-          const SizedBox(width: 8),
-          IconButton(
+          const SizedBox(width: 4),
+          _HeaderAction(
             onPressed: onExecuter,
-            icon: const Icon(
-              Icons.play_arrow,
-              size: 18,
-              color: Colors.greenAccent,
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+            icon: Icons.play_arrow,
+            color: Colors.greenAccent,
             tooltip: 'Exécuter le code',
+            theme: theme,
           ),
           SizedBox(width: isMobile ? 8 : 16),
         ],
@@ -495,11 +487,13 @@ class _HeaderAction extends StatelessWidget {
   final VoidCallback onPressed;
   final String? tooltip;
   final AppTheme theme;
+  final Color? color;
   const _HeaderAction({
     required this.icon,
     required this.onPressed,
     required this.theme,
     this.tooltip,
+    this.color,
   });
 
   @override
@@ -508,10 +502,11 @@ class _HeaderAction extends StatelessWidget {
       width: 28,
       child: IconButton(
         padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
         icon: Icon(
           icon,
           size: 16,
-          color: ThemeColors.textMain(theme).withValues(alpha: 0.6),
+          color: color ?? ThemeColors.textMain(theme).withValues(alpha: 0.6),
         ),
         onPressed: onPressed,
         tooltip: tooltip,

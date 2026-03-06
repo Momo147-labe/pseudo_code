@@ -103,7 +103,7 @@ class StatusBar extends StatelessWidget {
   ) {
     final operators = [
       // Arithmétique
-      '<-', '+', '-', '*', '/', '%', '^', 'div', 'mod',
+      '(', '"', '<-', '+', '-', '*', '/', '%', '^', 'div', 'mod',
       '|', // Séparateur visuel simple
       // Comparaison
       '=', '<>', '<', '>', '<=', '>=',

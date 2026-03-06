@@ -571,29 +571,76 @@ class _EditeurWidgetState extends State<EditeurWidget> {
     final selection = _controller.selection;
     final currentText = _controller.text;
     final snippet = request.snippet;
-    String newFullCode;
+    String newFullCode = currentText;
+    int newCursorOffset = -1;
 
-    if (!selection.isValid) {
-      newFullCode = currentText + snippet;
-    } else {
-      newFullCode = currentText.replaceRange(
-        selection.start,
-        selection.end,
-        snippet,
-      );
-    }
+    const pairs = {'(': ')', '[': ']', '{': '}', '"': '"'};
 
     if (request.direct) {
-      // Insertion directe sans review
+      if (!selection.isValid) {
+        if (pairs.containsKey(snippet)) {
+          newFullCode = currentText + snippet + pairs[snippet]!;
+          newCursorOffset = currentText.length + snippet.length;
+        } else {
+          newFullCode = currentText + snippet;
+          newCursorOffset = newFullCode.length;
+        }
+      } else if (!selection.isCollapsed) {
+        if (pairs.containsKey(snippet)) {
+          String selectedText = currentText.substring(
+            selection.start,
+            selection.end,
+          );
+          newFullCode = currentText.replaceRange(
+            selection.start,
+            selection.end,
+            '$snippet$selectedText${pairs[snippet]!}',
+          );
+          newCursorOffset = selection.start + snippet.length;
+        } else {
+          newFullCode = currentText.replaceRange(
+            selection.start,
+            selection.end,
+            snippet,
+          );
+          newCursorOffset = selection.start + snippet.length;
+        }
+      } else {
+        if (pairs.containsKey(snippet)) {
+          newFullCode = currentText.replaceRange(
+            selection.start,
+            selection.end,
+            '$snippet${pairs[snippet]!}',
+          );
+          newCursorOffset = selection.start + snippet.length;
+        } else {
+          newFullCode = currentText.replaceRange(
+            selection.start,
+            selection.end,
+            snippet,
+          );
+          newCursorOffset = selection.start + snippet.length;
+        }
+      }
+
       _controller.text = newFullCode;
-      if (selection.isValid) {
+      if (newCursorOffset != -1) {
         _controller.selection = TextSelection.collapsed(
-          offset: selection.start + snippet.length,
+          offset: newCursorOffset,
         );
       }
       _onChanged(newFullCode, context.read<FileProvider>());
     } else {
-      // Au lieu d'appliquer, on propose
+      // Pour une insertion non directe, on ne change pas le comportement de base
+      if (!selection.isValid) {
+        newFullCode = currentText + snippet;
+      } else {
+        newFullCode = currentText.replaceRange(
+          selection.start,
+          selection.end,
+          snippet,
+        );
+      }
       context.read<FileProvider>().proposeCodeChange(newFullCode);
     }
   }
@@ -1039,23 +1086,7 @@ class _EditeurWidgetState extends State<EditeurWidget> {
       return KeyEventResult.handled;
     }
 
-    // 2. Auto-fermeture des délimiteurs (, [, ", {
-    final char = event.character;
-    if (char != null && '([{"'.contains(char)) {
-      return _handleAutoClose(char);
-    }
-
-    // Jump over closing bracket if typed
-    if (char != null && ')]}"'.contains(char)) {
-      if (selection.isCollapsed &&
-          selection.baseOffset < _controller.text.length &&
-          _controller.text[selection.baseOffset] == char) {
-        _controller.selection = TextSelection.collapsed(
-          offset: selection.baseOffset + 1,
-        );
-        return KeyEventResult.handled;
-      }
-    }
+    // 2. Auto-fermeture: supprimé de _handleKeyEvent car géré par AutoCloseFormatter pour support mobile
 
     // 3. Editor shortcuts handling (Auto-indent, Snippets)
     if (event.logicalKey == LogicalKeyboardKey.enter) {
@@ -1296,6 +1327,9 @@ class _EditeurWidgetState extends State<EditeurWidget> {
                                               top: 12,
                                             ),
                                           ),
+                                          inputFormatters: [
+                                            AutoCloseFormatter(),
+                                          ],
                                           onChanged: (text) =>
                                               _onChanged(text, fileProvider),
                                         ),
@@ -2013,4 +2047,83 @@ class GridPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) =>
       (oldDelegate as GridPainter).color != color;
+}
+
+class AutoCloseFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.length < oldValue.text.length) return newValue;
+
+    int oldLen = oldValue.text.length;
+    int newLen = newValue.text.length;
+    int diff = newLen - oldLen;
+
+    const pairs = {'(': ')', '[': ']', '"': '"', '{': '}'};
+    const closingChars = ")]}\"";
+
+    // 1. Frappe simple d'un caractère de fermeture (over-typing) et d'ouverture
+    if (diff == 1 && oldValue.selection.isCollapsed) {
+      int insertIndex = newValue.selection.baseOffset - 1;
+      if (insertIndex >= 0 && insertIndex < newValue.text.length) {
+        String char = newValue.text[insertIndex];
+
+        // Si on tape un caractère fermant qui est déjà présent juste après le curseur
+        if (closingChars.contains(char)) {
+          int oldCursor = oldValue.selection.baseOffset;
+          if (oldCursor < oldLen && oldValue.text[oldCursor] == char) {
+            // Over-typing: on ignore l'insertion et on avance juste le curseur
+            return TextEditingValue(
+              text: oldValue.text,
+              selection: TextSelection.collapsed(offset: oldCursor + 1),
+            );
+          }
+        }
+
+        // Si on tape un caractère d'ouverture, on insère la fermeture auto
+        if (pairs.containsKey(char)) {
+          String closing = pairs[char]!;
+          String newText = newValue.text.replaceRange(
+            insertIndex + 1,
+            insertIndex + 1,
+            closing,
+          );
+          return TextEditingValue(text: newText, selection: newValue.selection);
+        }
+      }
+    }
+
+    // 2. Wrap de texte existant (ex: l'utilisateur a sélectionné "abc" et a tapé "(")
+    if (!oldValue.selection.isCollapsed) {
+      int deletedLen = oldValue.selection.end - oldValue.selection.start;
+      if (diff == 1 - deletedLen) {
+        int insertIndex = newValue.selection.baseOffset - 1;
+        if (insertIndex == oldValue.selection.start) {
+          String char = newValue.text[insertIndex];
+          if (pairs.containsKey(char)) {
+            String closing = pairs[char]!;
+            String selected = oldValue.text.substring(
+              oldValue.selection.start,
+              oldValue.selection.end,
+            );
+            String newText = oldValue.text.replaceRange(
+              oldValue.selection.start,
+              oldValue.selection.end,
+              '$char$selected$closing',
+            );
+            return TextEditingValue(
+              text: newText,
+              selection: TextSelection.collapsed(
+                offset: oldValue.selection.start + 1,
+              ),
+            );
+          }
+        }
+      }
+    }
+
+    return newValue;
+  }
 }

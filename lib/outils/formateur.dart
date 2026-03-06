@@ -115,18 +115,19 @@ class PseudoCodeFormateur {
 
     // 2. Operator Padding
     // Add spaces around operators if missing
+    // Process multi-character operators first to avoid breaking them
     final operators = [
       '<-',
+      '<>',
+      '<=',
+      '>=',
       r'\+',
       '-',
       r'\*',
       '/',
-      '=',
-      '<>',
-      '<=',
-      '>=',
-      '<',
-      '>',
+      '=(?!=)',
+      '<(?![=-])',
+      '>(?!=)',
     ];
     for (var op in operators) {
       // Look for operator NOT surrounded by spaces, but avoiding being inside strings
