@@ -24,11 +24,15 @@ jobs:
       - name: Enable Windows Desktop
         run: flutter config --enable-windows-desktop
 
-      # 4️⃣ Installer les dépendances
+      # 4️⃣ Nettoyer les anciens builds
+      - name: Clean previous builds
+        run: flutter clean
+
+      # 5️⃣ Installer les dépendances
       - name: Install dependencies
         run: flutter pub get
 
-      # 5️⃣ Générer le fichier .env à partir des secrets GitHub
+      # 6️⃣ Générer le fichier .env à partir des secrets GitHub
       - name: Create .env file
         shell: pwsh
         run: |
@@ -38,11 +42,11 @@ jobs:
           "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" | Out-File -FilePath .env -Append -Encoding utf8
           "OLLAMA_BASE_URL=${{ secrets.OLLAMA_BASE_URL }}" | Out-File -FilePath .env -Append -Encoding utf8
 
-      # 6️⃣ Build Windows Release
+      # 7️⃣ Build Windows Release
       - name: Build Windows EXE
         run: flutter build windows --release
 
-      # 6️⃣ Vérifier que le dossier Release existe
+      # 8️⃣ Vérifier que le dossier Release existe
       - name: Verify build output
         shell: pwsh
         run: |
@@ -51,7 +55,8 @@ jobs:
             exit 1
           }
           Get-ChildItem build/windows/x64/runner/Release
-      # 7️⃣ Détecter le .exe
+
+      # 9️⃣ Détecter le .exe
       - name: Get EXE name
         shell: pwsh
         run: |
@@ -62,11 +67,22 @@ jobs:
           }
           echo "EXE_NAME=$($exe.Name)" >> $env:GITHUB_ENV
           echo "✔ EXE trouvé : $($exe.Name)"
-      # 8️⃣ Installer Inno Setup via Chocolatey
+
+      # 1️⃣0️⃣ Nettoyer le dossier Output
+      - name: Clean Output directory
+        shell: pwsh
+        run: |
+          if (Test-Path "Output") {
+            Remove-Item -Path "Output\*" -Force -Recurse
+          } else {
+            mkdir Output -Force
+          }
+
+      # 1️⃣1️⃣ Installer Inno Setup via Chocolatey
       - name: Install Inno Setup
         run: choco install innosetup -y
 
-      # 9️⃣ Vérifier que le fichier installer.iss existe
+      # 1️⃣2️⃣ Vérifier que le fichier installer.iss existe
       - name: Verify installer.iss exists
         shell: pwsh
         run: |
@@ -75,13 +91,14 @@ jobs:
             exit 1
           }
           Write-Host "✔ installer.iss trouvé"
-      # 🔟 Générer Setup.exe avec le chemin complet de ISCC
+
+      # 1️⃣3️⃣ Générer Setup.exe avec le chemin complet de ISCC
       - name: Build Setup.exe with Inno Setup
         shell: pwsh
         run: |
-          mkdir Output -Force
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer.iss"
-      # 1️⃣1️⃣ Upload du Setup.exe comme artifact
+
+      # 1️⃣4️⃣ Upload du Setup.exe comme artifact
       - name: Upload Setup.exe
         uses: actions/upload-artifact@v4
         with:
