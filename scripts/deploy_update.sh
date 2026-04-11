@@ -5,9 +5,17 @@
 
 set -e
 
-# Charger les variables depuis .env
+# Charger les variables depuis .env (si non déjà définies par l'environnement/secrets)
 if [ -f .env ]; then
-    export $(grep -v '^#' .env | xargs)
+    while IFS= read -r line || [ -n "$line" ]; do
+        [[ "$line" =~ ^#.*$ ]] && continue
+        [[ "$line" =~ ^$ ]] && continue
+        key=$(echo "$line" | cut -d'=' -f1)
+        value=$(echo "$line" | cut -d'=' -f2- | sed 's/^"//;s/"$//')
+        if [ -z "${!key}" ]; then
+            export "$key"="$value"
+        fi
+    done < .env
 fi
 
 # Variables de mise à jour
@@ -83,6 +91,9 @@ if [ $? -ne 0 ]; then
     echo "❌ Échec de la récupération de l'URL d'upload."
     exit 8
 fi
+
+UPLOAD_URL=$(echo "$UPLOAD_RESP" | jq -r '.uploadUrl')
+UPLOAD_TOKEN=$(echo "$UPLOAD_RESP" | jq -r '.authorizationToken')
 
 echo "📤 Upload de $FILE_NAME..."
 SHA1=$(sha1sum "$FILE_PATH" | awk '{print $1}')
