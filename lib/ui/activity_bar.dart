@@ -9,6 +9,8 @@ import 'auth/auth_choice_modal.dart';
 import 'auth/user_profile_modal.dart';
 import '../providers/challenge_provider.dart';
 
+import '../services/update_service.dart';
+
 class ActivityBar extends StatelessWidget {
   const ActivityBar({super.key});
 
@@ -62,6 +64,12 @@ class ActivityBar extends StatelessWidget {
             isActive: appProvider.isConsoleVisible,
             onTap: () => appProvider.toggleConsole(),
             tooltip: "Afficher/Masquer la console",
+          ),
+          _ActivityIcon(
+            icon: Icons.system_update_alt,
+            onTap: () =>
+                UpdateService.instance.checkForUpdate(context, isManual: true),
+            tooltip: "Vérifier les mises à jour",
           ),
           const Spacer(),
           _ActivityIcon(

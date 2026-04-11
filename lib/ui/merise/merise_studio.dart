@@ -16,6 +16,8 @@ import 'widgets/query_view.dart';
 import 'widgets/simulation_view.dart';
 import 'widgets/regles_view.dart';
 import 'widgets/action_fab.dart';
+import 'widgets/mld_diagram_view.dart';
+import 'widgets/graphe_df_view.dart';
 
 class MeriseStudio extends StatefulWidget {
   const MeriseStudio({super.key});
@@ -348,7 +350,9 @@ class _MeriseStudioState extends State<MeriseStudio> {
       case 'normalisation':
         return NormalizationView(theme: theme, isMobile: isMobile);
       case 'mld':
-        return SqlView(theme: theme, isMld: true, isMobile: isMobile);
+        return MldDiagramView(theme: theme, isMobile: isMobile);
+      case 'graphe_df':
+        return GrapheDfView(theme: theme, isMobile: isMobile);
       case 'mpd':
         return SqlView(theme: theme, isMld: false, isMobile: isMobile);
       case 'requetes':

@@ -57,11 +57,14 @@ class MldTable {
   final String name;
   final List<MldColumn> columns;
   final List<MldForeignKey> foreignKeys;
+  final String?
+  sourceId; // ID of the McdEntity or McdRelation that generated this table
 
   const MldTable({
     required this.name,
     required this.columns,
     this.foreignKeys = const [],
+    this.sourceId,
   });
 }
 
@@ -128,6 +131,7 @@ class MldTransformer {
         name: entity.name,
         columns: columns,
         foreignKeys: [],
+        sourceId: entity.id,
       );
       entityTables[entity.id] = table;
     }
@@ -144,7 +148,6 @@ class MldTransformer {
 
       // Analyser le type d'association
       bool isNary = links.length > 2;
-      bool hasAttributes = relation.attributes.isNotEmpty;
 
       // Déterminer s'il y a plus d'une patte avec une cardinalité max 'N'
       int maxNCount = links
@@ -152,20 +155,16 @@ class MldTransformer {
           .length;
       bool isManyToMany = maxNCount > 1;
 
+      // Déterminer si l'association est réflexive (Règle 4)
+      final uniqueEntityIds = links.map((l) => l.entityId).toSet();
+      bool isReflexive = uniqueEntityIds.length < links.length;
+
+      // RÈGLE 3 & 4 (assets/regles_de_MCD_à_MLD.json)
       // ═══════════════════════════════════════════════════════════════════
-      // RÈGLE 3 (assets/regles_de_MCD_à_MLD.json)
+      // Règle 3: n-aire ou Many-to-Many → Table d'association
+      // Règle 4: Réflexive → Table d'association "quelque soit la cardinalité"
       // ═══════════════════════════════════════════════════════════════════
-      // "Une association de dimension supérieur ou égal à 2 avec cardinalité
-      // maximale égale à n sur chaque pate est traduite par une realtion et
-      // la clé primaire de la realtion résultante est composée des
-      // identifiants des entités impliqueées dans la collection"
-      //
-      // RÈGLE 4 (assets/regles_de_MCD_à_MLD.json)
-      // ═══════════════════════════════════════════════════════════════════
-      // "une association réflexive est traduite par une relation quelque
-      // soit la cardinalité"
-      // ═══════════════════════════════════════════════════════════════════
-      if (isNary || hasAttributes || isManyToMany) {
+      if (isNary || isManyToMany || isReflexive) {
         final columns = <MldColumn>[];
         final fks = <MldForeignKey>[];
         final existingNames = <String>{};
@@ -207,7 +206,12 @@ class MldTransformer {
         }
 
         tables.add(
-          MldTable(name: relation.name, columns: columns, foreignKeys: fks),
+          MldTable(
+            name: relation.name,
+            columns: columns,
+            foreignKeys: fks,
+            sourceId: relation.id,
+          ),
         );
       }
       // ═══════════════════════════════════════════════════════════════════
@@ -300,6 +304,12 @@ class MldTransformer {
             ),
           );
 
+        // Migrate attributes from the relationship itself (Rule 2)
+        for (final attr in relation.attributes) {
+          final safeName = _uniqueColumnName(existingNames, attr.name);
+          updatedColumns.add(MldColumn(name: safeName, type: attr.type));
+        }
+
         final updatedFKs = List<MldForeignKey>.from(currentTable.foreignKeys)
           ..add(
             MldForeignKey(
@@ -313,6 +323,7 @@ class MldTransformer {
           name: currentTable.name,
           columns: updatedColumns,
           foreignKeys: updatedFKs,
+          sourceId: currentTable.sourceId,
         );
       }
     }

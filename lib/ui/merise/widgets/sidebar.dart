@@ -108,6 +108,14 @@ class MeriseSidebar extends StatelessWidget {
                   onTap: () => provider.setActiveView('normalisation'),
                 ),
                 _NavItem(
+                  icon: Icons.auto_graph,
+                  label: "Graphe DF",
+                  isActive: provider.activeView == 'graphe_df',
+                  theme: theme,
+                  scale: scale,
+                  onTap: () => provider.setActiveView('graphe_df'),
+                ),
+                _NavItem(
                   icon: Icons.join_inner,
                   label: "Requêtes & jointures",
                   isActive: provider.activeView == 'requetes',

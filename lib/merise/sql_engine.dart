@@ -128,7 +128,27 @@ class SqlEngine {
           'INSERT INTO ${_q(tableName)} ($colList) VALUES ($placeholders)';
       await _db!.rawInsert(sql, values);
     } catch (e) {
-      throw Exception('Erreur lors de l\'insertion: $e');
+      final errorStr = e.toString();
+      if (errorStr.contains('UNIQUE constraint failed')) {
+        // Extraire le nom des colonnes si possible
+        final match = RegExp(r'failed: (.*)').firstMatch(errorStr);
+        final columns = match?.group(1) ?? 'la clé primaire';
+        throw Exception('Erreur : Une valeur existe déjà pour $columns.');
+      }
+      if (errorStr.contains('FOREIGN KEY constraint failed')) {
+        throw Exception(
+          'Erreur : La valeur saisie pour la clé étrangère n\'existe pas dans la table parente.',
+        );
+      }
+      if (errorStr.contains('NOT NULL constraint failed')) {
+        throw Exception('Erreur : Certains champs obligatoires sont vides.');
+      }
+      if (errorStr.contains('datatype mismatch')) {
+        throw Exception(
+          'Erreur : Type de données incompatible pour un ou plusieurs champs.',
+        );
+      }
+      throw Exception('Erreur lors de l\'insertion : $e');
     }
   }
 

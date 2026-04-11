@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:pseudo_code/services/local_notification_service.dart';
+import 'package:pseudo_code/services/update_service.dart';
 import 'package:pseudo_code/ui/barre_haut.dart';
 import 'package:pseudo_code/ui/editeur_widget.dart';
 import 'package:pseudo_code/ui/console_widget.dart';
@@ -44,6 +47,15 @@ void main(List<String> args) async {
 
   // Récupération des fichiers passés en argument (Windows %1)
   final List<String> initialFiles = FileOpenService.getFilesFromArgs(args);
+
+  // Initialisation Supabase
+  await Supabase.initialize(
+    url: dotenv.get('SUPABASE_URL'),
+    anonKey: dotenv.get('SUPABASE_ANON_KEY'),
+  );
+
+  // Initialisation Notifications
+  await LocalNotificationService.instance.init();
 
   runApp(
     MultiProvider(
@@ -104,6 +116,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final consoleKey = GlobalKey<ConsoleWidgetState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Vérification automatique des mises à jour au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UpdateService.instance.checkForUpdate(context);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

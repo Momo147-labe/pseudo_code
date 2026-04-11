@@ -1,4 +1,4 @@
-name: Build Windows Installer
+name: CI/CD Build & Deploy
 
 on:
   push:
@@ -6,101 +6,86 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
-
+  # ==========================================
+  # JOB 1 : ANDROID BUILD & DEPLOY
+  # ==========================================
+  build-deploy-android:
+    runs-on: ubuntu-latest
     steps:
-      # 1️⃣ Récupérer le code
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # 2️⃣ Installer Flutter
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      # 3️⃣ Activer le support Windows
-      - name: Enable Windows Desktop
-        run: flutter config --enable-windows-desktop
+      - name: Create .env
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+          echo "BACKBLAZE_keyID=${{ secrets.BACKBLAZE_keyID }}" >> .env
+          echo "BACKBLAZE_applicationKey=${{ secrets.BACKBLAZE_applicationKey }}" >> .env
+          echo "BACKBLAZE_BUCKET_ID=${{ secrets.BACKBLAZE_BUCKET_ID }}" >> .env
 
-      # 4️⃣ Nettoyer les anciens builds
-      - name: Clean previous builds
-        run: flutter clean
-
-      # 5️⃣ Installer les dépendances
       - name: Install dependencies
         run: flutter pub get
 
-      # 6️⃣ Générer le fichier .env à partir des secrets GitHub
-      - name: Create .env file
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Deploy to B2 & Supabase
+        env:
+          BACKBLAZE_keyID: ${{ secrets.BACKBLAZE_keyID }}
+          BACKBLAZE_applicationKey: ${{ secrets.BACKBLAZE_applicationKey }}
+          BACKBLAZE_BUCKET_ID: ${{ secrets.BACKBLAZE_BUCKET_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          chmod +x scripts/deploy_update.sh
+          ./scripts/deploy_update.sh android
+
+  # ==========================================
+  # JOB 2 : WINDOWS BUILD & DEPLOY
+  # ==========================================
+  build-deploy-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Create .env
         shell: pwsh
         run: |
           "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" | Out-File -FilePath .env -Encoding utf8
           "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" | Out-File -FilePath .env -Append -Encoding utf8
-          "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" | Out-File -FilePath .env -Append -Encoding utf8
-          "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" | Out-File -FilePath .env -Append -Encoding utf8
-          "OLLAMA_BASE_URL=${{ secrets.OLLAMA_BASE_URL }}" | Out-File -FilePath .env -Append -Encoding utf8
+          "BACKBLAZE_keyID=${{ secrets.BACKBLAZE_keyID }}" | Out-File -FilePath .env -Append -Encoding utf8
+          "BACKBLAZE_applicationKey=${{ secrets.BACKBLAZE_applicationKey }}" | Out-File -FilePath .env -Append -Encoding utf8
+          "BACKBLAZE_BUCKET_ID=${{ secrets.BACKBLAZE_BUCKET_ID }}" | Out-File -FilePath .env -Append -Encoding utf8
 
-      # 7️⃣ Build Windows Release
-      - name: Build Windows EXE
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Windows
         run: flutter build windows --release
 
-      # 8️⃣ Vérifier que le dossier Release existe
-      - name: Verify build output
-        shell: pwsh
-        run: |
-          if (!(Test-Path "build/windows/x64/runner/Release")) {
-            Write-Error "❌ Dossier Release introuvable"
-            exit 1
-          }
-          Get-ChildItem build/windows/x64/runner/Release
-
-      # 9️⃣ Détecter le .exe
-      - name: Get EXE name
-        shell: pwsh
-        run: |
-          $exe = Get-ChildItem build/windows/x64/runner/Release/*.exe | Select-Object -First 1
-          if (-not $exe) {
-            Write-Error "❌ Aucun EXE trouvé"
-            exit 1
-          }
-          echo "EXE_NAME=$($exe.Name)" >> $env:GITHUB_ENV
-          echo "✔ EXE trouvé : $($exe.Name)"
-
-      # 1️⃣0️⃣ Nettoyer le dossier Output
-      - name: Clean Output directory
-        shell: pwsh
-        run: |
-          if (Test-Path "Output") {
-            Remove-Item -Path "Output\*" -Force -Recurse
-          } else {
-            mkdir Output -Force
-          }
-
-      # 1️⃣1️⃣ Installer Inno Setup via Chocolatey
       - name: Install Inno Setup
         run: choco install innosetup -y
 
-      # 1️⃣2️⃣ Vérifier que le fichier installer.iss existe
-      - name: Verify installer.iss exists
-        shell: pwsh
-        run: |
-          if (!(Test-Path "installer.iss")) {
-            Write-Error "❌ installer.iss introuvable !"
-            exit 1
-          }
-          Write-Host "✔ installer.iss trouvé"
-
-      # 1️⃣3️⃣ Générer Setup.exe avec le chemin complet de ISCC
-      - name: Build Setup.exe with Inno Setup
+      - name: Build Setup.exe
         shell: pwsh
         run: |
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer.iss"
 
-      # 1️⃣4️⃣ Upload du Setup.exe comme artifact
-      - name: Upload Setup.exe
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-setup
-          path: Output/*.exe
+      - name: Deploy to B2 & Supabase
+        shell: bash # Utilise bash fourni par git sur windows
+        env:
+          BACKBLAZE_keyID: ${{ secrets.BACKBLAZE_keyID }}
+          BACKBLAZE_applicationKey: ${{ secrets.BACKBLAZE_applicationKey }}
+          BACKBLAZE_BUCKET_ID: ${{ secrets.BACKBLAZE_BUCKET_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          # Correction du chemin car le script attend build/windows/x64/runner/Release/pseudo_code_installer.exe
+          # On s'assure que le fichier généré par Inno Setup est au bon endroit ou on adapte le script
+          chmod +x scripts/deploy_update.sh
+          ./scripts/deploy_update.sh windows

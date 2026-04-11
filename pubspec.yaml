@@ -40,6 +40,10 @@ dependencies:
   ffi: ^2.1.2
   crypto: ^3.0.3
   flutter_tts: ^4.2.0
+  supabase_flutter: ^2.6.0
+  package_info_plus: ^8.1.2
+  open_filex: ^4.5.1
+  flutter_local_notifications: ^17.2.3
 
 
 

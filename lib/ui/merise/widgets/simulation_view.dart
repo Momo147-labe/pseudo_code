@@ -485,7 +485,7 @@ class _SimulationViewState extends State<SimulationView> {
         ),
         const SizedBox(height: 16),
         if (widget.isMobile)
-          _buildQueryResult(scale)
+          SizedBox(height: 350, child: _buildQueryResult(scale))
         else
           Expanded(child: _buildQueryResult(scale)),
       ],
@@ -589,37 +589,44 @@ class _SimulationViewState extends State<SimulationView> {
                 style: TextStyle(color: Colors.grey),
               ),
             )
+          else if (widget.isMobile)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SingleChildScrollView(child: _buildResultTable()),
+            )
           else
             Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: SingleChildScrollView(
-                  child: DataTable(
-                    columns: _queryResult!.columns.map((col) {
-                      return DataColumn(
-                        label: Text(
-                          col,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E88E5),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                    rows: _queryResult!.rows.map((row) {
-                      return DataRow(
-                        cells: _queryResult!.columns.map((col) {
-                          final value = row[col];
-                          return DataCell(Text(value?.toString() ?? "NULL"));
-                        }).toList(),
-                      );
-                    }).toList(),
-                  ),
-                ),
+                child: SingleChildScrollView(child: _buildResultTable()),
               ),
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildResultTable() {
+    return DataTable(
+      columns: _queryResult!.columns.map((col) {
+        return DataColumn(
+          label: Text(
+            col,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E88E5),
+            ),
+          ),
+        );
+      }).toList(),
+      rows: _queryResult!.rows.map((row) {
+        return DataRow(
+          cells: _queryResult!.columns.map((col) {
+            final value = row[col];
+            return DataCell(Text(value?.toString() ?? "NULL"));
+          }).toList(),
+        );
+      }).toList(),
     );
   }
 
@@ -663,11 +670,12 @@ class _SimulationViewState extends State<SimulationView> {
             }
           } catch (e) {
             if (mounted) {
+              String errorMsg = e.toString();
+              if (errorMsg.startsWith('Exception: ')) {
+                errorMsg = errorMsg.substring(11);
+              }
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Erreur: $e'),
-                  backgroundColor: Colors.red,
-                ),
+                SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
               );
             }
           }
@@ -814,9 +822,25 @@ class _AddRecordDialogState extends State<_AddRecordDialog> {
       } else {
         final lowerType = col.type.toLowerCase();
         if (lowerType.contains('int')) {
-          data[col.name] = int.tryParse(value) ?? value;
+          final parsed = int.tryParse(value);
+          if (parsed == null) {
+            _showError(
+              context,
+              'La colonne ${col.name} attend un nombre entier.',
+            );
+            return;
+          }
+          data[col.name] = parsed;
         } else if (lowerType.contains('real') || lowerType.contains('double')) {
-          data[col.name] = double.tryParse(value) ?? value;
+          final parsed = double.tryParse(value);
+          if (parsed == null) {
+            _showError(
+              context,
+              'La colonne ${col.name} attend un nombre décimal.',
+            );
+            return;
+          }
+          data[col.name] = parsed;
         } else {
           data[col.name] = value;
         }
@@ -825,5 +849,11 @@ class _AddRecordDialogState extends State<_AddRecordDialog> {
 
     widget.onAdd(data);
     Navigator.pop(context);
+  }
+
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
   }
 }

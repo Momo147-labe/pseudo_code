@@ -10,6 +10,7 @@ import '../outils/traducteur.dart';
 import '../outils/exportateur.dart';
 import 'package:flutter/services.dart';
 import '../outils/formateur.dart';
+import '../services/update_service.dart';
 
 class BarreHaut extends StatelessWidget {
   final VoidCallback onExecuter;
@@ -153,6 +154,16 @@ class BarreHaut extends StatelessWidget {
               theme: theme,
             ),
           const SizedBox(width: 8),
+          if (isMobile)
+            _HeaderAction(
+              icon: Icons.system_update_alt,
+              onPressed: () => UpdateService.instance.checkForUpdate(
+                context,
+                isManual: true,
+              ),
+              tooltip: 'Mise à jour',
+              theme: theme,
+            ),
           _HeaderAction(
             onPressed: onDebug,
             icon: Icons.bug_report,
