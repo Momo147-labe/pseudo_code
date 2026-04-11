@@ -35,9 +35,16 @@ elif [ "$PLATFORM" == "linux" ]; then
     FILE_NAME="pseudo_code_v${VERSION_NAME}_linux"
     MIME_TYPE="application/octet-stream"
 else
-    # Chemin vers l'installeur Windows (à adapter selon votre méthode de build)
-    FILE_PATH="build/windows/x64/runner/Release/pseudo_code_installer.exe"
-    FILE_NAME="pseudo_code_v${VERSION_NAME}_installer.exe"
+    # Chemin vers l'installeur Windows généré par Inno Setup
+    # On cherche le premier .exe dans le dossier Output
+    POTENTIAL_FILE=$(ls Output/*.exe 2>/dev/null | head -n 1)
+    if [ -n "$POTENTIAL_FILE" ]; then
+        FILE_PATH="$POTENTIAL_FILE"
+        FILE_NAME="pseudo_code_v${VERSION_NAME}_installer.exe"
+    else
+        FILE_PATH="build/windows/x64/runner/Release/pseudo_code_installer.exe"
+        FILE_NAME="pseudo_code_v${VERSION_NAME}_installer.exe"
+    fi
     MIME_TYPE="application/x-msdownload"
 fi
 
