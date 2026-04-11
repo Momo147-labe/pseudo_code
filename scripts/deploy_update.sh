@@ -56,18 +56,33 @@ fi
 echo "🚀 Déploiement $PLATFORM ($VERSION_NAME) vers Backblaze B2..."
 
 # 1. Authentification Backblaze B2
-AUTH_RESP=$(curl -s https://api.backblazeb2.com/b2api/v2/b2_authorize_account -u "${BACKBLAZE_keyID}:${BACKBLAZE_applicationKey}")
+echo "🔑 Authentification à Backblaze B2..."
+AUTH_RESP=$(curl -f -s https://api.backblazeb2.com/b2api/v2/b2_authorize_account -u "${BACKBLAZE_keyID}:${BACKBLAZE_applicationKey}")
+if [ $? -ne 0 ]; then
+    echo "❌ Échec de l'authentification B2. Vérifiez vos identifiants."
+    exit 6
+fi
+
 AUTH_TOKEN=$(echo "$AUTH_RESP" | jq -r '.authorizationToken')
 API_URL=$(echo "$AUTH_RESP" | jq -r '.apiUrl')
 DOWNLOAD_URL=$(echo "$AUTH_RESP" | jq -r '.downloadUrl')
 ACCOUNT_ID=$(echo "$AUTH_RESP" | jq -r '.accountId')
 
-BUCKET_NAME=$(curl -s "${API_URL}/b2api/v2/b2_list_buckets" -H "Authorization: ${AUTH_TOKEN}" -d "{\"accountId\": \"$ACCOUNT_ID\"}" | jq -r ".buckets[] | select(.bucketId == \"$BACKBLAZE_BUCKET_ID\") | .bucketName")
+echo "📦 Récupération du nom du bucket..."
+BUCKET_RESP=$(curl -f -s "${API_URL}/b2api/v2/b2_list_buckets" -H "Authorization: ${AUTH_TOKEN}" -d "{\"accountId\": \"$ACCOUNT_ID\"}")
+if [ $? -ne 0 ]; then
+    echo "❌ Échec de la récupération des buckets."
+    exit 7
+fi
+BUCKET_NAME=$(echo "$BUCKET_RESP" | jq -r ".buckets[] | select(.bucketId == \"$BACKBLAZE_BUCKET_ID\") | .bucketName")
 
 # 2. Upload
-UPLOAD_RESP=$(curl -s "${API_URL}/b2api/v2/b2_get_upload_url" -H "Authorization: ${AUTH_TOKEN}" -d "{\"bucketId\": \"$BACKBLAZE_BUCKET_ID\"}")
-UPLOAD_URL=$(echo "$UPLOAD_RESP" | jq -r '.uploadUrl')
-UPLOAD_TOKEN=$(echo "$UPLOAD_RESP" | jq -r '.authorizationToken')
+echo "🔗 Récupération de l'URL d'upload..."
+UPLOAD_RESP=$(curl -f -s "${API_URL}/b2api/v2/b2_get_upload_url" -H "Authorization: ${AUTH_TOKEN}" -d "{\"bucketId\": \"$BACKBLAZE_BUCKET_ID\"}")
+if [ $? -ne 0 ]; then
+    echo "❌ Échec de la récupération de l'URL d'upload."
+    exit 8
+fi
 
 echo "📤 Upload de $FILE_NAME..."
 SHA1=$(sha1sum "$FILE_PATH" | awk '{print $1}')
